@@ -20,7 +20,7 @@ export default function Form() {
         </p>
         <fieldset>
           <label htmlFor="resonance">
-            Does this artist's life story and works echos with your personal
+            Does the life story and works of the artist echos with your personal
             experiences?
           </label>
           <input
