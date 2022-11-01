@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { ChakraProvider, theme } from "@chakra-ui/react";
 import {
   Box,
@@ -35,6 +36,7 @@ export default function GoogleMaps() {
     completitionYear: string | undefined;
     artistName: string | undefined;
     geometry: { lat: number; lng: number } | undefined;
+    id: string | undefined;
   }
   const [selectedMarker, setSelectedMarker] = useState<IWindow>({
     image: undefined,
@@ -43,6 +45,7 @@ export default function GoogleMaps() {
     completitionYear: undefined,
     artistName: undefined,
     geometry: undefined,
+    id: undefined,
   });
   const [map, setMap] = useState(/** @type google.maps.Map */ null);
   const [galleries, setGalleries] = useState([]);
@@ -60,7 +63,8 @@ export default function GoogleMaps() {
     onLoad();
     const getArtworks = async () => {
       const q = query(
-        collection(db, "vincent-van-gogh-selected-artwork"),
+        collection(db, "artworks"),
+        where("artistUrl", "==", "vincent-van-gogh"),
         orderBy("completitionYear", "desc")
       );
       const querySnapshot = await getDocs(q);
@@ -121,6 +125,7 @@ export default function GoogleMaps() {
                     completitionYear: undefined,
                     artistName: undefined,
                     geometry: undefined,
+                    id: undefined,
                   });
                 }}
                 onLoad={onLoad}
@@ -133,7 +138,12 @@ export default function GoogleMaps() {
                   <h1>{selectedMarker.galleries}</h1>
                   <p>{selectedMarker.title}</p>
                   <p>{selectedMarker.completitionYear}</p>
-                  <img style={{ width: "100px" }} src={selectedMarker.image} />
+                  <Link href={`/collection-maps/${selectedMarker.id}`}>
+                    <img
+                      style={{ width: "100px" }}
+                      src={selectedMarker.image}
+                    />
+                  </Link>
                 </div>
               </InfoWindow>
             )}
