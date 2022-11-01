@@ -11,98 +11,172 @@ import {
   SkeletonText,
   Text,
 } from "@chakra-ui/react";
+import { FaLocationArrow } from "react-icons/fa";
 import {
   useJsApiLoader,
   GoogleMap,
   Marker,
   Autocomplete,
-  DirectionsRenderer,
   InfoWindow,
 } from "@react-google-maps/api";
+import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
+import { db } from "../config/firebase";
+
 import { useRef, useState, useEffect } from "react";
 
 const google = window.google;
-const center = { lat: 23.818779, lng: 120.979708 };
-const taipeiBranch = { lat: 25.038674695417868, lng: 121.53238182606339 };
-const taipeiAddress = "100台北市中正區仁愛路二段99號";
+const center = { lat: 52.90097126278884, lng: 18.668388603761674 };
 
 export default function GoogleMaps() {
+  interface IWindow {
+    image: string | undefined;
+    galleries: string | undefined;
+    title: string | undefined;
+    completitionYear: string | undefined;
+    artistName: string | undefined;
+    geometry: { lat: number; lng: number } | undefined;
+  }
+  const [selectedMarker, setSelectedMarker] = useState<IWindow>({
+    image: undefined,
+    galleries: undefined,
+    title: undefined,
+    completitionYear: undefined,
+    artistName: undefined,
+    geometry: undefined,
+  });
   const [map, setMap] = useState(/** @type google.maps.Map */ null);
+  const [galleries, setGalleries] = useState([]);
+  const destiantionRef = useRef<HTMLInputElement>(null);
 
-  const markers = [
-    {
-      name: "taipei",
-      location: taipeiBranch,
-      address: taipeiAddress,
-      region: "北部分店",
-      branchAddress: "地址｜100台北市中正區仁愛路二段99號",
-      tel: "電話｜(02) 2995-5487",
-    },
-  ];
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
     libraries: ["places"],
   });
+  const onLoad = () => {
+    console.log("infoWindow: ", InfoWindow);
+  };
+
+  useEffect(() => {
+    onLoad();
+    const getArtworks = async () => {
+      const q = query(
+        collection(db, "vincent-van-gogh-selected-artwork"),
+        orderBy("completitionYear", "desc")
+      );
+      const querySnapshot = await getDocs(q);
+      const docs = querySnapshot.docs.map((doc) => doc.data());
+      console.log(docs);
+      setGalleries(docs);
+    };
+    getArtworks();
+  }, [selectedMarker]);
+
+  const getGallery = (galleries) => {
+    destiantionRef.current.value = galleries.galleries;
+    setSelectedMarker(galleries);
+  };
   if (!isLoaded) {
     return <SkeletonText />;
   }
+
   return (
-    <>
-      <ChakraProvider theme={theme}>
-        <Flex
-          position="relative"
-          flexDirection="column"
-          alignItems="center"
-          h="100vh"
-          w="100vw"
-        >
-          <Box position="absolute" left={0} top={0} h="100%" w="100%">
-            <GoogleMap
-              center={center}
-              zoom={7}
-              mapContainerStyle={{ width: "100%", height: "100vh" }}
-              options={{
-                // zoomControl: false,
-                streetViewControl: false,
-                mapTypeControl: false,
-                fullscreenControl: false,
-              }}
-              onLoad={(map) => setMap(map)}
-            >
-              {markers.map((marker) => {
-                return <Marker key={marker.name} position={marker.location} />;
-              })}
-            </GoogleMap>
-          </Box>
-          <Box
-            p={4}
-            borderRadius="lg"
-            m={4}
-            bgColor="white"
-            shadow="base"
-            minW="container.md"
-            zIndex="1"
+    <ChakraProvider theme={theme}>
+      <Flex
+        position="relative"
+        flexDirection="column"
+        alignItems="center"
+        h="100vh"
+        w="100vw"
+      >
+        <Box position="absolute" left={0} top={0} h="100%" w="100%">
+          <GoogleMap
+            center={center}
+            zoom={4}
+            mapContainerStyle={{ width: "100%", height: "100vh" }}
+            options={{
+              streetViewControl: false,
+              mapTypeControl: false,
+              fullscreenControl: false,
+            }}
+            onLoad={(map) => setMap(map)}
           >
-            <HStack spacing={2} justifyContent="space-between">
-              <Box flexGrow={1}>
-                <Autocomplete>
-                  <Input type="text" placeholder="出發地點" />
-                </Autocomplete>
-              </Box>
-            </HStack>
-            <HStack spacing={4} mt={4} justifyContent="space-between">
-              <IconButton
-                aria-label="center back"
-                isRound
-                onClick={() => {
-                  map.panTo(center);
-                  map.setZoom(7);
+            {galleries.map((g) => {
+              return (
+                <Marker
+                  key={g.id}
+                  position={g.geometry}
+                  onClick={() => {
+                    getGallery(g);
+                  }}
+                />
+              );
+            })}
+            {selectedMarker?.geometry && (
+              <InfoWindow
+                onCloseClick={() => {
+                  setSelectedMarker({
+                    image: undefined,
+                    galleries: undefined,
+                    title: undefined,
+                    completitionYear: undefined,
+                    artistName: undefined,
+                    geometry: undefined,
+                  });
                 }}
-              />
-            </HStack>
-          </Box>
-        </Flex>
-      </ChakraProvider>
-    </>
+                onLoad={onLoad}
+                options={{
+                  pixelOffset: new window.google.maps.Size(0, -40),
+                }}
+                position={selectedMarker.geometry}
+              >
+                <div>
+                  <h1>{selectedMarker.galleries}</h1>
+                  <p>{selectedMarker.title}</p>
+                  <p>{selectedMarker.completitionYear}</p>
+                  <img style={{ width: "100px" }} src={selectedMarker.image} />
+                </div>
+              </InfoWindow>
+            )}
+          </GoogleMap>
+        </Box>
+        <Box
+          p={4}
+          borderRadius="lg"
+          m={4}
+          bgColor="white"
+          shadow="base"
+          minW="container.md"
+          zIndex="1"
+        >
+          <HStack spacing={2} justifyContent="space-between">
+            <Box flexGrow={1}>
+              <Autocomplete>
+                <Input
+                  type="text"
+                  placeholder="Click on the markers to get gallery address"
+                  ref={destiantionRef}
+                />
+              </Autocomplete>
+            </Box>
+          </HStack>
+          <HStack spacing={4} mt={4} justifyContent="space-between">
+            <IconButton
+              aria-label="center back"
+              icon={<FaLocationArrow />}
+              isRound
+              onClick={() => {
+                map.panTo(center);
+                map.setZoom(7);
+              }}
+            />
+            <ButtonGroup>
+              <Button colorScheme="pink" type="submit">
+                Find a place
+              </Button>
+            </ButtonGroup>
+          </HStack>
+        </Box>
+      </Flex>
+    </ChakraProvider>
   );
 }

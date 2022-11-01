@@ -1,39 +1,52 @@
 import Link from "next/link";
-import { useEffect, useRef, useState, useContext } from "react";
+import { useEffect, useRef, useState, useContext, use } from "react";
+import api from "../utils/api";
+import {
+  collection,
+  onSnapshot,
+  doc,
+  query,
+  where,
+  getDocs,
+  getDoc,
+  setDoc,
+  Timestamp,
+  orderBy,
+} from "firebase/firestore";
 
+import { db } from "../config/firebase";
 export default function Artworks() {
-  const [artworkID, setArtworkID] = useState([]);
+  const [artworks, setArtworks] = useState([]);
+
   useEffect(() => {
     const getArtist = async () => {
-      const res = await fetch(
-        "https://collectionapi.metmuseum.org/public/collection/v1/search?q=sunflowers"
+      const q = query(
+        collection(db, "vincent-van-gogh"),
+        orderBy("completitionYear", "desc")
       );
-      const result = await res.json();
-      console.log(result.objectIDs);
-      setArtworkID(result.objectIDs);
+      const querySnapshot = await getDocs(q);
+      const docs = querySnapshot.docs.map((doc) => doc.data());
+      console.log(docs);
+      setArtworks(docs);
     };
     getArtist();
   }, []);
-
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     fetch(
-  //       "https://collectionapi.metmuseum.org/public/collection/v1/search?q=sunflowers"
-  //     )
-  //       .then((res) => res.json())
-  //       .then((result) => {
-  //         console.log(result);
-  //       })
-  //       .catch(console.log);
-  //   };
-  //   fetchData();
-  // }, []);
 
   return (
     <>
       <Link href="/">
         <p>Back to Index Page</p>
       </Link>
+      <div className="painints-container">
+        <style jsx>{`
+          .painints-container {
+            display: flex;
+            overflow: x;
+            height: 500px;
+          }
+        `}</style>
+        {artworks && artworks.map((artwork) => <img src={artwork.image}></img>)}
+      </div>
     </>
   );
 }

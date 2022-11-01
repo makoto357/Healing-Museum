@@ -7,6 +7,7 @@
 
 # testing
 /coverage
+/firestore-data/
 
 # next.js
 /.next/
