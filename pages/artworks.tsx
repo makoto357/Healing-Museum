@@ -14,7 +14,7 @@ import {
 } from "firebase/firestore";
 
 import { db } from "../config/firebase";
-import Modal from "../components/modal";
+import Modal from "../components/Modal";
 export default function Artworks() {
   const [artworks, setArtworks] = useState([]);
   const [showModal, setShowModal] = useState(false);

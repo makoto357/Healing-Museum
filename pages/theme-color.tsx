@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function ThemeColor() {
   const themeColors = ["red", "orange", "yellow", "green", "blue", "purple"];
   return (
@@ -13,6 +15,11 @@ export default function ThemeColor() {
           }}
         ></button>
       ))}
+      <div style={{ textAlign: "right" }}>
+        <Link href="/quiz">
+          <p>click colors to go to quiz page</p>
+        </Link>
+      </div>
     </>
   );
 }

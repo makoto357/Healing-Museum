@@ -127,6 +127,11 @@ export default function ArtworkDetail() {
             </section>
           </div>
         ))}
+      <div style={{ textAlign: "left" }}>
+        <Link href="/collection-maps">
+          <p>back to map page</p>
+        </Link>
+      </div>
       <div style={{ textAlign: "right" }}>
         <Link href="/artworks">
           <p>Explore more artworks!</p>

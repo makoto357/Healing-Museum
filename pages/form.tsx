@@ -42,6 +42,11 @@ export default function Form() {
 
         <button type="submit"></button>
       </form>
+      <div style={{ textAlign: "right" }}>
+        <Link href="/user-profile">
+          <p>here is a souvenir for you at the end of your journey</p>
+        </Link>
+      </div>
     </>
   );
 }

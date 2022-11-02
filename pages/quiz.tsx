@@ -1,4 +1,5 @@
 import { Radio } from "@chakra-ui/react";
+import Link from "next/link";
 
 export default function Quiz() {
   const onChangeValue = (e) => {
@@ -16,6 +17,11 @@ export default function Quiz() {
 
         <input type="radio" id="artist3" name="artist" value="frida" />
         <label htmlFor="artist1">FRIDA</label>
+      </div>
+      <div style={{ textAlign: "right" }}>
+        <Link href="/collection-maps">
+          <p>click options to go to map page</p>
+        </Link>
       </div>
     </>
   );

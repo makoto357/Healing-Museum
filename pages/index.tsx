@@ -2,12 +2,16 @@ import Link from "next/link";
 import Image from "next/image";
 import styles from "../styles/Home.module.css";
 import { useEffect, useRef, useState, useContext } from "react";
+import { useAuth } from "../context/AuthContext";
 
 export default function Home() {
+  const { user } = useAuth();
   return (
     <>
       <nav className="nav">
-        <div>signup / signin</div>
+        <Link href="/registration">
+          <div>start the journey</div>
+        </Link>
         <div>EN/CN</div>
       </nav>
       <div className="index-page">
@@ -25,6 +29,11 @@ export default function Home() {
         `}</style>
         <ul>
           <li>
+            <Link href="/quiz">
+              <p>Quiz</p>
+            </Link>
+          </li>
+          <li>
             <Link href="/collection-maps">
               <p>Collection Maps</p>
             </Link>
@@ -34,6 +43,24 @@ export default function Home() {
               <p>Artworks</p>
             </Link>
           </li>
+          <li>
+            <Link href="/artist-video">
+              <p>artist video</p>
+            </Link>
+          </li>
+          <li>
+            <Link href="/visitor-post">
+              <p>visitor post</p>
+            </Link>
+          </li>
+
+          {user && (
+            <li>
+              <Link href="/user-profile">
+                <p>Profile</p>
+              </Link>
+            </li>
+          )}
         </ul>
 
         <section className="intro-text">

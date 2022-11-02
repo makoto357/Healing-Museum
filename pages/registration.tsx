@@ -19,7 +19,7 @@ export default function LoginPage() {
     console.log(loginData);
     try {
       await login(loginData.email, loginData.password);
-      // router.push("/");
+      router.push("/theme-color");
     } catch (err) {
       alert(err);
       console.log(err);
@@ -42,6 +42,7 @@ export default function LoginPage() {
         last_changed: Timestamp.fromDate(new Date()),
       });
       alert("Successful registration!");
+      router.push("/theme-color");
     } catch (error) {
       console.log(error);
       alert(error);
@@ -132,7 +133,9 @@ export default function LoginPage() {
         </div>
       </section>
       <section></section>
-      <h1>OR</h1>
+      <h1>
+        <strong>OR</strong>
+      </h1>
       <section className="justify-center">
         <div className="flex flex-col items-center  px-6 py-8 mx-auto md:h-screen lg:py-0">
           <div className="max-h-min bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
@@ -226,6 +229,10 @@ export default function LoginPage() {
           </div>
         </div>
       </section>
+      <h1>
+        <strong>OR</strong>
+      </h1>
+      <Link href="/theme-color">Skip this step</Link>
     </>
   );
 }
