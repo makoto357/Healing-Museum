@@ -18,7 +18,13 @@ import Modal from "../components/modal";
 export default function Artworks() {
   const [artworks, setArtworks] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [modalInfo, setModalInfo] = useState({});
 
+  const getModalInfo = (artwork) => {
+    setShowModal(true);
+    setModalInfo(artwork);
+  };
+  console.log(modalInfo);
   useEffect(() => {
     console.log("hello?");
     const getArtist = async () => {
@@ -49,16 +55,18 @@ export default function Artworks() {
         `}</style>
         {artworks &&
           artworks?.map((artwork) => (
-            <div key={artwork.id} onClick={() => setShowModal(true)}>
+            <div key={artwork.id} onClick={() => getModalInfo(artwork)}>
               <img alt={artwork.title} src={artwork.image} />
             </div>
           ))}
       </div>
       <div>
-        <button onClick={() => setShowModal(true)}>Open Modal</button>
-        <Modal onClose={() => setShowModal(false)} show={showModal}>
-          Hello from the modal!
-        </Modal>
+        {showModal && (
+          <Modal onClose={() => setShowModal(false)}>
+            Hello from the modal!
+            <p>{JSON.stringify(modalInfo)}</p>
+          </Modal>
+        )}
       </div>
     </>
   );

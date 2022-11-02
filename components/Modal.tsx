@@ -1,19 +1,6 @@
-import React, { useEffect, useState } from "react";
-import ReactDOM from "react-dom";
-
-const Modal = ({ show, onClose, children, title }) => {
-  const [isBrowser, setIsBrowser] = useState(false);
-
-  useEffect(() => {
-    setIsBrowser(true);
-  }, []);
-
-  const handleCloseClick = (e) => {
-    e.preventDefault();
-    onClose();
-  };
-
-  const modalContent = show ? (
+import { createPortal } from "react-dom";
+const Modal = ({ onClose, children }) => {
+  return createPortal(
     <div className="StyledModalOverlay">
       <style jsx>
         {`
@@ -47,24 +34,13 @@ const Modal = ({ show, onClose, children, title }) => {
       </style>
       <div className="StyledModal">
         <div className="StyledModalHeader">
-          <a href="#" onClick={handleCloseClick}>
-            x
-          </a>
+          <div onClick={onClose}>x</div>
         </div>
-        {title && <div>{title}</div>}
         <div className="StyledModalBody">{children}</div>
       </div>
-    </div>
-  ) : null;
-
-  if (isBrowser) {
-    return ReactDOM.createPortal(
-      modalContent,
-      document.getElementById("modal-root")
-    );
-  } else {
-    return null;
-  }
+    </div>,
+    document.getElementById("modal-root")
+  );
 };
 
 export default Modal;
