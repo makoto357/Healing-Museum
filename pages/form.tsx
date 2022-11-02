@@ -1,5 +1,5 @@
 import Link from "next/link";
-
+import Image from "next/image";
 export default function Form() {
   return (
     <>
@@ -20,7 +20,7 @@ export default function Form() {
         </p>
         <fieldset>
           <label htmlFor="resonance">
-            Does this artist's life story and works echos with your personal
+            Does the life story of this artist echos with your personal
             experiences?
           </label>
           <input
@@ -32,7 +32,7 @@ export default function Form() {
         </fieldset>
         <fieldset>
           <div>
-            <img />
+            {/* <Image alt="" /> */}
             <div></div>
             <p></p>
             <div></div>

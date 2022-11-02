@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/router";
 import { ChakraProvider, theme } from "@chakra-ui/react";
 import {
@@ -134,15 +135,18 @@ export default function GoogleMaps() {
                 }}
                 position={selectedMarker.geometry}
               >
-                <div>
+                <div
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    position: "relative",
+                  }}
+                >
                   <h1>{selectedMarker.galleries}</h1>
                   <p>{selectedMarker.title}</p>
                   <p>{selectedMarker.completitionYear}</p>
                   <Link href={`/collection-maps/${selectedMarker.id}`}>
-                    <img
-                      style={{ width: "100px" }}
-                      src={selectedMarker.image}
-                    />
+                    <img alt={selectedMarker.id} src={selectedMarker.image} />
                   </Link>
                 </div>
               </InfoWindow>

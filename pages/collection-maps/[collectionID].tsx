@@ -4,7 +4,6 @@ import { useRouter } from "next/router";
 import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
 import { db } from "../../config/firebase";
 import { useRef, useState, useEffect } from "react";
-import { arch } from "os";
 export default function ArtworkDetail() {
   const router = useRouter();
   const collectionID = router.query.collectionID;
@@ -72,7 +71,7 @@ export default function ArtworkDetail() {
         where("id", "==", collectionID)
       );
       const querySnapshot = await getDocs(q);
-      const docs = querySnapshot.docs.map((doc) => doc.data());
+      const docs = querySnapshot.docs?.map((doc) => doc.data());
       console.log(docs);
       const IArtworks = docs as IArtworks;
       setArtwork(IArtworks);
@@ -106,12 +105,6 @@ export default function ArtworkDetail() {
             <section>
               <div>
                 <ul>
-                  {/* <li>
-                    <span>
-                      {artwork.period}
-                      {artwork.serie}
-                    </span>
-                  </li> */}
                   <li>
                     <span>{artwork.genres}</span>
                   </li>
@@ -119,7 +112,7 @@ export default function ArtworkDetail() {
                     <span>{artwork.styles}</span>
                   </li>
                   <li>
-                    {artwork.media.map((medium, index) => (
+                    {artwork?.media?.map((medium, index) => (
                       <span key={index}>{medium},</span>
                     ))}
                   </li>
@@ -129,7 +122,7 @@ export default function ArtworkDetail() {
                     </p>
                   </li>
                   <li>Collection of the {artwork.galleries}</li>
-                  {artwork.tags.map((tag, index) => (
+                  {artwork?.tags?.map((tag, index) => (
                     <span key={index}>#{tag} </span>
                   ))}
                 </ul>

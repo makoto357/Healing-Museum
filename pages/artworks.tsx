@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useRef, useState, useContext, use } from "react";
 import api from "../utils/api";
 import {
@@ -45,7 +46,10 @@ export default function Artworks() {
             height: 500px;
           }
         `}</style>
-        {artworks && artworks.map((artwork) => <img src={artwork.image}></img>)}
+        {artworks &&
+          artworks.map((artwork) => (
+            <Image alt={artwork.title} key={artwork.id} src={artwork.image} />
+          ))}
       </div>
     </>
   );
