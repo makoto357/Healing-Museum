@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
 import { db } from "../../config/firebase";
 import { useRef, useState, useEffect } from "react";
+import { arch } from "os";
 export default function ArtworkDetail() {
   const router = useRouter();
   const collectionID = router.query.collectionID;
@@ -85,9 +86,55 @@ export default function ArtworkDetail() {
         <p>Back to Index Page</p>
       </Link>
       {artwork &&
-        artwork.map((artwork, index) => (
-          <div key={index} style={{ width: "500px" }}>
-            <img alt={artwork?.id} src={artwork?.image} />
+        artwork?.map((artwork, index) => (
+          <div key={index}>
+            <div style={{ width: "500px" }}>
+              <img alt={artwork.id} src={artwork.image} />
+            </div>
+            <div>
+              <h1>{artwork.title}</h1>
+              <h2>
+                <span>{artwork.artistName}</span>
+                <span>{artwork.completitionYear}</span>
+              </h2>
+            </div>
+            <section>
+              <div>
+                <p>{artwork.description}</p>
+              </div>
+            </section>
+            <section>
+              <div>
+                <ul>
+                  {/* <li>
+                    <span>
+                      {artwork.period}
+                      {artwork.serie}
+                    </span>
+                  </li> */}
+                  <li>
+                    <span>{artwork.genres}</span>
+                  </li>
+                  <li>
+                    <span>{artwork.styles}</span>
+                  </li>
+                  <li>
+                    {artwork.media.map((medium, index) => (
+                      <span key={index}>{medium},</span>
+                    ))}
+                  </li>
+                  <li>
+                    <p>
+                      {artwork.sizeX} X {artwork.sizeY} cm
+                    </p>
+                  </li>
+                  <li>Collection of the {artwork.galleries}</li>
+                  {artwork.tags.map((tag, index) => (
+                    <span key={index}>#{tag} </span>
+                  ))}
+                </ul>
+              </div>
+            </section>
           </div>
         ))}
     </>
