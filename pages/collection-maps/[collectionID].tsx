@@ -130,6 +130,11 @@ export default function ArtworkDetail() {
             </section>
           </div>
         ))}
+      <div style={{ textAlign: "right" }}>
+        <Link href="/artworks">
+          <p>Explore more artworks!</p>
+        </Link>
+      </div>
     </>
   );
 }
