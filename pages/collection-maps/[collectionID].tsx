@@ -81,9 +81,6 @@ export default function ArtworkDetail() {
   console.log(typeof artwork);
   return (
     <>
-      <Link href="/">
-        <p>Back to Index Page</p>
-      </Link>
       {artwork &&
         artwork?.map((artwork, index) => (
           <div key={index}>

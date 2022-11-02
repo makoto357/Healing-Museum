@@ -9,9 +9,6 @@ const GoogleMaps = dynamic(() => import("../../components/map"), {
 export default function CollectionMap() {
   return (
     <>
-      <Link href="/">
-        <p>Back to Index Page</p>
-      </Link>
       <GoogleMaps />
     </>
   );

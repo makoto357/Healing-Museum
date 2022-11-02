@@ -3,10 +3,6 @@ import Image from "next/image";
 export default function Form() {
   return (
     <>
-      <Link href="/">
-        <p>Back to Index Page</p>
-      </Link>
-
       <form className="main-form">
         <style jsx>{`
           .main-form {

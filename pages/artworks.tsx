@@ -42,9 +42,6 @@ export default function Artworks() {
   console.log(artworks);
   return (
     <>
-      <Link href="/">
-        <p>Back to Index Page</p>
-      </Link>
       <div className="painints-container">
         <style jsx>{`
           .painints-container {
@@ -67,6 +64,11 @@ export default function Artworks() {
             <p>{JSON.stringify(modalInfo)}</p>
           </Modal>
         )}
+      </div>
+      <div style={{ textAlign: "right" }}>
+        <Link href="/artist-video">
+          <p>See some videos!</p>
+        </Link>
       </div>
     </>
   );
