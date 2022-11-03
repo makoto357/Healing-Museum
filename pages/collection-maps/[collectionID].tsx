@@ -3,7 +3,9 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
 import { db } from "../../config/firebase";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useContext, useEffect } from "react";
+import { ThemeColorContext } from "../../context/ProfileContext";
+
 export default function ArtworkDetail() {
   const router = useRouter();
   const collectionID = router.query.collectionID;
@@ -78,7 +80,8 @@ export default function ArtworkDetail() {
     };
     getArtworks();
   }, [collectionID]);
-  console.log(typeof artwork);
+  const [themeColor] = useContext(ThemeColorContext);
+  console.log(themeColor);
   return (
     <>
       {artwork &&
@@ -132,6 +135,9 @@ export default function ArtworkDetail() {
           <p>back to map page</p>
         </Link>
       </div>
+      <div
+        style={{ background: themeColor, height: "100px", width: "100px" }}
+      ></div>
       <div style={{ textAlign: "right" }}>
         <Link href="/artworks">
           <p>Explore more artworks!</p>

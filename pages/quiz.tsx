@@ -1,7 +1,10 @@
 import { Radio } from "@chakra-ui/react";
 import Link from "next/link";
-
+import { useState, useContext } from "react";
+import { ThemeColorContext } from "../context/ProfileContext";
 export default function Quiz() {
+  const [themeColor] = useContext(ThemeColorContext);
+
   const onChangeValue = (e) => {
     console.log(e.target.value);
     localStorage.setItem("artist", e.target.value);
@@ -23,6 +26,9 @@ export default function Quiz() {
           <p>click options to go to map page</p>
         </Link>
       </div>
+      <div
+        style={{ background: themeColor, height: "100px", width: "100px" }}
+      ></div>
     </>
   );
 }

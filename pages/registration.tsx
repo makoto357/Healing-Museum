@@ -232,6 +232,7 @@ export default function LoginPage() {
       <h1>
         <strong>OR</strong>
       </h1>
+
       <Link href="/theme-color">Skip this step</Link>
     </>
   );
