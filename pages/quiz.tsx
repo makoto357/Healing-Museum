@@ -4,10 +4,9 @@ import { useState, useContext } from "react";
 import { ThemeColorContext } from "../context/ProfileContext";
 export default function Quiz() {
   const [themeColor] = useContext(ThemeColorContext);
-
   const onChangeValue = (e) => {
     console.log(e.target.value);
-    localStorage.setItem("artist", e.target.value);
+    // localStorage.setItem("artist", e.target.value);
   };
   return (
     <>
