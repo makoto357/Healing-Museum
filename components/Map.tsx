@@ -36,7 +36,7 @@ import {
 import { db } from "../config/firebase";
 import { useRef, useState, useEffect, useContext } from "react";
 import { useAuth } from "../context/AuthContext";
-// import { useFavorite } from "../context/favoriteContext";
+import { useFavorite } from "../context/favoriteContext";
 import heart from "../asset/17d0747c12d59dd8fd244e90d91956b9.png";
 const google = window.google;
 const center = { lat: 52.90097126278884, lng: 18.668388603761674 };

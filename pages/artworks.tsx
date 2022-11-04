@@ -11,11 +11,17 @@ import {
   setDoc,
   Timestamp,
   orderBy,
+  updateDoc,
+  arrayUnion,
 } from "firebase/firestore";
 
 import { db } from "../config/firebase";
+import { useAuth } from "../context/AuthContext";
+import heart from "../asset/17d0747c12d59dd8fd244e90d91956b9.png";
 import Modal from "../components/Modal";
 export default function Artworks() {
+  const { user } = useAuth();
+
   const [artworks, setArtworks] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [modalInfo, setModalInfo] = useState<IModalInfo>({
@@ -45,6 +51,7 @@ export default function Artworks() {
   }
 
   const getModalInfo = (artwork) => {
+    console.log(modalInfo);
     setShowModal(true);
     setModalInfo(artwork);
   };
@@ -61,7 +68,12 @@ export default function Artworks() {
     };
     getArtist();
   }, []);
-  console.log(artworks);
+  const saveToFavorites = async (id) => {
+    const requestRef = doc(db, "users", user?.uid);
+    return await updateDoc(requestRef, {
+      favoriteArtworksID: arrayUnion(modalInfo.id),
+    });
+  };
   return (
     <>
       <div className="painints-container">
@@ -75,7 +87,13 @@ export default function Artworks() {
         `}</style>
         {artworks &&
           artworks?.map((artwork) => (
-            <div key={artwork.id} onClick={(artwork) => getModalInfo(artwork)}>
+            <div
+              key={artwork.id}
+              onClick={(e) => {
+                console.log(e.target);
+                getModalInfo(artwork);
+              }}
+            >
               <img
                 alt={artwork.title}
                 src={artwork.image}
@@ -94,6 +112,16 @@ export default function Artworks() {
             <p>
               {modalInfo.width} X {modalInfo.height} cm
             </p>
+            <div
+              role="button"
+              style={{
+                backgroundImage: `url(${heart.src})`,
+                width: "30px",
+                height: "30px",
+                backgroundSize: "cover",
+              }}
+              onClick={saveToFavorites}
+            ></div>
           </Modal>
         )}
       </div>
