@@ -75,7 +75,7 @@ export default function Artworks() {
         `}</style>
         {artworks &&
           artworks?.map((artwork) => (
-            <div key={artwork.id} onClick={() => getModalInfo(artwork)}>
+            <div key={artwork.id} onClick={(artwork) => getModalInfo(artwork)}>
               <img
                 alt={artwork.title}
                 src={artwork.image}

@@ -13,6 +13,7 @@ export default function CollectionMap() {
         Explore the collection and select an artwork to read the story of{" "}
         {"selected-artist"}
       </h1>
+
       <GoogleMaps />
     </>
   );
