@@ -1,8 +1,5 @@
 import { createContext, useState } from "react";
-//pass the whole setstate thing down
 export const ThemeColorContext = createContext(null);
-//createContext(default)
-//username from firestore name
 
 export const ThemeColorContextProvider = ({
   children,

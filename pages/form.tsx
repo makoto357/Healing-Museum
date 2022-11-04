@@ -33,7 +33,7 @@ export default function Form() {
   const [themeColor] = useContext(ThemeColorContext);
   const { user } = useAuth();
   const timeStamp = new Date();
-
+  console.log(user);
   const emojis = ["like", "love", "sad", "surprise"];
 
   const [formData, setFormData] = useState({
@@ -65,6 +65,7 @@ export default function Form() {
           title: formData.title,
           textContent: formData.content,
           postTime: timeStamp,
+          userId: user.uid,
         });
         console.log("Document written with ID: ", docRef.id);
         const IDRef = doc(db, "user-posts", docRef.id);
