@@ -12,7 +12,6 @@ export default function Home() {
         <Link href="/registration">
           <div>start the journey</div>
         </Link>
-        <div>EN/CN</div>
       </nav>
       <div className="index-page">
         <style jsx>{`
@@ -49,7 +48,7 @@ export default function Home() {
             </Link>
           </li>
           <li>
-            <Link href="/visitor-post">
+            <Link href="/visitor-posts">
               <p>visitor post</p>
             </Link>
           </li>

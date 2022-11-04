@@ -18,15 +18,37 @@ import Modal from "../components/Modal";
 export default function Artworks() {
   const [artworks, setArtworks] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [modalInfo, setModalInfo] = useState({});
+  const [modalInfo, setModalInfo] = useState<IModalInfo>({
+    id: undefined,
+    title: undefined,
+    url: undefined,
+    artistUrl: undefined,
+    artistName: undefined,
+    artistId: undefined,
+    completitionYear: undefined,
+    width: undefined,
+    height: undefined,
+    image: undefined,
+  });
+
+  interface IModalInfo {
+    id: string | undefined;
+    title: string | undefined;
+    url: string | undefined;
+    artistUrl: string | undefined;
+    artistName: string | undefined;
+    artistId: string | undefined;
+    completitionYear: number | undefined;
+    width: number | undefined;
+    height: number | undefined;
+    image: string | undefined;
+  }
 
   const getModalInfo = (artwork) => {
     setShowModal(true);
     setModalInfo(artwork);
   };
-  console.log(modalInfo);
   useEffect(() => {
-    console.log("hello?");
     const getArtist = async () => {
       const q = query(
         collection(db, "artists"),
@@ -43,6 +65,7 @@ export default function Artworks() {
   return (
     <>
       <div className="painints-container">
+        <h1>Click to see the artwork details:</h1>
         <style jsx>{`
           .painints-container {
             display: flex;
@@ -53,15 +76,24 @@ export default function Artworks() {
         {artworks &&
           artworks?.map((artwork) => (
             <div key={artwork.id} onClick={() => getModalInfo(artwork)}>
-              <img alt={artwork.title} src={artwork.image} />
+              <img
+                alt={artwork.title}
+                src={artwork.image}
+                style={{ width: "250px" }}
+              />
             </div>
           ))}
       </div>
       <div>
         {showModal && (
           <Modal onClose={() => setShowModal(false)}>
-            Hello from the modal!
-            <p>{JSON.stringify(modalInfo)}</p>
+            <img src={modalInfo.image} style={{ width: "250px" }} />
+            <h1>{modalInfo.title}</h1>
+            <p>{modalInfo.artistName}</p>
+            <span>{modalInfo.completitionYear}</span>
+            <p>
+              {modalInfo.width} X {modalInfo.height} cm
+            </p>
           </Modal>
         )}
       </div>

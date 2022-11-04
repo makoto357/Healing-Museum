@@ -146,7 +146,11 @@ export default function GoogleMaps() {
                   <p>{selectedMarker.title}</p>
                   <p>{selectedMarker.completitionYear}</p>
                   <Link href={`/collection-maps/${selectedMarker.id}`}>
-                    <img alt={selectedMarker.id} src={selectedMarker.image} />
+                    <img
+                      alt={selectedMarker.id}
+                      src={selectedMarker.image}
+                      style={{ width: "100px" }}
+                    />
                   </Link>
                 </div>
               </InfoWindow>

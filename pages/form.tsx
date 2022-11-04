@@ -16,14 +16,22 @@ import Link from "next/link";
 import Image from "next/image";
 import React from "react";
 import { useState, useContext, useRef, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
+
 import { ThemeColorContext } from "../context/ProfileContext";
 import { collection, addDoc, doc, updateDoc } from "firebase/firestore";
 import { db, storage } from "../config/firebase";
-import { ref, uploadBytes } from "firebase/storage";
+import {
+  ref,
+  uploadBytesResumable,
+  UploadTask,
+  getDownloadURL,
+} from "firebase/storage";
 
 import like from "../asset/download-smiling-face-with-tightly-closed-eyes-icon-smiling-emoji-11562881831tykcocazrv.png";
 export default function Form() {
   const [themeColor] = useContext(ThemeColorContext);
+  const { user } = useAuth();
   const timeStamp = new Date();
 
   const emojis = ["like", "love", "sad", "surprise"];
@@ -37,25 +45,32 @@ export default function Form() {
   const [uploadedImage, setUploadedImage] = useState(null);
   const handleSubmit = (e) => {
     e.preventDefault();
-    sendForm();
     uploadImage();
     console.log("handleForm");
+    setUploadedImage(null);
+    setFormData({
+      emoji: "",
+      title: "",
+      content: "",
+      date: "",
+    });
   };
 
-  const sendForm = () => {
+  const sendForm = (url) => {
     async function sendData() {
       try {
         const docRef = await addDoc(collection(db, "user-posts"), {
           emoji: formData.emoji,
           date: formData.date,
           title: formData.title,
-          content: formData.content,
-          created_time: timeStamp,
+          textContent: formData.content,
+          postTime: timeStamp,
         });
         console.log("Document written with ID: ", docRef.id);
         const IDRef = doc(db, "user-posts", docRef.id);
         await updateDoc(IDRef, {
           id: docRef.id,
+          uploadedImage: url,
         });
       } catch (e) {
         console.error("Error adding document: ", e);
@@ -66,12 +81,36 @@ export default function Form() {
 
   const uploadImage = async () => {
     if (uploadedImage === null) return;
+    const sendImage = () => {
+      try {
+        return new Promise((resolve) => {
+          const imageRef = ref(storage, `${user.uid}/${uploadedImage.name}`);
+          const uploadTask = uploadBytesResumable(imageRef, uploadedImage);
 
-    const imageRef = ref(storage, `images/${uploadedImage.name + timeStamp}`);
-    //      const imageRef = ref(storage, `image/`); storage = our bucket, `folderName/photoName` = add `` to give images random names
-    const res = await uploadBytes(imageRef, uploadedImage); //uploadBytes(whereToUpload, imageToBeUploaded)
-    console.log(res);
+          uploadTask.on(
+            "state_changed",
+            () => {},
+            () => {},
+            async () => {
+              try {
+                const res = await getDownloadURL(uploadTask.snapshot.ref);
+                console.log(res);
+
+                resolve(res);
+              } catch (e) {
+                console.error("Error of promise: ", e);
+              }
+            }
+          );
+        });
+      } catch (e) {
+        console.error("Error sending document: ", e);
+      }
+    };
+    const newRes = await sendImage();
+    sendForm(newRes);
   };
+
   return (
     <>
       <form onSubmit={handleSubmit} className="main-form">
@@ -80,9 +119,14 @@ export default function Form() {
             width: 500px;
             margin: auto;
           }
+
+          fieldset {
+            display: flex;
+            flex-direction: column;
+          }
         `}</style>
 
-        <fieldset>
+        <fieldset className="emojis">
           <legend>
             Having been on this short trip to the inner world of {"Van Gogh"},
             you feel...
@@ -163,7 +207,6 @@ export default function Form() {
             ></input>
           </div>
           <ul className="info-list">
-            <li></li>
             <li>Please use only your own original photos</li>
           </ul>
         </fieldset>
