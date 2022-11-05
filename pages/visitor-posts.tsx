@@ -58,6 +58,7 @@ export default function VisitorPosts() {
             }}
             onClick={() => saveToFavorites(post.id)}
           ></div>
+          <form></form>
         </>
       ))}
     </section>
