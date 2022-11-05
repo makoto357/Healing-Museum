@@ -1,12 +1,27 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
+import {
+  collection,
+  onSnapshot,
+  doc,
+  updateDoc,
+  arrayUnion,
+  arrayRemove,
+  query,
+  where,
+  getDocs,
+  orderBy,
+} from "firebase/firestore";
 import { db } from "../../config/firebase";
-import { useRef, useState, useContext, useEffect } from "react";
+import { useRef, useState, useEffect, useContext } from "react";
+import { useAuth } from "../../context/AuthContext";
 import { ThemeColorContext } from "../../context/ProfileContext";
+import heart from "../../asset/17d0747c12d59dd8fd244e90d91956b9.png";
 
 export default function ArtworkDetail() {
+  const { user } = useAuth();
+
   const router = useRouter();
   const collectionID = router.query.collectionID;
   const [artwork, setArtwork] = useState<IArtworks>([
@@ -80,6 +95,13 @@ export default function ArtworkDetail() {
     };
     getArtworks();
   }, [collectionID]);
+
+  const saveToFavorites = async (id) => {
+    const requestRef = doc(db, "users", user?.uid);
+    return await updateDoc(requestRef, {
+      favoriteArtworksID: arrayUnion(collectionID),
+    });
+  };
   const [themeColor] = useContext(ThemeColorContext);
   console.log(themeColor);
   return (
@@ -97,6 +119,16 @@ export default function ArtworkDetail() {
                 <span>{artwork.completitionYear}</span>
               </h2>
             </div>
+            <div
+              role="button"
+              style={{
+                backgroundImage: `url(${heart.src})`,
+                width: "30px",
+                height: "30px",
+                backgroundSize: "cover",
+              }}
+              onClick={saveToFavorites}
+            ></div>
             <section>
               <div>
                 <p>{artwork.description}</p>

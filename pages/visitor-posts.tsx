@@ -1,13 +1,20 @@
 import Link from "next/link";
 import React from "react";
 import { useState, useEffect } from "react";
-import { collection, onSnapshot } from "firebase/firestore";
+import {
+  collection,
+  onSnapshot,
+  updateDoc,
+  doc,
+  arrayUnion,
+} from "firebase/firestore";
 import { db } from "../config/firebase";
-import like from "../asset/download-smiling-face-with-tightly-closed-eyes-icon-smiling-emoji-11562881831tykcocazrv.png";
+import saveToColleciton from "../asset/bookmark-save-favorite-ribbon-512.webp";
+import { useAuth } from "../context/AuthContext";
 
 export default function VisitorPosts() {
   const [posts, setPosts] = useState([]);
-
+  const { user } = useAuth();
   useEffect(() => {
     const colRef = collection(db, "user-posts");
     const unSubscribe = onSnapshot(colRef, (snapshot) => {
@@ -25,6 +32,12 @@ export default function VisitorPosts() {
     };
   }, []);
 
+  const saveToFavorites = async (id) => {
+    const requestRef = doc(db, "users", user?.uid);
+    return await updateDoc(requestRef, {
+      favoritePostsID: arrayUnion(id),
+    });
+  };
   return (
     <section style={{ width: "80vw", display: "flex", flexWrap: "wrap" }}>
       {posts.map((post) => (
@@ -35,6 +48,16 @@ export default function VisitorPosts() {
             <p>Date: {post.date}</p>
             <p>Content: {post.textContent}</p>
           </div>
+          <div
+            role="button"
+            style={{
+              backgroundImage: `url(${saveToColleciton.src})`,
+              width: "30px",
+              height: "30px",
+              backgroundSize: "cover",
+            }}
+            onClick={() => saveToFavorites(post.id)}
+          ></div>
         </>
       ))}
     </section>

@@ -28,7 +28,7 @@ export const FavoriteContextProvider = ({
   const saveToFavorites = async (artworkID: string) => {
     const requestRef = doc(db, "users", user?.uid);
     return await updateDoc(requestRef, {
-      favoriteArtworksID: arrayUnion(),
+      favoriteArtworksID: arrayUnion(artworkID),
     });
   };
 

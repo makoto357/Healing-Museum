@@ -36,7 +36,6 @@ import {
 import { db } from "../config/firebase";
 import { useRef, useState, useEffect, useContext } from "react";
 import { useAuth } from "../context/AuthContext";
-import { useFavorite } from "../context/favoriteContext";
 import heart from "../asset/17d0747c12d59dd8fd244e90d91956b9.png";
 const google = window.google;
 const center = { lat: 52.90097126278884, lng: 18.668388603761674 };
@@ -63,7 +62,6 @@ export default function GoogleMaps() {
   const [map, setMap] = useState(/** @type google.maps.Map */ null);
   const [galleries, setGalleries] = useState([]);
   const destiantionRef = useRef<HTMLInputElement>(null);
-  const { user } = useAuth();
 
   // const { saveToFavorites } = useFavorite();
   // console.log(typeof saveToFavorites);
@@ -96,12 +94,6 @@ export default function GoogleMaps() {
     setSelectedMarker(galleries);
   };
 
-  const saveToFavorites = async (id) => {
-    const requestRef = doc(db, "users", user?.uid);
-    return await updateDoc(requestRef, {
-      favoriteArtworksID: arrayUnion(selectedMarker.id),
-    });
-  };
   if (!isLoaded) {
     return <SkeletonText />;
   }
@@ -167,16 +159,7 @@ export default function GoogleMaps() {
                   <h1>{selectedMarker.galleries}</h1>
                   <p>{selectedMarker.title}</p>
                   <p>{selectedMarker.completitionYear}</p>
-                  <div
-                    role="button"
-                    style={{
-                      backgroundImage: `url(${heart.src})`,
-                      width: "30px",
-                      height: "30px",
-                      backgroundSize: "cover",
-                    }}
-                    onClick={saveToFavorites}
-                  ></div>
+
                   <Link href={`/collection-maps/${selectedMarker.id}`}>
                     <img
                       alt={selectedMarker.id}

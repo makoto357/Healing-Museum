@@ -17,6 +17,7 @@ import {
 
 import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
+
 import heart from "../asset/17d0747c12d59dd8fd244e90d91956b9.png";
 import Modal from "../components/Modal";
 export default function Artworks() {
