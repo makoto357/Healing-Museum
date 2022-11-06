@@ -4,6 +4,7 @@ import { ThemeColorContext } from "../context/ProfileContext";
 import {
   collection,
   addDoc,
+  Timestamp,
   doc,
   updateDoc,
   arrayUnion,
@@ -45,16 +46,19 @@ export default function Quiz() {
   console.log("showAnswer", showAnswer, "points", points);
 
   const handleTestResult = async (artist) => {
-    const saveToFavorites = (artist) => {
+    const getRecommendation = (artist) => {
       return new Promise((resolve) => {
         const requestRef = doc(db, "users", user?.uid);
         updateDoc(requestRef, {
-          "visitorJourney.recommededArtist": artist,
-          "visitorJourney.quizPoints": points,
+          visitorJourney: arrayUnion({
+            recommededArtist: artist,
+            quizDate: Timestamp.fromDate(new Date()),
+            quizPoints: points,
+          }),
         });
       });
     };
-    await saveToFavorites(artist);
+    getRecommendation(artist);
     router.push("/collection-maps");
   };
 
@@ -152,7 +156,17 @@ export default function Quiz() {
           </button>
         </>
       )}
-
+      {showAnswer && (
+        <button
+          onClick={() => {
+            setGameStarted(false);
+            setPoints(0);
+            setShowAnswer(false);
+          }}
+        >
+          Play again
+        </button>
+      )}
       <div
         style={{ background: themeColor, height: "100px", width: "100px" }}
       ></div>

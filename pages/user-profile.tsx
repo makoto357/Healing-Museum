@@ -26,6 +26,15 @@ interface IUser {
   id: string | undefined;
   last_changed: Timestamp | undefined;
   name: string | undefined;
+  visitorJourney:
+    | [
+        {
+          recommendedArtist: string;
+          quizPoints: number;
+          quizDate: Timestamp;
+        }
+      ]
+    | undefined;
 }
 
 export default function UserProfile() {
@@ -38,7 +47,9 @@ export default function UserProfile() {
     id: undefined,
     last_changed: undefined,
     name: undefined,
+    visitorJourney: undefined,
   });
+  console.log(profile);
   useEffect(() => {
     const getProfile = async () => {
       const q = query(collection(db, "users"), where("id", "==", user?.uid));
