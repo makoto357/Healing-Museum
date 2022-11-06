@@ -32,14 +32,15 @@ import {
   where,
   getDocs,
   orderBy,
+  Timestamp,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { useRef, useState, useEffect, useContext } from "react";
 import { useAuth } from "../context/AuthContext";
 import heart from "../asset/17d0747c12d59dd8fd244e90d91956b9.png";
+import { sendSignInLinkToEmail } from "firebase/auth";
 const google = window.google;
 const center = { lat: 52.90097126278884, lng: 18.668388603761674 };
-
 export default function GoogleMaps() {
   interface IWindow {
     image: string | undefined;
@@ -61,10 +62,10 @@ export default function GoogleMaps() {
   });
   const [map, setMap] = useState(/** @type google.maps.Map */ null);
   const [galleries, setGalleries] = useState([]);
+  const [artist, setArtist] = useState([]);
   const destiantionRef = useRef<HTMLInputElement>(null);
+  const { user } = useAuth();
 
-  // const { saveToFavorites } = useFavorite();
-  // console.log(typeof saveToFavorites);
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
     libraries: ["places"],
@@ -75,22 +76,37 @@ export default function GoogleMaps() {
 
   useEffect(() => {
     onLoad();
-    const getArtworks = async () => {
-      const q = query(
-        collection(db, "artworks"),
-        where("artistUrl", "==", "vincent-van-gogh"),
-        orderBy("completitionYear", "desc")
-      );
+
+    const getArtist = async () => {
+      const q = query(collection(db, "users"), where("id", "==", user.uid));
       const querySnapshot = await getDocs(q);
-      const docs = querySnapshot.docs.map((doc) => doc.data());
-      console.log(docs);
-      setGalleries(docs);
+      const docs = querySnapshot.docs.map((doc) => doc.data() as any);
+      setArtist(
+        docs[0].visitorJourney[docs[0].visitorJourney.length - 1]
+          .recommededArtist
+      );
+      getArtworks(
+        docs[0].visitorJourney[docs[0].visitorJourney.length - 1]
+          .recommededArtist
+      );
     };
-    getArtworks();
-  }, [selectedMarker]);
+    getArtist();
+  }, [selectedMarker, user.uid]);
+
+  const getArtworks = async (artist) => {
+    const q = query(
+      collection(db, "artworks"),
+      where("artistUrl", "==", artist),
+      orderBy("completitionYear", "desc")
+    );
+    const querySnapshot = await getDocs(q);
+    const docs = querySnapshot.docs.map((doc) => doc.data());
+    console.log(docs);
+    setGalleries(docs);
+  };
 
   const getGallery = (galleries) => {
-    destiantionRef.current.value = galleries.galleries;
+    destiantionRef.current.value = galleries;
     setSelectedMarker(galleries);
   };
 

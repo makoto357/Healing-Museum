@@ -5,7 +5,7 @@ import Head from "next/head";
 import Layout from "../components/Layout";
 import { AuthContextProvider } from "../context/AuthContext";
 import { FavoriteContextProvider } from "../context/favoriteContext";
-import { ThemeColorContextProvider } from "../context/ProfileContext";
+import { ThemeColorContextProvider } from "../context/ColorContext";
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <>

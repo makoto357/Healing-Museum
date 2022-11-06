@@ -16,7 +16,7 @@ import {
 import { db } from "../../config/firebase";
 import { useRef, useState, useEffect, useContext } from "react";
 import { useAuth } from "../../context/AuthContext";
-import { ThemeColorContext } from "../../context/ProfileContext";
+import { ThemeColorContext } from "../../context/ColorContext";
 import heart from "../../asset/17d0747c12d59dd8fd244e90d91956b9.png";
 
 export default function ArtworkDetail() {

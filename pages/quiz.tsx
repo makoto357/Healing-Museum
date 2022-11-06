@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
 import { useState, useContext } from "react";
-import { ThemeColorContext } from "../context/ProfileContext";
+import { ThemeColorContext } from "../context/ColorContext";
 import {
   collection,
   addDoc,

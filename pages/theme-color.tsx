@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState, useContext } from "react";
-import { ThemeColorContext } from "../context/ProfileContext";
+import { ThemeColorContext } from "../context/ColorContext";
 export default function ThemeColor() {
   const router = useRouter();
   const themeColors = ["red", "orange", "yellow", "green", "blue", "purple"];

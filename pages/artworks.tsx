@@ -22,6 +22,7 @@ import heart from "../asset/17d0747c12d59dd8fd244e90d91956b9.png";
 import Modal from "../components/Modal";
 export default function Artworks() {
   const { user } = useAuth();
+  const [artist, setArtist] = useState([]);
 
   const [artworks, setArtworks] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -58,8 +59,24 @@ export default function Artworks() {
   };
   useEffect(() => {
     const getArtist = async () => {
+      const q = query(collection(db, "users"), where("id", "==", user.uid));
+      const querySnapshot = await getDocs(q);
+      const docs = querySnapshot.docs.map((doc) => doc.data() as any);
+      setArtist(
+        docs[0].visitorJourney[docs[0].visitorJourney.length - 1]
+          .recommededArtist
+      );
+      getArtworks(
+        docs[0].visitorJourney[docs[0].visitorJourney.length - 1]
+          .recommededArtist
+      );
+    };
+    getArtist();
+
+    const getArtworks = async (artist) => {
       const q = query(
         collection(db, "artists"),
+        where("artistURL", "==", artist),
         orderBy("completitionYear", "desc")
       );
       const querySnapshot = await getDocs(q);
@@ -69,6 +86,7 @@ export default function Artworks() {
     };
     getArtist();
   }, []);
+
   const saveToFavorites = async (id) => {
     const requestRef = doc(db, "users", user?.uid);
     return await updateDoc(requestRef, {

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useState, useContext } from "react";
-import { ThemeColorContext } from "../context/ProfileContext";
+import { ThemeColorContext } from "../context/ColorContext";
 
 export default function ArtistVideo() {
   const [themeColor] = useContext(ThemeColorContext);

@@ -18,7 +18,7 @@ import React from "react";
 import { useState, useContext, useRef, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 
-import { ThemeColorContext } from "../context/ProfileContext";
+import { ThemeColorContext } from "../context/ColorContext";
 import { collection, addDoc, doc, updateDoc } from "firebase/firestore";
 import { db, storage } from "../config/firebase";
 import {

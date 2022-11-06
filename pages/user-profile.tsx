@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useState, useContext, useEffect, use } from "react";
-import { ThemeColorContext } from "../context/ProfileContext";
+import { ThemeColorContext } from "../context/ColorContext";
 import {
   collection,
   onSnapshot,
