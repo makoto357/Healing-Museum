@@ -21,14 +21,26 @@ import {
   Autocomplete,
   InfoWindow,
 } from "@react-google-maps/api";
-import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
+import {
+  collection,
+  onSnapshot,
+  doc,
+  updateDoc,
+  arrayUnion,
+  arrayRemove,
+  query,
+  where,
+  getDocs,
+  orderBy,
+  Timestamp,
+} from "firebase/firestore";
 import { db } from "../config/firebase";
-
-import { useRef, useState, useEffect } from "react";
-
+import { useRef, useState, useEffect, useContext } from "react";
+import { useAuth } from "../context/AuthContext";
+import heart from "../asset/17d0747c12d59dd8fd244e90d91956b9.png";
+import { sendSignInLinkToEmail } from "firebase/auth";
 const google = window.google;
-const center = { lat: 52.90097126278884, lng: 18.668388603761674 };
-
+const center = { lat: 42.44163943619658, lng: -26.132456899797923 };
 export default function GoogleMaps() {
   interface IWindow {
     image: string | undefined;
@@ -50,8 +62,10 @@ export default function GoogleMaps() {
   });
   const [map, setMap] = useState(/** @type google.maps.Map */ null);
   const [galleries, setGalleries] = useState([]);
+  const [artist, setArtist] = useState([]);
   const destiantionRef = useRef<HTMLInputElement>(null);
-
+  const { user } = useAuth();
+  console.log(galleries);
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
     libraries: ["places"],
@@ -62,24 +76,37 @@ export default function GoogleMaps() {
 
   useEffect(() => {
     onLoad();
-    const getArtworks = async () => {
-      const q = query(
-        collection(db, "artworks"),
-        where("artistUrl", "==", "vincent-van-gogh"),
-        orderBy("completitionYear", "desc")
-      );
+
+    const getArtist = async () => {
+      const q = query(collection(db, "users"), where("id", "==", user.uid));
       const querySnapshot = await getDocs(q);
-      const docs = querySnapshot.docs.map((doc) => doc.data());
-      console.log(docs);
-      setGalleries(docs);
+      const docs = querySnapshot.docs.map((doc) => doc.data() as any);
+      const ArtistIndex =
+        docs[0].visitorJourney[docs[0].visitorJourney.length - 1]
+          .recommendedArtist;
+      setArtist(ArtistIndex);
+      getArtworks(ArtistIndex);
     };
-    getArtworks();
-  }, [selectedMarker]);
+    getArtist();
+  }, [selectedMarker, user.uid]);
+
+  const getArtworks = async (artist) => {
+    const q = query(
+      collection(db, "artworks"),
+      where("artistUrl", "==", artist),
+      orderBy("completitionYear", "desc")
+    );
+    const querySnapshot = await getDocs(q);
+    const docs = querySnapshot.docs.map((doc) => doc.data());
+    console.log(docs);
+    setGalleries(docs);
+  };
 
   const getGallery = (galleries) => {
-    destiantionRef.current.value = galleries.galleries;
+    destiantionRef.current.value = galleries;
     setSelectedMarker(galleries);
   };
+
   if (!isLoaded) {
     return <SkeletonText />;
   }
@@ -96,7 +123,7 @@ export default function GoogleMaps() {
         <Box position="absolute" left={0} top={0} h="100%" w="100%">
           <GoogleMap
             center={center}
-            zoom={4}
+            zoom={3}
             mapContainerStyle={{ width: "100%", height: "100vh" }}
             options={{
               streetViewControl: false,
@@ -145,51 +172,58 @@ export default function GoogleMaps() {
                   <h1>{selectedMarker.galleries}</h1>
                   <p>{selectedMarker.title}</p>
                   <p>{selectedMarker.completitionYear}</p>
+
                   <Link href={`/collection-maps/${selectedMarker.id}`}>
-                    <img alt={selectedMarker.id} src={selectedMarker.image} />
+                    <img
+                      alt={selectedMarker.id}
+                      src={selectedMarker.image}
+                      style={{ width: "100px" }}
+                    />
                   </Link>
                 </div>
               </InfoWindow>
             )}
           </GoogleMap>
         </Box>
-        <Box
-          p={4}
-          borderRadius="lg"
-          m={4}
-          bgColor="white"
-          shadow="base"
-          minW="container.md"
-          zIndex="1"
-        >
-          <HStack spacing={2} justifyContent="space-between">
-            <Box flexGrow={1}>
-              <Autocomplete>
-                <Input
-                  type="text"
-                  placeholder="Click on the markers to get gallery address"
-                  ref={destiantionRef}
-                />
-              </Autocomplete>
-            </Box>
-          </HStack>
-          <HStack spacing={4} mt={4} justifyContent="space-between">
-            <IconButton
-              aria-label="center back"
-              icon={<FaLocationArrow />}
-              isRound
-              onClick={() => {
-                map.panTo(center);
-                map.setZoom(7);
-              }}
-            />
-            <ButtonGroup>
-              <Button colorScheme="pink" type="submit">
-                Find a place
-              </Button>
-            </ButtonGroup>
-          </HStack>
-        </Box>
+        <div style={{ display: "none" }}>
+          <Box
+            p={4}
+            borderRadius="lg"
+            m={4}
+            bgColor="white"
+            shadow="base"
+            minW="container.md"
+            zIndex="0"
+          >
+            <HStack spacing={2} justifyContent="space-between">
+              <Box flexGrow={1}>
+                <Autocomplete>
+                  <Input
+                    type="text"
+                    placeholder="Click on the markers to get gallery address"
+                    ref={destiantionRef}
+                  />
+                </Autocomplete>
+              </Box>
+            </HStack>
+            <HStack spacing={4} mt={4} justifyContent="space-between">
+              <IconButton
+                aria-label="center back"
+                icon={<FaLocationArrow />}
+                isRound
+                onClick={() => {
+                  map.panTo(center);
+                  map.setZoom(7);
+                }}
+              />
+              <ButtonGroup>
+                <Button colorScheme="pink" type="submit">
+                  Find a place
+                </Button>
+              </ButtonGroup>
+            </HStack>
+          </Box>
+        </div>
       </Flex>
     </ChakraProvider>
   );
