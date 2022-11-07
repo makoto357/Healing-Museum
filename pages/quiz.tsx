@@ -11,7 +11,7 @@ import {
 } from "firebase/firestore";
 import { db, storage } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
-import quiz from "../firestore-data/quiz.json";
+import quiz from "../public/quiz.json";
 
 export default function Quiz() {
   const router = useRouter();
