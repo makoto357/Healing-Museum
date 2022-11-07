@@ -43,7 +43,11 @@ export default function VisitorPosts() {
       {posts.map((post) => (
         <section key={post.id}>
           <div>
-            <img src={post.uploadedImage} style={{ width: "100px" }} />
+            <img
+              alt={post.title}
+              src={post.uploadedImage}
+              style={{ width: "100px" }}
+            />
             <h1>Post title: {post.title}</h1>
             <p>Date: {post.date}</p>
             <p>Content: {post.textContent}</p>

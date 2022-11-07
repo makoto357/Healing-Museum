@@ -88,7 +88,7 @@ export default function Artworks() {
       setArtworks(docs);
     };
     getArtist();
-  }, []);
+  }, [user.uid]);
   const saveToFavorites = async (id) => {
     const requestRef = doc(db, "users", user?.uid);
     return await updateDoc(requestRef, {
@@ -129,7 +129,11 @@ export default function Artworks() {
       <div>
         {showModal && (
           <Modal onClose={() => setShowModal(false)}>
-            <img src={modalInfo.image} style={{ width: "250px" }} />
+            <img
+              alt={modalInfo.title}
+              src={modalInfo.image}
+              style={{ width: "250px" }}
+            />
             <h1>{modalInfo.title}</h1>
             <p>{modalInfo.artistName}</p>
             <span>{modalInfo.completitionYear}</span>
