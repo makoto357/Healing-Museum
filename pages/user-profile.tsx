@@ -18,6 +18,7 @@ import {
 
 import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
+import { numberInputAnatomy } from "@chakra-ui/anatomy";
 
 interface IUser {
   email: string | undefined;
@@ -26,17 +27,23 @@ interface IUser {
   id: string | undefined;
   last_changed: Timestamp | undefined;
   name: string | undefined;
-  visitorJourney:
-    | [
-        {
-          recommendedArtist: string;
-          quizPoints: number;
-          quizDate: Timestamp;
-        }
-      ]
-    | undefined;
+  visitorJourney: EnumJourneyItems | undefined;
 }
 
+interface EnumJourneyItem {
+  recommendedArtist: string;
+  quizPoints: number;
+  quizDate: Timestamp;
+}
+
+interface IArtwork {
+  artistName: string | undefined;
+  completionYear: number | undefined;
+  title: string | undefined;
+  id: string | undefined;
+  image: string | undefined;
+}
+interface EnumJourneyItems extends Array<EnumJourneyItem> {}
 export default function UserProfile() {
   const [themeColor] = useContext(ThemeColorContext);
   const { user } = useAuth();
@@ -49,7 +56,15 @@ export default function UserProfile() {
     name: undefined,
     visitorJourney: undefined,
   });
-  console.log(profile);
+  const [artwork, setArtwork] = useState<IArtwork>({
+    artistName: undefined,
+    completionYear: undefined,
+    title: undefined,
+    id: undefined,
+    image: undefined,
+  });
+
+  console.log();
   useEffect(() => {
     const getProfile = async () => {
       const q = query(collection(db, "users"), where("id", "==", user?.uid));
@@ -57,16 +72,28 @@ export default function UserProfile() {
       querySnapshot.forEach((doc) => {
         const IUser = doc.data() as IUser;
         setProfile(IUser);
+        console.log(
+          IUser.visitorJourney[IUser.visitorJourney.length - 1]
+            .recommendedArtist
+        );
+
+        const artworkID =
+          IUser.favoriteArtworksID[IUser.favoriteArtworksID.length - 1];
+
+        console.log(
+          IUser.favoriteArtworksID[IUser.favoriteArtworksID.length - 1]
+        );
+        getFavoriteArtwork(artworkID);
       });
     };
-    // const getArtworksOfSelectedArtist = async () => {
-    //   const q = query(collection(db, "users"), where("id", "==", user?.uid));
-    //   const querySnapshot = await getDocs(q);
-    //   querySnapshot.forEach((doc) => {
-    //     const IUser = doc.data() as IUser;
-    //     setProfile(IUser);
-    //   });
-    // };
+    const getFavoriteArtwork = async (id) => {
+      console.log(id);
+      const q = query(collection(db, "artists"), where("id", "==", id));
+      const querySnapshot = await getDocs(q);
+      const docs = querySnapshot.docs.map((doc) => doc.data() as any);
+      setArtwork(docs[0]);
+      console.log(docs[0].image);
+    };
     if (user) {
       getProfile();
     }
@@ -83,10 +110,18 @@ export default function UserProfile() {
         <p>
           Thank you, {profile?.name}, for your visit to the Healing Museum
           today. I hope you had a nice time and some understandings of{" "}
-          {"artist-name"} whose life perspectives resonate with your own.
+          {artwork.artistName} whose life perspectives resonate with your own.
         </p>
-        {/* <img alt={profile.favoriteArtworksID[0]} src={profile} /> */}
-        <p></p>
+        <p>
+          This artwork below is the last one you saved as favorite during your
+          journey, does it remind you of a special moment in your life?
+        </p>
+        <p>
+          No matter what you have encountered, we hope this painting gives you
+          strength, for knowing you are not alone.
+        </p>
+        <img alt={artwork.id} src={artwork.image} />
+        {/* <p>{quote}</p> */}
         <p>We feel, therefore we are.</p>
       </section>
       <div

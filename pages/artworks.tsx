@@ -17,12 +17,13 @@ import {
 
 import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
+import { ThemeColorContext } from "../context/ColorContext";
 
 import heart from "../asset/17d0747c12d59dd8fd244e90d91956b9.png";
 import Modal from "../components/Modal";
 export default function Artworks() {
   const { user } = useAuth();
-  const [artist, setArtist] = useState([]);
+  const [themeColor] = useContext(ThemeColorContext);
 
   const [artworks, setArtworks] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -53,7 +54,7 @@ export default function Artworks() {
   }
 
   const getModalInfo = (artwork) => {
-    console.log(modalInfo);
+    console.log(artwork);
     setShowModal(true);
     setModalInfo(artwork);
   };
@@ -62,21 +63,23 @@ export default function Artworks() {
       const q = query(collection(db, "users"), where("id", "==", user.uid));
       const querySnapshot = await getDocs(q);
       const docs = querySnapshot.docs.map((doc) => doc.data() as any);
-      setArtist(
+      console.log(
         docs[0].visitorJourney[docs[0].visitorJourney.length - 1]
-          .recommededArtist
+          .recommendedArtist
       );
+
       getArtworks(
         docs[0].visitorJourney[docs[0].visitorJourney.length - 1]
-          .recommededArtist
+          .recommendedArtist
       );
     };
     getArtist();
 
     const getArtworks = async (artist) => {
+      console.log(artist);
       const q = query(
         collection(db, "artists"),
-        where("artistURL", "==", artist),
+        where("artistUrl", "==", artist),
         orderBy("completitionYear", "desc")
       );
       const querySnapshot = await getDocs(q);
@@ -86,7 +89,6 @@ export default function Artworks() {
     };
     getArtist();
   }, []);
-
   const saveToFavorites = async (id) => {
     const requestRef = doc(db, "users", user?.uid);
     return await updateDoc(requestRef, {
@@ -100,24 +102,27 @@ export default function Artworks() {
         <style jsx>{`
           .painints-container {
             display: flex;
-            overflow: x;
-            height: 500px;
+            flex-wrap: wrap;
+            row-gap: 50px;
+            column-gap: 20px;
+          }
+          .imageBox {
+            box-shadow: 12px 12px 2px 1px ${themeColor};
+            display: inline-block;
+            width: 250px;
           }
         `}</style>
         {artworks &&
           artworks?.map((artwork) => (
             <div
+              className="imageBox"
               key={artwork.id}
               onClick={(e) => {
                 console.log(e.target);
                 getModalInfo(artwork);
               }}
             >
-              <img
-                alt={artwork.title}
-                src={artwork.image}
-                style={{ width: "250px" }}
-              />
+              <img alt={artwork.title} src={artwork.image} />
             </div>
           ))}
       </div>

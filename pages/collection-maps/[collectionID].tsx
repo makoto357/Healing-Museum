@@ -102,79 +102,92 @@ export default function ArtworkDetail() {
       favoriteArtworksID: arrayUnion(collectionID),
     });
   };
+
   const [themeColor] = useContext(ThemeColorContext);
   console.log(themeColor);
   return (
     <>
-      {artwork &&
-        artwork?.map((artwork, index) => (
-          <div key={index}>
-            <div style={{ width: "500px" }}>
-              <img alt={artwork.id} src={artwork.image} />
-            </div>
-            <div>
-              <h1>{artwork.title}</h1>
-              <h2>
-                <span>{artwork.artistName}</span>
-                <span>{artwork.completitionYear}</span>
-              </h2>
-            </div>
-            <div
-              role="button"
-              style={{
-                backgroundImage: `url(${heart.src})`,
-                width: "30px",
-                height: "30px",
-                backgroundSize: "cover",
-              }}
-              onClick={saveToFavorites}
-            ></div>
-            <section>
-              <div>
-                <p>{artwork.description}</p>
+      <style jsx>
+        {`
+          section {
+            text-align: center;
+          }
+          .imageBox {
+            box-shadow: 12px 12px 2px 1px ${themeColor};
+            display: inline-block;
+          }
+        `}
+      </style>
+      <section>
+        {artwork &&
+          artwork?.map((artwork, index) => (
+            <div key={index}>
+              <div className="imageBox">
+                <img alt={artwork.id} src={artwork.image} />
               </div>
-            </section>
-            <section>
               <div>
-                <ul>
-                  <li>
-                    <span>{artwork.genres}</span>
-                  </li>
-                  <li>
-                    <span>{artwork.styles}</span>
-                  </li>
-                  <li>
-                    {artwork?.media?.map((medium, index) => (
-                      <span key={index}>{medium},</span>
+                <h1>{artwork.title}</h1>
+                <h2>
+                  <span>{artwork.artistName}</span>
+                  <span>{artwork.completitionYear}</span>
+                </h2>
+              </div>
+              <div
+                role="button"
+                style={{
+                  margin: "auto",
+                  backgroundImage: `url(${heart.src})`,
+                  width: "30px",
+                  height: "30px",
+                  backgroundSize: "cover",
+                }}
+                onClick={saveToFavorites}
+              ></div>
+              <section>
+                <div>
+                  <p>{artwork.description}</p>
+                </div>
+              </section>
+              <section>
+                <div>
+                  <ul>
+                    <li>
+                      <span>{artwork.genres}</span>
+                    </li>
+                    <li>
+                      <span>{artwork.styles}</span>
+                    </li>
+                    <li>
+                      {artwork?.media?.map((medium, index) => (
+                        <span key={index}>{medium},</span>
+                      ))}
+                    </li>
+                    <li>
+                      <p>
+                        {artwork.sizeX} X {artwork.sizeY} cm
+                      </p>
+                    </li>
+                    <li>Collection of the {artwork.galleries}</li>
+                    {artwork?.tags?.map((tag, index) => (
+                      <span key={index}>#{tag} </span>
                     ))}
-                  </li>
-                  <li>
-                    <p>
-                      {artwork.sizeX} X {artwork.sizeY} cm
-                    </p>
-                  </li>
-                  <li>Collection of the {artwork.galleries}</li>
-                  {artwork?.tags?.map((tag, index) => (
-                    <span key={index}>#{tag} </span>
-                  ))}
-                </ul>
-              </div>
-            </section>
-          </div>
-        ))}
-      <div style={{ textAlign: "left" }}>
-        <Link href="/collection-maps">
-          <p>back to map page</p>
-        </Link>
-      </div>
-      <div
-        style={{ background: themeColor, height: "100px", width: "100px" }}
-      ></div>
-      <div style={{ textAlign: "right" }}>
-        <Link href="/artworks">
-          <p>Explore more artworks!</p>
-        </Link>
-      </div>
+                  </ul>
+                </div>
+              </section>
+            </div>
+          ))}
+        <div style={{ textAlign: "left" }}>
+          <Link href="/collection-maps">
+            <p>back to map page</p>
+          </Link>
+        </div>
+
+        <div style={{ textAlign: "right" }}>
+          <Link href="/artworks">
+            <p>Explore more artworks!</p>
+          </Link>
+        </div>
+      </section>
     </>
   );
 }

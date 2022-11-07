@@ -3,16 +3,20 @@ import Image from "next/image";
 import styles from "../styles/Home.module.css";
 import { useEffect, useRef, useState, useContext } from "react";
 import { useAuth } from "../context/AuthContext";
-
-export default function Home() {
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { useTranslation } from "next-i18next";
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ["index"])),
+    },
+  };
+}
+export default function Home(props) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   return (
     <>
-      <nav className="nav">
-        <Link href="/registration">
-          <div>start the journey</div>
-        </Link>
-      </nav>
       <div className="index-page">
         <style jsx>{`
           .nav {
@@ -26,37 +30,42 @@ export default function Home() {
             margin: auto;
           }
         `}</style>
+
         <ul>
           <li>
+            <Link href="/registration">
+              <div>{t("index:home")}</div>
+            </Link>
+          </li>
+          <li>
             <Link href="/quiz">
-              <p>Quiz</p>
+              <p>{t("index:quiz")}</p>
             </Link>
           </li>
           <li>
             <Link href="/collection-maps">
-              <p>Collection Maps</p>
+              <p>{t("index:map")}</p>
             </Link>
           </li>
           <li>
             <Link href="/artworks">
-              <p>Artworks</p>
+              <p>{t("index:details")}</p>
             </Link>
           </li>
           <li>
             <Link href="/artist-video">
-              <p>artist video</p>
+              <p>{t("index:artworks")}</p>
             </Link>
           </li>
           <li>
             <Link href="/visitor-posts">
-              <p>visitor post</p>
+              <p>{t("index:posts")}</p>
             </Link>
           </li>
-
           {user && (
             <li>
               <Link href="/user-profile">
-                <p>Profile</p>
+                <p>{t("index:profile")}</p>
               </Link>
             </li>
           )}

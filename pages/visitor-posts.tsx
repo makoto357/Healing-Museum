@@ -41,25 +41,26 @@ export default function VisitorPosts() {
   return (
     <section style={{ width: "80vw", display: "flex", flexWrap: "wrap" }}>
       {posts.map((post) => (
-        <>
-          <div key={post.id}>
+        <section key={post.id}>
+          <div>
             <img src={post.uploadedImage} style={{ width: "100px" }} />
             <h1>Post title: {post.title}</h1>
             <p>Date: {post.date}</p>
             <p>Content: {post.textContent}</p>
+            <div
+              role="button"
+              style={{
+                backgroundImage: `url(${saveToColleciton.src})`,
+                width: "30px",
+                height: "30px",
+                backgroundSize: "cover",
+              }}
+              onClick={() => saveToFavorites(post.id)}
+            ></div>
           </div>
-          <div
-            role="button"
-            style={{
-              backgroundImage: `url(${saveToColleciton.src})`,
-              width: "30px",
-              height: "30px",
-              backgroundSize: "cover",
-            }}
-            onClick={() => saveToFavorites(post.id)}
-          ></div>
+
           <form></form>
-        </>
+        </section>
       ))}
     </section>
   );

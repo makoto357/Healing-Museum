@@ -117,7 +117,7 @@ export default function Form() {
       <form onSubmit={handleSubmit} className="main-form">
         <style jsx>{`
           .main-form {
-            width: 500px;
+            width: 300px;
             margin: auto;
           }
 
@@ -127,7 +127,10 @@ export default function Form() {
           }
         `}</style>
 
-        <fieldset className="emojis">
+        <fieldset
+          style={{ display: "flex", flexDirection: "row" }}
+          className="emojis"
+        >
           <legend>
             Having been on this short trip to the inner world of {"Van Gogh"},
             you feel...

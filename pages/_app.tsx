@@ -1,4 +1,4 @@
-// import "../styles/globals.css";
+import "../styles/globals.css";
 import { ChakraProvider } from "@chakra-ui/react";
 import type { AppProps } from "next/app";
 import Head from "next/head";
@@ -6,7 +6,8 @@ import Layout from "../components/Layout";
 import { AuthContextProvider } from "../context/AuthContext";
 import { FavoriteContextProvider } from "../context/favoriteContext";
 import { ThemeColorContextProvider } from "../context/ColorContext";
-export default function App({ Component, pageProps }: AppProps) {
+import { appWithTranslation } from "next-i18next";
+function App({ Component, pageProps }: AppProps) {
   return (
     <>
       <FavoriteContextProvider>
@@ -28,3 +29,5 @@ export default function App({ Component, pageProps }: AppProps) {
     </>
   );
 }
+
+export default appWithTranslation(App);
