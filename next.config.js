@@ -4,4 +4,7 @@ module.exports = {
   reactStrictMode: false,
   // swcMinify: true,
   i18n,
+  images: {
+    domains: ["i.ytimg.com"],
+  },
 };
