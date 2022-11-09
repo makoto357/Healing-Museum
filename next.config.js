@@ -6,5 +6,13 @@ module.exports = {
   i18n,
   images: {
     domains: ["i.ytimg.com"],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**wikiart.org",
+        port: "",
+        pathname: "/images/**",
+      },
+    ],
   },
 };
