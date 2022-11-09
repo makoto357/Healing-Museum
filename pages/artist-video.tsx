@@ -64,7 +64,7 @@ export default function ArtistVideo({ results }) {
       );
     };
     getArtist();
-  }, [user.uid]);
+  }, [user?.uid]);
 
   return (
     <>

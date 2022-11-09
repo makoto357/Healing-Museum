@@ -19,7 +19,15 @@ import { useState, useContext, useRef, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 
 import { ThemeColorContext } from "../context/ColorContext";
-import { collection, addDoc, doc, updateDoc } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  doc,
+  updateDoc,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
 import { db, storage } from "../config/firebase";
 import {
   ref,
@@ -31,6 +39,8 @@ import {
 import like from "../asset/download-smiling-face-with-tightly-closed-eyes-icon-smiling-emoji-11562881831tykcocazrv.png";
 export default function Form() {
   const [themeColor] = useContext(ThemeColorContext);
+  const [artist, setArtist] = useState("");
+  const [username, setUsername] = useState("");
   const { user } = useAuth();
   const timeStamp = new Date();
   console.log(user);
@@ -42,7 +52,26 @@ export default function Form() {
     content: "",
     date: "",
   });
+
   const [uploadedImage, setUploadedImage] = useState(null);
+
+  useEffect(() => {
+    const getUserJourney = async () => {
+      const q = query(collection(db, "users"), where("id", "==", user.uid));
+      const querySnapshot = await getDocs(q);
+      const docs = querySnapshot.docs.map((doc) => doc.data() as any);
+      const artistRecommendation = docs[0].visitorJourney[
+        docs[0].visitorJourney.length - 1
+      ].recommendedArtist
+        .split("-")
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(" ");
+      setArtist(artistRecommendation);
+      setUsername(docs[0].name);
+    };
+    getUserJourney();
+  }, [user.uid]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     uploadImage();
@@ -72,6 +101,8 @@ export default function Form() {
         await updateDoc(IDRef, {
           id: docRef.id,
           uploadedImage: url,
+          artistForThisVisit: artist,
+          postMadeBy: username,
         });
       } catch (e) {
         console.error("Error adding document: ", e);
@@ -228,3 +259,25 @@ export default function Form() {
     </>
   );
 }
+
+// const [chosenEmoji, setChosenEmoji] = useState(null);
+//   const [textAreaValue, setTextAreaValue] = useState('');
+//   const [selectedText, setSelectedText] = useState('');
+
+//   const onEmojiClick = (event, emojiObject) => {
+
+//     const textAreaElement = document.getElementById('text-area');
+//     setTextAreaValue(
+//       textAreaValue.substr(0, textAreaElement.selectionStart) +
+//         emojiObject.emoji +
+//         textAreaValue.substr(textAreaElement.selectionEnd)
+//     );
+//   };
+
+//   return (
+//     <div>
+//       <TextArea text={textAreaValue} setText={setTextAreaValue} />
+//       <br />
+//       <Picker onEmojiClick={onEmojiClick} />
+//     </div>
+//   );

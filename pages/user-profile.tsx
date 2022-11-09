@@ -66,6 +66,43 @@ export default function UserProfile() {
 
   console.log();
   useEffect(() => {
+    // const getQuote = async () => {
+    //   const res = await fetch(
+    //     "https://api.api-ninjas.com/v1/quotes?category=art",
+    //     {
+    //       method: "GET",
+    //       headers: new Headers({
+    //         "X-Api-Key": "1nczSYeTEucsj0UZ9JE2xQ==nX2o1snyqlWSIlp5",
+    //         contentType: "application/json",
+    //       }),
+    //     }
+    //   );
+
+    // success: function (result) {
+    //   console.log(result);
+    // },
+    // error: function ajaxError(jqXHR) {
+    //   console.error("Error: ", jqXHR.responseText);
+    // },
+
+    // const options = {
+    //   method: "GET",
+    //   headers: {
+    //     "X-RapidAPI-Key":
+    //       "09a3fc9c23mshc493a2d797b26d2p164126jsn3f42286223f2",
+    //     "X-RapidAPI-Host": "andruxnet-random-famous-quotes.p.rapidapi.com",
+    //   },
+    // };
+
+    // const res = await fetch(
+    //   "https://andruxnet-random-famous-quotes.p.rapidapi.com/?cat=design&count=10",
+    //   options
+    // );
+    //   const results = await res.json();
+    //   console.log(results);
+    // };
+    // getQuote();
+
     const getProfile = async () => {
       const q = query(collection(db, "users"), where("id", "==", user?.uid));
       const querySnapshot = await getDocs(q);
@@ -130,3 +167,23 @@ export default function UserProfile() {
     </>
   );
 }
+
+// export async function getStaticProps() {
+//   const options = {
+//     method: "GET",
+//     headers: {
+//       "X-RapidAPI-Key": "09a3fc9c23mshc493a2d797b26d2p164126jsn3f42286223f2",
+//       "X-RapidAPI-Host": "theysaidso.p.rapidapi.com",
+//     },
+//   };
+
+//   const res = fetch(
+//     "https://theysaidso.p.rapidapi.com/quote/search?query=art&maxlength=500&author=Klimt&minlength=10&language=en",
+//     options
+//   );
+
+//   return {
+//     props: { results: results },
+//     revalidate: 10,
+//   };
+// }

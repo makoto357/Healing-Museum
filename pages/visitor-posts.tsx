@@ -1,6 +1,6 @@
 import Link from "next/link";
 import React from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   collection,
   onSnapshot,
@@ -14,24 +14,28 @@ import saveToColleciton from "../asset/bookmark-save-favorite-ribbon-512.webp";
 import commentIcon from "../asset/comments.svg";
 import { useAuth } from "../context/AuthContext";
 
-interface IComment {
-  commentTime: Timestamp | undefined;
-  commentatorId: string | undefined;
-  content: string | undefined;
-}
+let comments: Array<{
+  commentTime: Timestamp;
+  commentatorId: string;
+  commentatorName: string;
+  content: string;
+}> = [];
 
-interface IComments extends Array<IComment> {}
+interface IComment {
+  id: string | undefined;
+  comments;
+}
 
 export default function VisitorPosts() {
   const [posts, setPosts] = useState([]);
   const [showComment, setShowComment] = useState(false);
-  const [comments, setComments] = useState<IComments>([
-    {
-      commentTime: undefined,
-      commentatorId: undefined,
-      content: undefined,
-    },
-  ]);
+  const [postComments, setPostComments] = useState<IComment>({
+    id: undefined,
+    comments,
+  });
+  const commentRef = useRef(null);
+
+  console.log("");
   const { user } = useAuth();
   useEffect(() => {
     const colRef = collection(db, "user-posts");
@@ -43,7 +47,6 @@ export default function VisitorPosts() {
         });
       });
       setPosts(posts);
-      // console.log(posts);
     });
     return () => {
       unSubscribe();
@@ -57,53 +60,85 @@ export default function VisitorPosts() {
     });
   };
 
-  const handleComments = (singlePost) => {
-    setComments(singlePost);
+  const handleShowComments = (singlePost) => {
+    setPostComments(singlePost);
     setShowComment(true);
   };
-  console.log(showComment);
-  console.log(comments);
+
+  const handleComment = async (singlePost) => {
+    console.log(singlePost.id);
+    console.log(commentRef.current.value);
+    const requestRef = doc(db, "user-posts", singlePost.id);
+    await updateDoc(requestRef, {
+      comments: arrayUnion({
+        commentatorId: user.uid,
+        commentTime: new Date(),
+        content: commentRef.current.value,
+      }),
+    });
+    commentRef.current.value = "";
+  };
   return (
-    <section style={{ width: "80vw", display: "flex", flexWrap: "wrap" }}>
-      {posts.map((post) => (
-        <section key={post.id}>
-          <div>
-            <img
-              alt={post.title}
-              src={post.uploadedImage}
-              style={{ width: "100px" }}
-            />
-            <h1>Post title: {post.title}</h1>
-            <p>Date: {post.date}</p>
-            <p>Content: {post.textContent}</p>
-            <div
-              role="button"
-              style={{
-                backgroundImage: `url(${saveToColleciton.src})`,
-                width: "30px",
-                height: "30px",
-                backgroundSize: "cover",
-              }}
-              onClick={() => saveToFavorites(post.id)}
-            ></div>
-            <div
-              role="button"
-              style={{
-                backgroundImage: `url(${commentIcon.src})`,
-                width: "30px",
-                height: "30px",
-                backgroundSize: "cover",
-              }}
-              onClick={() => handleComments(post.comments)}
-            ></div>
-          </div>
-          {showComment &&
-            comments?.map((comment) => (
-              <div key={comment?.commentatorId}>{comment?.content}</div>
-            ))}
-          <form></form>
-        </section>
-      ))}
-    </section>
+    <>
+      <section style={{ width: "80vw", display: "flex", flexWrap: "wrap" }}>
+        {posts.map((post) => (
+          <section key={post.id}>
+            <div>
+              <img
+                alt={post.title}
+                src={post.uploadedImage}
+                style={{ width: "100px" }}
+              />
+              <h1>Post title: {post.title}</h1>
+              <p>Date: {post.date}</p>
+              <p>Content: {post.textContent}</p>
+              <p>Artist: {post.artistForThisVisit}</p>
+              <p>Posted by: {post.postMadeBy}</p>
+              <div
+                role="button"
+                style={{
+                  backgroundImage: `url(${saveToColleciton.src})`,
+                  width: "30px",
+                  height: "30px",
+                  backgroundSize: "cover",
+                }}
+                onClick={() => saveToFavorites(post.id)}
+              ></div>
+              <div
+                role="button"
+                style={{
+                  backgroundImage: `url(${commentIcon.src})`,
+                  width: "30px",
+                  height: "30px",
+                  backgroundSize: "cover",
+                }}
+                onClick={() => handleShowComments(post)}
+              ></div>
+            </div>
+            {showComment && postComments?.id === post?.id && (
+              <div>
+                <textarea name="visitorComment" ref={commentRef} />
+                <button
+                  type="button"
+                  style={{ border: "1px solid black" }}
+                  onClick={() => handleComment(post)}
+                >
+                  submit
+                </button>
+              </div>
+            )}
+            {showComment &&
+              postComments?.id === post.id &&
+              postComments?.comments?.map((c) => (
+                <div key={c.commentTime}>
+                  <p>{c.commentatorName}</p>
+                  <p>{c.content}</p>
+                </div>
+              ))}
+            <form></form>
+          </section>
+        ))}
+      </section>
+    </>
   );
 }

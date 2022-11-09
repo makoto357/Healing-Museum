@@ -1,4 +1,4 @@
-import ReactPlayer from "react-player/youtube";
+import ReactPlayer from "react-player";
 import { Box } from "@chakra-ui/react";
 
 export function YoutubeVideoPlayer(props) {
@@ -12,6 +12,11 @@ export function YoutubeVideoPlayer(props) {
         playing={onplaying}
         width="100%"
         height="100%"
+        config={{
+          youtube: {
+            playerVars: { rel: 0 },
+          },
+        }}
       />
     </Box>
   );
