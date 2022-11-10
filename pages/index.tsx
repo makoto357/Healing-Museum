@@ -5,6 +5,8 @@ import { useEffect, useRef, useState, useContext } from "react";
 import { useAuth } from "../context/AuthContext";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { useTranslation } from "next-i18next";
+import React from "react";
+
 export async function getStaticProps({ locale }) {
   return {
     props: {
