@@ -18,7 +18,7 @@ import {
 
 import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
-import { numberInputAnatomy } from "@chakra-ui/anatomy";
+import quote from "../public/quote.json";
 
 interface IUser {
   email: string | undefined;
@@ -43,8 +43,23 @@ interface IArtwork {
   id: string | undefined;
   image: string | undefined;
 }
+
 interface EnumJourneyItems extends Array<EnumJourneyItem> {}
+// interface IQuote {
+//   artistUrl: string | undefined;
+//   artistName: string | undefined;
+//   quotes: string[] | undefined;
+// }
+
+// interface IQuotes extends Array<IQuote> {}
 export default function UserProfile() {
+  // const [quote, setQuote] = useState<IQuotes>([
+  //   {
+  //     artistUrl: undefined,
+  //     artistName: undefined,
+  //     quotes: undefined,
+  //   },
+  // ]);
   const [themeColor] = useContext(ThemeColorContext);
   const { user } = useAuth();
   const [profile, setProfile] = useState<IUser>({
@@ -64,62 +79,22 @@ export default function UserProfile() {
     image: undefined,
   });
 
-  console.log();
+  console.log(artwork.artistName);
+  const artistQuotes = quote.filter(
+    (q) => q.artistName == artwork.artistName
+  )[0].quotes;
+  const selectedQuote =
+    artistQuotes[Math.round(Math.random() * artistQuotes.length)];
+
   useEffect(() => {
-    // const getQuote = async () => {
-    //   const res = await fetch(
-    //     "https://api.api-ninjas.com/v1/quotes?category=art",
-    //     {
-    //       method: "GET",
-    //       headers: new Headers({
-    //         "X-Api-Key": "1nczSYeTEucsj0UZ9JE2xQ==nX2o1snyqlWSIlp5",
-    //         contentType: "application/json",
-    //       }),
-    //     }
-    //   );
-
-    // success: function (result) {
-    //   console.log(result);
-    // },
-    // error: function ajaxError(jqXHR) {
-    //   console.error("Error: ", jqXHR.responseText);
-    // },
-
-    // const options = {
-    //   method: "GET",
-    //   headers: {
-    //     "X-RapidAPI-Key":
-    //       "09a3fc9c23mshc493a2d797b26d2p164126jsn3f42286223f2",
-    //     "X-RapidAPI-Host": "andruxnet-random-famous-quotes.p.rapidapi.com",
-    //   },
-    // };
-
-    // const res = await fetch(
-    //   "https://andruxnet-random-famous-quotes.p.rapidapi.com/?cat=design&count=10",
-    //   options
-    // );
-    //   const results = await res.json();
-    //   console.log(results);
-    // };
-    // getQuote();
-
     const getProfile = async () => {
       const q = query(collection(db, "users"), where("id", "==", user?.uid));
       const querySnapshot = await getDocs(q);
       querySnapshot.forEach((doc) => {
         const IUser = doc.data() as IUser;
         setProfile(IUser);
-        console.log(
-          IUser.visitorJourney[IUser.visitorJourney.length - 1]
-            .recommendedArtist
-        );
-
         const artworkID =
           IUser.favoriteArtworksID[IUser.favoriteArtworksID.length - 1];
-
-        console.log(
-          IUser.favoriteArtworksID[IUser.favoriteArtworksID.length - 1]
-        );
         getFavoriteArtwork(artworkID);
       });
     };
@@ -158,7 +133,9 @@ export default function UserProfile() {
           strength, for knowing you are not alone.
         </p>
         <img alt={artwork.id} src={artwork.image} />
-        {/* <p>{quote}</p> */}
+        <p>
+          {`"${selectedQuote}"`}-{artwork.artistName}
+        </p>
         <p>We feel, therefore we are.</p>
       </section>
       <div
@@ -167,23 +144,3 @@ export default function UserProfile() {
     </>
   );
 }
-
-// export async function getStaticProps() {
-//   const options = {
-//     method: "GET",
-//     headers: {
-//       "X-RapidAPI-Key": "09a3fc9c23mshc493a2d797b26d2p164126jsn3f42286223f2",
-//       "X-RapidAPI-Host": "theysaidso.p.rapidapi.com",
-//     },
-//   };
-
-//   const res = fetch(
-//     "https://theysaidso.p.rapidapi.com/quote/search?query=art&maxlength=500&author=Klimt&minlength=10&language=en",
-//     options
-//   );
-
-//   return {
-//     props: { results: results },
-//     revalidate: 10,
-//   };
-// }
