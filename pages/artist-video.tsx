@@ -29,12 +29,24 @@ export default function ArtistVideo({ results }) {
   const { user } = useAuth();
   const [artist, setArtist] = useState("");
 
-  const [currentVideo, setCurrentVideo] = useState({
-    title: "",
+  interface IVideo {
+    id: string | undefined;
     snippet: {
-      resourceId: { videoId: "" },
+      title: string | undefined;
+      resourceId: { videoId: string | undefined };
+    };
+  }
+  interface IVideos extends Array<IVideo> {}
+
+  const [currentVideo, setCurrentVideo] = useState<IVideos>([
+    {
+      id: undefined,
+      snippet: {
+        title: undefined,
+        resourceId: { videoId: undefined },
+      },
     },
-  });
+  ]);
   // const [playing, setPlaying] = useState(false);
   console.log(
     results?.filter((result) =>
@@ -64,7 +76,7 @@ export default function ArtistVideo({ results }) {
       );
     };
     getArtist();
-  }, [user?.uid]);
+  }, [user?.uid, results]);
 
   return (
     <>
@@ -81,8 +93,8 @@ export default function ArtistVideo({ results }) {
           my={8}
         >
           <YoutubeVideoPlayer
-            key={currentVideo.title}
-            id={currentVideo.snippet.resourceId.videoId}
+            key={currentVideo?.snippet?.title}
+            id={currentVideo?.snippet?.resourceId.videoId}
             playing={onplaying}
           />
         </Box>

@@ -1,5 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
+import dynamic from "next/dynamic";
+
 import { useRouter } from "next/router";
 import {
   collection,
@@ -18,6 +20,10 @@ import { useRef, useState, useEffect, useContext } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { ThemeColorContext } from "../../context/ColorContext";
 import heart from "../../asset/17d0747c12d59dd8fd244e90d91956b9.png";
+import {
+  TransformComponent,
+  TransformWrapper,
+} from "@pronestor/react-zoom-pan-pinch";
 
 export default function ArtworkDetail() {
   const { user } = useAuth();
@@ -81,6 +87,14 @@ export default function ArtworkDetail() {
   }
   interface IArtworks extends Array<IArtwork> {}
 
+  const CC = dynamic(
+    () =>
+      import("../../components/copy-clipboard").then(
+        (mod) => mod.CopyClipboard
+      ),
+    { ssr: false }
+  );
+
   useEffect(() => {
     const getArtworks = async () => {
       const q = query(
@@ -122,9 +136,25 @@ export default function ArtworkDetail() {
         {artwork &&
           artwork?.map((artwork, index) => (
             <div key={index}>
-              <div className="imageBox">
-                <img alt={artwork.id} src={artwork.image} />
-              </div>
+              <TransformWrapper
+                key={index}
+                initialPositionX={200}
+                initialPositionY={100}
+                initialScale={1}
+              >
+                {({ zoomIn, zoomOut, ...rest }) => (
+                  <>
+                    <div className="tools">
+                      <button onClick={() => zoomIn()}>+</button>
+                      <button onClick={() => zoomOut()}>-</button>
+                    </div>
+                    <TransformComponent>
+                      <img alt={artwork.id} src={artwork.image} />
+                    </TransformComponent>
+                  </>
+                )}
+              </TransformWrapper>
+
               <div>
                 <h1>{artwork.title}</h1>
                 <h2>
@@ -143,6 +173,9 @@ export default function ArtworkDetail() {
                 }}
                 onClick={saveToFavorites}
               ></div>
+              <div style={{ width: "50px", height: "50px" }}>
+                <CC content={window.location.href} />
+              </div>
               <section>
                 <div>
                   <p>{artwork.description}</p>
