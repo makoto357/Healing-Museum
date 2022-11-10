@@ -10,7 +10,6 @@ module.exports = {
       {
         protocol: "https",
         hostname: "**wikiart.org",
-        port: "",
         pathname: "/images/**",
       },
     ],
