@@ -21,12 +21,75 @@ import { db } from "../../config/firebase";
 import { useRef, useState, useEffect, useContext } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { ThemeColorContext } from "../../context/ColorContext";
-import heart from "../../asset/17d0747c12d59dd8fd244e90d91956b9.png";
+import heart from "../../asset/heart.png";
+import plus from "../../asset/plus.png";
+import minus from "../../asset/minus.png";
+
 import {
   TransformComponent,
   TransformWrapper,
 } from "@pronestor/react-zoom-pan-pinch";
+const ArtworkWrapper = styled.section`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+`;
 
+const ArtworkImage = styled.img`
+  height: 60vh;
+`;
+
+const SizeController = styled.div`
+  margin: 5px 0;
+  display: flex;
+  column-gap: 5px;
+  justify-content: flex-end;
+  max-width: 60vw;
+  width: 100%;
+`;
+const ZoomIn = styled.div`
+  background-image: url(${plus.src});
+  width: 25px;
+  height: 25px;
+  background-size: cover;
+  margin-bottom: 5px;
+`;
+
+const ZoomOut = styled.div`
+  background-image: url(${minus.src});
+  width: 25px;
+  height: 25px;
+  background-size: cover;
+`;
+const TextWrapper = styled.section`
+  margin: 24px auto 0;
+  max-width: 60vw;
+  width: 100%;
+`;
+
+const TextHeader = styled.section`
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 10px;
+`;
+
+const IconGroup = styled.div`
+  display: flex;
+  column-gap: 20px;
+`;
+
+const LikeButton = styled.div`
+  background-image: url(${heart.src});
+  width: 25px;
+  height: 25px;
+  background-size: cover;
+`;
+
+const DescriptionList = styled.div`
+  list-style: none;
+  padding: 10px 0;
+`;
 export default function ArtworkDetail() {
   const { user } = useAuth();
 
@@ -123,106 +186,92 @@ export default function ArtworkDetail() {
   console.log(themeColor);
   return (
     <>
-      <style jsx>
-        {`
-          section {
-            text-align: center;
-          }
-          .imageBox {
-            box-shadow: 12px 12px 2px 1px ${themeColor};
-            display: inline-block;
-          }
-        `}
-      </style>
-      <section>
-        {artwork &&
-          artwork?.map((artwork, index) => (
-            <div key={index}>
-              <TransformWrapper
-                key={index}
-                initialPositionX={200}
-                initialPositionY={100}
-                initialScale={1}
-              >
-                {({ zoomIn, zoomOut, ...rest }) => (
-                  <>
-                    <div className="tools">
-                      <button onClick={() => zoomIn()}>+</button>
-                      <button onClick={() => zoomOut()}>-</button>
-                    </div>
-                    <TransformComponent>
-                      <img alt={artwork.id} src={artwork.image} />
-                    </TransformComponent>
-                  </>
-                )}
-              </TransformWrapper>
+      {artwork &&
+        artwork?.map((artwork, index) => (
+          <ArtworkWrapper key={index}>
+            <TransformWrapper initialScale={1}>
+              {({ zoomIn, zoomOut, ...rest }) => (
+                <>
+                  <TransformComponent>
+                    <ArtworkImage alt={artwork.id} src={artwork.image} />
+                  </TransformComponent>
+                  <SizeController className="tools">
+                    <ZoomIn role="button" onClick={() => zoomIn()} />
+                    <ZoomOut role="button" onClick={() => zoomOut()} />
+                  </SizeController>
+                </>
+              )}
+            </TransformWrapper>
 
-              <div>
-                <h1>{artwork.title}</h1>
-                <h2>
-                  <span>{artwork.artistName}</span>
-                  <span>{artwork.completitionYear}</span>
-                </h2>
-              </div>
-              <div
-                role="button"
-                style={{
-                  margin: "auto",
-                  backgroundImage: `url(${heart.src})`,
-                  width: "30px",
-                  height: "30px",
-                  backgroundSize: "cover",
-                }}
-                onClick={saveToFavorites}
-              ></div>
-              <div style={{ width: "50px", height: "50px" }}>
-                <CC content={window.location.href} />
-              </div>
-              <section>
+            <TextWrapper>
+              <TextHeader>
                 <div>
-                  <p>{artwork.description}</p>
+                  <h1>
+                    <strong>{artwork.title}</strong>
+                    <strong></strong>
+                  </h1>
+                  <h2>
+                    <span>{artwork.artistName}, </span>
+                    <span>{artwork.completitionYear}</span>
+                  </h2>
                 </div>
-              </section>
-              <section>
-                <div>
-                  <ul>
-                    <li>
-                      <span>{artwork.genres}</span>
-                    </li>
-                    <li>
-                      <span>{artwork.styles}</span>
-                    </li>
-                    <li>
-                      {artwork?.media?.map((medium, index) => (
-                        <span key={index}>{medium},</span>
-                      ))}
-                    </li>
-                    <li>
-                      <p>
-                        {artwork.sizeX} X {artwork.sizeY} cm
-                      </p>
-                    </li>
-                    <li>Collection of the {artwork.galleries}</li>
-                    {artwork?.tags?.map((tag, index) => (
-                      <span key={index}>#{tag} </span>
-                    ))}
-                  </ul>
-                </div>
-              </section>
-            </div>
-          ))}
-        <div style={{ textAlign: "left" }}>
-          <Link href="/collection-maps">
-            <p>back to map page</p>
-          </Link>
-        </div>
+                <IconGroup>
+                  <LikeButton
+                    role="button"
+                    onClick={saveToFavorites}
+                  ></LikeButton>
+                  <div style={{ width: "20px", height: "20px" }}>
+                    <CC content={window.location.href} />
+                  </div>
+                </IconGroup>
+              </TextHeader>
+              <p>{artwork.description}</p>
+              <DescriptionList>
+                <li>
+                  {" "}
+                  <strong>Genres: </strong>
+                  {artwork.genres}
+                </li>
+                <li>
+                  <strong>Styles: </strong>
+                  {artwork.styles}
+                </li>
+                <li>
+                  <strong>Medium: </strong>
 
-        <div style={{ textAlign: "right" }}>
-          <Link href="/artworks">
-            <p>Explore more artworks!</p>
-          </Link>
-        </div>
-      </section>
+                  {artwork?.media?.map((medium, index) => (
+                    <span key={index}>{medium}, </span>
+                  ))}
+                </li>
+                <li>
+                  <strong>Dimensions: </strong>
+                  {artwork.sizeX} X {artwork.sizeY} cm
+                </li>
+                <li>Collection of the {artwork.galleries}</li>
+                <li>
+                  {artwork?.tags?.map((tag, index) => (
+                    <span key={index}>
+                      {" "}
+                      <strong>#</strong>
+                      {tag}{" "}
+                    </span>
+                  ))}
+                </li>
+              </DescriptionList>
+            </TextWrapper>
+          </ArtworkWrapper>
+        ))}
+      <div style={{ textAlign: "left" }}>
+        <Link href="/collection-maps">
+          <p>back to map page</p>
+        </Link>
+      </div>
+
+      <div style={{ textAlign: "right" }}>
+        <Link href="/artworks">
+          <p>Explore more artworks!</p>
+        </Link>
+      </div>
     </>
   );
 }
