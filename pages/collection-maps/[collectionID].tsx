@@ -45,7 +45,7 @@ const SizeController = styled.div`
   display: flex;
   column-gap: 5px;
   justify-content: flex-end;
-  max-width: 60vw;
+  max-width: 50vw;
   width: 100%;
 `;
 const ZoomIn = styled.div`
@@ -64,7 +64,7 @@ const ZoomOut = styled.div`
 `;
 const TextWrapper = styled.section`
   margin: 24px auto 0;
-  max-width: 60vw;
+  max-width: 50vw;
   width: 100%;
 `;
 

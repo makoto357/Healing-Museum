@@ -5,8 +5,6 @@ import { ThemeColorContext } from "../context/ColorContext";
 import { YoutubeVideoPlayer } from "../components/youtubePlayer";
 import Head from "next/head";
 import Image from "next/image";
-import { Box, Center, Heading, SimpleGrid } from "@chakra-ui/layout";
-import { Button } from "@chakra-ui/button";
 import noImage from "../asset/no-thumbnail.jpeg";
 import {
   collection,
@@ -25,6 +23,27 @@ import {
 
 import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
+import { Navigation, Pagination, Scrollbar, A11y, EffectFade } from "swiper";
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/effect-fade";
+
+import "swiper/css/pagination";
+import "swiper/css/scrollbar";
+const VideoWrapper = styled.section`
+  margin: 24px auto;
+  min-height: 100vh;
+`;
+
+const YoutubeVideoWrapper = styled.div`
+  width: 70vw;
+  margin: 0 auto 70px;
+`;
+
+const SwiperWrapper = styled.section`
+  margin: 0 64px;
+`;
 
 export default function ArtistVideo({ results }) {
   const { user } = useAuth();
@@ -55,9 +74,9 @@ export default function ArtistVideo({ results }) {
     )[0]
   );
   const [themeColor] = useContext(ThemeColorContext);
-  const scrollTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  // const scrollTop = () => {
+  //   window.scrollTo({ top: 0, behavior: "smooth" });
+  // };
 
   useEffect(() => {
     const getArtist = async () => {
@@ -80,27 +99,26 @@ export default function ArtistVideo({ results }) {
   }, [user?.uid, results]);
 
   return (
-    <>
-      <Box width="100%" mx="auto" my={4}>
-        <Heading my={8} as="h1" textAlign="center">
-          YouTube Video Gallery{" "}
-        </Heading>
-        <Box
-          maxWidth="720px"
-          mx="auto"
-          p={4}
-          borderRadius="lg"
-          boxShadow="2xl"
-          my={8}
+    <VideoWrapper>
+      <YoutubeVideoWrapper>
+        <YoutubeVideoPlayer
+          key={currentVideo?.snippet?.title}
+          id={currentVideo?.snippet?.resourceId.videoId}
+          playing={onplaying}
+        />
+      </YoutubeVideoWrapper>
+      <SwiperWrapper>
+        <Swiper
+          modules={[Navigation, Pagination, Scrollbar, A11y]}
+          spaceBetween={50}
+          slidesPerView={3}
+          navigation
+          loop
+          // scrollbar={{ draggable: true }}
+          onSwiper={(swiper) => console.log(swiper)}
+          onSlideChange={() => console.log("slide change")}
+          // className={styles.myswiper}
         >
-          <YoutubeVideoPlayer
-            key={currentVideo?.snippet?.title}
-            id={currentVideo?.snippet?.resourceId.videoId}
-            playing={onplaying}
-          />
-        </Box>
-
-        <SimpleGrid columns={[1, 2, 3]} spacing={8}>
           {/* 1 column for sm, 2 for md and 3 for large */}
           {results &&
             results
@@ -110,42 +128,33 @@ export default function ArtistVideo({ results }) {
                   .includes(artist.split("-").slice(1))
               )
               .map((video) => (
-                <Box key={video.id} mx={4}>
-                  <Image
-                    src={video.snippet.thumbnails.maxres?.url || noImage}
-                    // layout="intrinsic"
-                    width={1280}
-                    height={720}
-                    alt={video.snippet.title}
-                  />
-                  <Heading
-                    as="h5"
-                    fontSize="sm"
-                    textAlign="left"
-                    noOfLines={1}
-                    mb={2}
+                <SwiperSlide key={video.id}>
+                  <div
+                    role="button"
+                    onClick={() => {
+                      setCurrentVideo(video);
+                      // setPlaying(true);
+                      // scrollTop();
+                    }}
                   >
-                    {video.snippet.title}
-                  </Heading>
-                  <Center>
-                    <Button
-                      mx="auto"
-                      my={4}
-                      colorScheme="red"
-                      onClick={() => {
-                        setCurrentVideo(video);
-                        // setPlaying(true);
-                        scrollTop();
-                      }}
-                    >
-                      Watch Now
-                    </Button>
-                  </Center>
-                </Box>
+                    <Image
+                      src={
+                        video.snippet.thumbnails.maxres?.url ||
+                        video.snippet.thumbnails.medium?.url
+                      }
+                      // layout="intrinsic"
+                      width={1280}
+                      height={720}
+                      alt={video.snippet.title}
+                    />
+                    <h1>
+                      <strong>{video.snippet.title}</strong>
+                    </h1>
+                  </div>
+                </SwiperSlide>
               ))}
-        </SimpleGrid>
-      </Box>
-
+        </Swiper>
+      </SwiperWrapper>
       <div style={{ textAlign: "right" }}>
         <Link href="/form">
           <p>And Finally...</p>
@@ -154,7 +163,7 @@ export default function ArtistVideo({ results }) {
       <div
         style={{ background: themeColor, height: "500px", width: "250px" }}
       ></div>
-    </>
+    </VideoWrapper>
   );
 }
 

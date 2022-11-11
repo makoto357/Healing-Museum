@@ -1,13 +1,7 @@
-/* @tailwind base;
-@tailwind components;
-@tailwind utilities; */
-
 html,
 body {
   padding: 0;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
-    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
 }
 
 a {
@@ -15,17 +9,21 @@ a {
   text-decoration: none;
 }
 
-* {
-  box-sizing: border-box;
+.swiper-button-next,
+.swiper-button-prev {
+  color: white !important;
 }
 
 .player-wrapper {
+  width: auto;
+  height: auto;
+}
+.react-player {
+  padding-top: 56.25%;
   position: relative;
-  padding-top: 56.25%; /* Player ratio: 100 / (1280 / 720) */
 }
 
-.react-player {
+.react-player > div {
   position: absolute;
-  top: 0;
-  left: 0;
+  top: 24px;
 }
