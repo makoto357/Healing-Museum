@@ -1,3 +1,5 @@
+import styled from "@emotion/styled";
+
 import { createPortal } from "react-dom";
 const Modal = ({ onClose, children }) => {
   return createPortal(

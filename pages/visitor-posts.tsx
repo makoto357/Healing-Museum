@@ -1,3 +1,5 @@
+import styled from "@emotion/styled";
+
 import Link from "next/link";
 import React from "react";
 import { useState, useEffect, useRef } from "react";
@@ -77,6 +79,7 @@ export default function VisitorPosts() {
       }),
     });
     commentRef.current.value = "";
+    // base on singlePost id, update postComments
   };
   return (
     <>

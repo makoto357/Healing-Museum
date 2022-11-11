@@ -1,4 +1,5 @@
 import ReactPlayer from "react-player";
+import styled from "@emotion/styled";
 import { Box } from "@chakra-ui/react";
 
 export function YoutubeVideoPlayer(props) {

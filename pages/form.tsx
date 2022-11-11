@@ -1,17 +1,5 @@
-// [type="radio"] {
-//   position: absolute;
-//   opacity: 0;
-//   width: 0;
-//   height: 0;
-// }
+import styled from "@emotion/styled";
 
-// [type="radio"] + img {
-//   cursor: pointer;
-// }
-
-// [type="radio"]:checked + img {
-//   outline: 2px solid #f00;
-// }
 import Link from "next/link";
 import Image from "next/image";
 import React from "react";

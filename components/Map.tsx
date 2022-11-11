@@ -1,3 +1,5 @@
+import styled from "@emotion/styled";
+
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/router";
@@ -38,7 +40,7 @@ import { db } from "../config/firebase";
 import { useRef, useState, useEffect, useContext } from "react";
 import { useAuth } from "../context/AuthContext";
 import heart from "../asset/17d0747c12d59dd8fd244e90d91956b9.png";
-import { sendSignInLinkToEmail } from "firebase/auth";
+
 const google = window.google;
 const center = { lat: 42.44163943619658, lng: -26.132456899797923 };
 export default function GoogleMaps() {
@@ -140,6 +142,9 @@ export default function GoogleMaps() {
                   onClick={() => {
                     getGallery(g);
                   }}
+                  // icon={{
+                  //   url: `${heart.src}`,
+                  // }}
                 />
               );
             })}

@@ -1,3 +1,5 @@
+import styled from "@emotion/styled";
+
 import { useRouter } from "next/router";
 import { useState, useContext } from "react";
 import { ThemeColorContext } from "../context/ColorContext";

@@ -1,3 +1,4 @@
+import styled from "@emotion/styled";
 import Link from "next/link";
 import { useState, useContext, useEffect } from "react";
 import { ThemeColorContext } from "../context/ColorContext";

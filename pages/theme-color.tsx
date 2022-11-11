@@ -1,3 +1,4 @@
+import styled from "@emotion/styled";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState, useContext } from "react";
@@ -6,12 +7,13 @@ export default function ThemeColor() {
   const router = useRouter();
   const themeColors = [
     "#cf2e2e",
-    "#efb261",
-    "#FFD700",
-    "#49ad79",
+    "#AF8C12",
+    "#F2C641",
+    "#4E74A6",
     "#0094A3",
     "#9966cb",
   ];
+
   const [themeColor, setThemeColor] = useContext(ThemeColorContext);
   return (
     <>
