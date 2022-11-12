@@ -1,8 +1,4 @@
 import styled from "@emotion/styled";
-
-import Link from "next/link";
-import Image from "next/image";
-import { useRouter } from "next/router";
 import { ChakraProvider, theme } from "@chakra-ui/react";
 import {
   Box,
@@ -15,34 +11,31 @@ import {
   SkeletonText,
   Text,
 } from "@chakra-ui/react";
-import { FaLocationArrow } from "react-icons/fa";
 import {
   useJsApiLoader,
   GoogleMap,
   Marker,
-  Autocomplete,
   InfoWindow,
+  MarkerClusterer,
 } from "@react-google-maps/api";
-import {
-  collection,
-  onSnapshot,
-  doc,
-  updateDoc,
-  arrayUnion,
-  arrayRemove,
-  query,
-  where,
-  getDocs,
-  orderBy,
-  Timestamp,
-} from "firebase/firestore";
+import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
 import { db } from "../config/firebase";
-import { useRef, useState, useEffect, useContext } from "react";
+import { useRef, useState, useMemo, useEffect, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
-import heart from "../asset/17d0747c12d59dd8fd244e90d91956b9.png";
+import Link from "next/link";
+import Image from "next/image";
+import { useRouter } from "next/router";
 
 const google = window.google;
-const center = { lat: 42.44163943619658, lng: -26.132456899797923 };
+import museumMarker from "../asset/new-marker.png";
+
+const ArtworkInfo = styled.div`
+  display: flex;
+`;
+
+const ArtworkText = styled.p`
+  padding: 12px 0;
+`;
 export default function GoogleMaps() {
   interface IWindow {
     image: string | undefined;
@@ -62,23 +55,24 @@ export default function GoogleMaps() {
     geometry: undefined,
     id: undefined,
   });
-  const [map, setMap] = useState(/** @type google.maps.Map */ null);
   const [galleries, setGalleries] = useState([]);
   const [artist, setArtist] = useState([]);
   const destiantionRef = useRef<HTMLInputElement>(null);
+  const mapRef = useRef<GoogleMap>();
+
   const { user } = useAuth();
-  console.log(galleries);
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
     libraries: ["places"],
   });
-  const onLoad = () => {
-    console.log("infoWindow: ", InfoWindow);
-  };
+  const center = useMemo(
+    () => ({ lat: 42.44163943619658, lng: -26.132456899797923 }),
+    []
+  );
+  //call this value once and use this value unless the dependency array changes
+  const onLoad = useCallback((map) => (mapRef.current = map), []);
 
   useEffect(() => {
-    onLoad();
-
     const getArtist = async () => {
       const q = query(collection(db, "users"), where("id", "==", user.uid));
       const querySnapshot = await getDocs(q);
@@ -131,23 +125,29 @@ export default function GoogleMaps() {
               streetViewControl: false,
               mapTypeControl: false,
               fullscreenControl: false,
+              // mapId: "f8edff93482db741",
             }}
-            onLoad={(map) => setMap(map)}
+            onLoad={onLoad}
           >
-            {galleries.map((g) => {
-              return (
-                <Marker
-                  key={g.id}
-                  position={g.geometry}
-                  onClick={() => {
-                    getGallery(g);
-                  }}
-                  // icon={{
-                  //   url: `${heart.src}`,
-                  // }}
-                />
-              );
-            })}
+            <MarkerClusterer>
+              {(clusterer) =>
+                galleries.map((g) => {
+                  return (
+                    <Marker
+                      key={g.id}
+                      position={g.geometry}
+                      onClick={() => {
+                        getGallery(g);
+                      }}
+                      icon={{
+                        url: `${museumMarker.src}`,
+                      }}
+                      clusterer={clusterer}
+                    />
+                  );
+                })
+              }
+            </MarkerClusterer>
             {selectedMarker?.geometry && (
               <InfoWindow
                 onCloseClick={() => {
@@ -167,67 +167,30 @@ export default function GoogleMaps() {
                 }}
                 position={selectedMarker.geometry}
               >
-                <div
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    position: "relative",
-                  }}
-                >
-                  <h1>{selectedMarker.galleries}</h1>
-                  <p>{selectedMarker.title}</p>
-                  <p>{selectedMarker.completitionYear}</p>
-
+                <ArtworkInfo>
                   <Link href={`/collection-maps/${selectedMarker.id}`}>
                     <img
                       alt={selectedMarker.id}
                       src={selectedMarker.image}
-                      style={{ width: "100px" }}
+                      style={{ width: "100px", marginRight: "12px" }}
                     />
                   </Link>
-                </div>
+                  <div>
+                    <ArtworkText>
+                      <strong>
+                        {selectedMarker.title},{" "}
+                        {selectedMarker.completitionYear}
+                      </strong>
+                    </ArtworkText>
+                    <p>{selectedMarker.galleries}</p>
+                  </div>
+                </ArtworkInfo>
               </InfoWindow>
             )}
           </GoogleMap>
         </Box>
         <div style={{ display: "none" }}>
-          <Box
-            p={4}
-            borderRadius="lg"
-            m={4}
-            bgColor="white"
-            shadow="base"
-            minW="container.md"
-            zIndex="0"
-          >
-            <HStack spacing={2} justifyContent="space-between">
-              <Box flexGrow={1}>
-                <Autocomplete>
-                  <Input
-                    type="text"
-                    placeholder="Click on the markers to get gallery address"
-                    ref={destiantionRef}
-                  />
-                </Autocomplete>
-              </Box>
-            </HStack>
-            <HStack spacing={4} mt={4} justifyContent="space-between">
-              <IconButton
-                aria-label="center back"
-                icon={<FaLocationArrow />}
-                isRound
-                onClick={() => {
-                  map.panTo(center);
-                  map.setZoom(7);
-                }}
-              />
-              <ButtonGroup>
-                <Button colorScheme="pink" type="submit">
-                  Find a place
-                </Button>
-              </ButtonGroup>
-            </HStack>
-          </Box>
+          <Input type="text" ref={destiantionRef} />
         </div>
       </Flex>
     </ChakraProvider>

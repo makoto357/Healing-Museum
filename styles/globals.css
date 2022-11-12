@@ -9,11 +9,13 @@ a {
   text-decoration: none;
 }
 
+/* Swiper.js Button Style */
 .swiper-button-next,
 .swiper-button-prev {
   color: white !important;
 }
 
+/* React-Player Style */
 .player-wrapper {
   width: auto;
   height: auto;
@@ -26,4 +28,22 @@ a {
 .react-player > div {
   position: absolute;
   top: 24px;
+}
+
+/* React-Google-Maps Info-window Style */
+.gm-style .gm-style-iw-c {
+  padding: 0px !important;
+  padding-bottom: -10px !important;
+  height: auto !important;
+  width: 350px !important;
+  box-sizing: border-box;
+  top: 5px;
+  left: 0;
+  background-color: white;
+  border-radius: 0px;
+  box-shadow: 0 2px 7px 1px rgba(0, 0, 0, 0.3);
+}
+
+.gm-style-iw-d {
+  overflow: hidden !important;
 }
