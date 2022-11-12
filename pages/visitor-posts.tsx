@@ -12,9 +12,90 @@ import {
   Timestamp,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
-import saveToColleciton from "../asset/bookmark-save-favorite-ribbon-512.webp";
+import heart from "../asset/heart.png";
 import commentIcon from "../asset/comments.svg";
 import { useAuth } from "../context/AuthContext";
+
+const MainContainer = styled.section`
+  display: flex;
+  max-width: 1200px;
+  width: 65vw;
+  margin: 70px auto;
+  row-gap: 50px;
+  column-gap: 20px;
+`;
+
+const CommentContainer = styled.section`
+  width: 270px;
+  height: fit-content;
+  display: flex;
+  flex-direction: column;
+  background: white;
+
+  position: relative;
+  &:before {
+    z-index: -1;
+    background: white;
+
+    position: absolute;
+
+    content: "";
+    height: calc(100% - 40px);
+    width: 100%;
+    bottom: -40px;
+    left: 0;
+    -webkit-transform-origin: 0 0;
+    -ms-transform-origin: 0 0;
+    transform-origin: 0 0;
+    -webkit-transform: skewY(-4deg);
+    -ms-transform: skewY(-4deg);
+    transform: skewY(-4deg);
+  }
+`;
+
+const Post = styled.section`
+  margin: 20px 20px 0px;
+`;
+const MainImage = styled.div`
+  width: 100%;
+  min-height: 70px;
+`;
+
+const Text = styled.div`
+  display: flex;
+  flex-direction: column;
+  row-gap: 15px;
+`;
+
+const ButtonGroup = styled.div`
+  display: flex;
+  justify-content: space-between;
+  padding-top: 20px;
+`;
+const CollectionButton = styled.div`
+  background-image: url(${heart.src});
+  width: 20px;
+  height: 20px;
+  background-size: cover;
+`;
+
+const CommentButton = styled.div`
+  background-image: url(${commentIcon.src});
+  width: 20px;
+  height: 20px;
+  background-size: cover;
+`;
+
+const TextArea = styled.textarea`
+  border: 1px solid #2c2b2c;
+  padding: 5px;
+  width: 100%;
+`;
+
+const Split = styled.div`
+  border-bottom: 1px solid #2c2b2c;
+  margin-bottom: 20px;
+`;
 
 let comments: Array<{
   commentTime: Timestamp;
@@ -83,65 +164,72 @@ export default function VisitorPosts() {
   };
   return (
     <>
-      <section style={{ width: "80vw", display: "flex", flexWrap: "wrap" }}>
+      <MainContainer>
         {posts.map((post) => (
-          <section key={post.id}>
-            <div>
-              <img
-                alt={post.title}
-                src={post.uploadedImage}
-                style={{ width: "100px" }}
-              />
-              <h1>Post title: {post.title}</h1>
-              <p>Date: {post.date}</p>
-              <p>Content: {post.textContent}</p>
-              <p>Artist: {post.artistForThisVisit}</p>
-              <p>Posted by: {post.postMadeBy}</p>
-              <div
-                role="button"
-                style={{
-                  backgroundImage: `url(${saveToColleciton.src})`,
-                  width: "30px",
-                  height: "30px",
-                  backgroundSize: "cover",
-                }}
-                onClick={() => saveToFavorites(post.id)}
-              ></div>
-              <div
-                role="button"
-                style={{
-                  backgroundImage: `url(${commentIcon.src})`,
-                  width: "30px",
-                  height: "30px",
-                  backgroundSize: "cover",
-                }}
-                onClick={() => handleShowComments(post)}
-              ></div>
-            </div>
+          <CommentContainer key={post.id}>
+            <MainImage>
+              <img alt={post.title} src={post.uploadedImage} />
+            </MainImage>
+            <Post>
+              <Text>
+                <div>
+                  <h1>
+                    <strong>{post.title}</strong>
+                  </h1>
+                  <p>{post.date}</p>
+                </div>
+                <p>{post.textContent}</p>
+                <div>
+                  <p>
+                    <strong>Posted by: </strong>
+                    {post.postMadeBy}
+                  </p>
+                  <p>
+                    <strong>Artist: </strong>
+                    {post.artistForThisVisit}
+                  </p>
+                </div>
+              </Text>
+              <ButtonGroup>
+                <CommentButton
+                  role="button"
+                  onClick={() => handleShowComments(post)}
+                ></CommentButton>
+                <CollectionButton
+                  role="button"
+                  onClick={() => saveToFavorites(post.id)}
+                ></CollectionButton>
+              </ButtonGroup>
+            </Post>
             {showComment && postComments?.id === post?.id && (
-              <div>
-                <textarea name="visitorComment" ref={commentRef} />
-                <button
-                  type="button"
-                  style={{ border: "1px solid black" }}
-                  onClick={() => handleComment(post)}
-                >
+              <Post>
+                <Split></Split>
+                <TextArea
+                  placeholder="After reading this post, I feel..."
+                  name="visitorComment"
+                  ref={commentRef}
+                />
+                <button type="button" onClick={() => handleComment(post)}>
                   submit
                 </button>
-              </div>
+              </Post>
             )}
             {showComment &&
               postComments?.id === post.id &&
               postComments?.comments?.map((c) => (
-                <div key={c.commentTime}>
-                  <p>{c.commentatorName}</p>
-                  <p>{c.content}</p>
-                </div>
+                <>
+                  <Post key={c.commentTime}>
+                    <h1>
+                      <strong>How Others Feel</strong>
+                    </h1>
+                    <p>{c.commentatorName}</p>
+                    <p>{c.content}</p>
+                  </Post>
+                </>
               ))}
-            <form></form>
-          </section>
+          </CommentContainer>
         ))}
-      </section>
+      </MainContainer>
     </>
   );
 }
