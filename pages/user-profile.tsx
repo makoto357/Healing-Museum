@@ -1,25 +1,32 @@
 import styled from "@emotion/styled";
 import Link from "next/link";
-import { useState, useContext, useEffect, use } from "react";
+import { useState, useContext, useEffect } from "react";
 import { ThemeColorContext } from "../context/ColorContext";
 import {
   collection,
-  onSnapshot,
-  doc,
   query,
   where,
   getDocs,
-  getDoc,
-  setDoc,
   Timestamp,
-  orderBy,
-  updateDoc,
-  arrayUnion,
 } from "firebase/firestore";
 
 import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
-import quote from "../public/quote.json";
+import quotes from "../public/quote.json";
+
+const FinalWords = styled.section`
+  width: 70vw;
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  row-gap: 15px;
+`;
+
+const Opening = styled.h1`
+  font-size: 20px;
+`;
 
 interface IUser {
   email: string | undefined;
@@ -46,21 +53,8 @@ interface IArtwork {
 }
 
 interface EnumJourneyItems extends Array<EnumJourneyItem> {}
-// interface IQuote {
-//   artistUrl: string | undefined;
-//   artistName: string | undefined;
-//   quotes: string[] | undefined;
-// }
 
-// interface IQuotes extends Array<IQuote> {}
 export default function UserProfile() {
-  // const [quote, setQuote] = useState<IQuotes>([
-  //   {
-  //     artistUrl: undefined,
-  //     artistName: undefined,
-  //     quotes: undefined,
-  //   },
-  // ]);
   const [themeColor] = useContext(ThemeColorContext);
   const { user } = useAuth();
   const [profile, setProfile] = useState<IUser>({
@@ -79,13 +73,8 @@ export default function UserProfile() {
     id: undefined,
     image: undefined,
   });
-
+  const [quote, setQuote] = useState("");
   console.log(artwork.artistName);
-  const artistQuotes = quote.filter(
-    (q) => q.artistName == artwork.artistName
-  )[0].quotes;
-  const selectedQuote =
-    artistQuotes[Math.round(Math.random() * artistQuotes.length)];
 
   useEffect(() => {
     const getProfile = async () => {
@@ -100,12 +89,18 @@ export default function UserProfile() {
       });
     };
     const getFavoriteArtwork = async (id) => {
-      console.log(id);
       const q = query(collection(db, "artists"), where("id", "==", id));
       const querySnapshot = await getDocs(q);
       const docs = querySnapshot.docs.map((doc) => doc.data() as any);
       setArtwork(docs[0]);
-      console.log(docs[0].image);
+      const quoteNumber = quotes.filter(
+        (q) => q.artistName == docs[0]?.artistName
+      )[0].quotes.length;
+      setQuote(
+        quotes.filter((q) => q.artistName == docs[0]?.artistName)[0].quotes[
+          Math.round(Math.random() * quoteNumber)
+        ]
+      );
     };
     if (user) {
       getProfile();
@@ -113,32 +108,46 @@ export default function UserProfile() {
   }, [user]);
   return (
     <>
-      <div>profile</div>
       <div style={{ textAlign: "right" }}>
         <Link href="/visitor-posts">
           <p>check posts of other visitors.</p>
         </Link>
       </div>
-      <section>
+      <FinalWords>
+        <Opening>
+          <strong>
+            Thank you, {profile?.name}, <br />
+            for your visit to the Healing Museum.
+          </strong>
+        </Opening>
         <p>
-          Thank you, {profile?.name}, for your visit to the Healing Museum
-          today. I hope you had a nice time and some understandings of{" "}
-          {artwork.artistName} whose life perspectives resonate with your own.
+          I hope you had a nice time and some understandings of{" "}
+          {artwork.artistName} <br />
+          whose life perspectives resonate with your own.
         </p>
         <p>
-          This artwork below is the last one you saved as favorite during your
-          journey, does it remind you of a special moment in your life?
+          The artwork below is the last one you saved as favorite during your
+          journey, <br />
+          does it remind you of a special moment?
         </p>
+        <img src={artwork.image} alt={artwork.title} />
+        <p>
+          <strong>{artwork.title}</strong>
+        </p>
+        <span>{artwork.completionYear}</span>
+
         <p>
           No matter what you have encountered, we hope this painting gives you
-          strength, for knowing you are not alone.
+          strength, <br />
+          for knowing there is someone who shares your feelings.
         </p>
-        <img alt={artwork.id} src={artwork.image} />
         <p>
-          {`"${selectedQuote}"`}-{artwork.artistName}
+          <strong>
+            {`"${quote}"`}-{artwork.artistName}
+          </strong>
         </p>
         <p>We feel, therefore we are.</p>
-      </section>
+      </FinalWords>
       <div
         style={{ background: themeColor, height: "100px", width: "100px" }}
       ></div>
