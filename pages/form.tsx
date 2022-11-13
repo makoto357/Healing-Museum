@@ -1,11 +1,8 @@
 import styled from "@emotion/styled";
-
 import Link from "next/link";
-import Image from "next/image";
 import React from "react";
 import { useState, useContext, useRef, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
-
 import { ThemeColorContext } from "../context/ColorContext";
 import {
   collection,
@@ -17,31 +14,121 @@ import {
   getDocs,
 } from "firebase/firestore";
 import { db, storage } from "../config/firebase";
-import {
-  ref,
-  uploadBytesResumable,
-  UploadTask,
-  getDownloadURL,
-} from "firebase/storage";
-
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import imageupload from "../asset/imageupload.svg";
 import like from "../asset/download-smiling-face-with-tightly-closed-eyes-icon-smiling-emoji-11562881831tykcocazrv.png";
+import hope from "../asset/sun.png";
+import love from "../asset/love.png";
+
+const MainForm = styled.form`
+  max-width: 900px;
+  width: 60vw;
+  margin: 0 auto;
+  background: white;
+  padding: 25px 85px;
+`;
+
+const FormLegend = styled.legend`
+  font-size: 26px;
+`;
+
+const EmojiInput = styled.div`
+  position: relative;
+  height: 3rem;
+  width: 3rem;
+  margin: 0.5rem;
+`;
+
+const Emoticon = styled.div`
+  width: 100%;
+  height: 100%;
+`;
+
+const RadioInput = styled.input`
+  opacity: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  cursor: pointer;
+`;
+
+const FormFieldset = styled.fieldset`
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 35px;
+`;
+
+const FormLable = styled.label`
+  font-size: 22px;
+  margin-bottom: 10px;
+`;
+
+const FormInput = styled.input`
+  border: 0.5px solid #2c2b2c;
+  padding: 5px;
+`;
+
+const FileUpload = styled.div`
+  display: block;
+  width: 100%;
+  font-weight: 500;
+  text-align: center;
+  padding: 60px 0;
+  cursor: pointer;
+  border: 2px dashed #2b2c2b;
+  border-radius: 2px;
+  text-align: center;
+`;
+const TextArea = styled.textarea`
+  border: 0.5px solid #2c2b2c;
+  padding: 5px;
+  height: 150px;
+`;
+const SubmitButton = styled.button`
+  padding: 15px;
+  width: 100%;
+  margin: 20px 0;
+  color: white;
+  background-color: #2c2b2c;
+  border: 1px solid #2c2b2c;
+  cursor: pointer;
+  font-weight: 700;
+`;
+
 export default function Form() {
   const [themeColor] = useContext(ThemeColorContext);
+  const { user } = useAuth();
   const [artist, setArtist] = useState("");
   const [username, setUsername] = useState("");
-  const { user } = useAuth();
   const timeStamp = new Date();
-  console.log(user);
-  const emojis = ["like", "love", "sad", "surprise"];
+  const hiddenFileInput = useRef(null);
+  const handleChange = (e) => setUploadedImage(e.target.files[0]);
+  const handleClick = (event) => {
+    hiddenFileInput.current.click();
+  };
 
+  const emojis = [
+    {
+      value: "like",
+      src: like.src,
+    },
+    {
+      value: "love",
+      src: love.src,
+    },
+    { value: "hope", src: hope.src },
+  ];
+
+  const [uploadedImage, setUploadedImage] = useState(null);
   const [formData, setFormData] = useState({
     emoji: "",
     title: "",
     content: "",
     date: "",
   });
-
-  const [uploadedImage, setUploadedImage] = useState(null);
 
   useEffect(() => {
     const getUserJourney = async () => {
@@ -133,110 +220,109 @@ export default function Form() {
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="main-form">
-        <style jsx>{`
-          .main-form {
-            width: 300px;
-            margin: auto;
-          }
+      <MainForm onSubmit={handleSubmit}>
+        <FormFieldset>
+          <FormLegend>
+            Having been on this journey through the inner world of {artist}, you
+            feel...
+          </FormLegend>
+          <div style={{ display: "flex" }}>
+            {emojis.map((emoji) => (
+              <EmojiInput key={emoji.value}>
+                <RadioInput
+                  type="radio"
+                  name="feeling"
+                  value="emoji.value"
+                  required
+                  checked={formData.emoji === emoji.value}
+                  onChange={(e) => {
+                    if (e.target.checked) console.log(emoji.value);
+                    setFormData({ ...formData, emoji: emoji.value });
+                  }}
+                />
+                <Emoticon>
+                  <img
+                    alt={emoji.value}
+                    src={emoji.src}
+                    style={{ width: "40px", height: "40px" }}
+                  />
+                </Emoticon>
+              </EmojiInput>
+            ))}
+          </div>
+        </FormFieldset>
 
-          fieldset {
-            display: flex;
-            flex-direction: column;
-          }
-        `}</style>
-
-        <fieldset
-          style={{ display: "flex", flexDirection: "row" }}
-          className="emojis"
-        >
-          <legend>
-            Having been on this short trip to the inner world of {"Van Gogh"},
-            you feel...
-          </legend>
-          {emojis.map((emoji) => (
-            <label key={emoji} htmlFor="feeling">
-              <input
-                id="feeling"
-                type="radio"
-                name="feeling"
-                value="emoji"
-                checked={formData.emoji === emoji}
-                onChange={(e) => {
-                  if (e.target.checked)
-                    setFormData({ ...formData, emoji: emoji });
-                }}
-              />
-              <Image src={like} alt={emoji} width={30} height={30} />
-            </label>
-          ))}
-        </fieldset>
-        <fieldset>
-          <label htmlFor="date">Date</label>
-          <input
-            id="date"
-            type="date"
-            name="date"
-            placeholder="enter date..."
-            required
-            value={formData.date}
-            onChange={(e) => {
-              setFormData({ ...formData, date: e.target.value });
-            }}
-          ></input>
-        </fieldset>
-        <fieldset>
-          <label htmlFor="title">Title of your story</label>
-          <input
-            id="title"
-            name="title"
-            placeholder="enter title..."
-            required
-            value={formData.title}
-            onChange={(e) => {
-              setFormData({ ...formData, title: e.target.value });
-            }}
-          ></input>
-        </fieldset>
-        <fieldset>
-          <label htmlFor="resonance">
-            Does the life story of this artist echos with your personal
-            experiences?
-          </label>
-          <textarea
+        <FormFieldset>
+          <FormLable htmlFor="resonance">
+            It would be great to hear about your experiences or a painting you
+            thought of, while going through this experience.
+          </FormLable>
+          <TextArea
             id="resonance"
             name="resonance"
-            placeholder="leave your words..."
-            required
+            placeholder="Tell us about your story..."
             value={formData.content}
+            required
             onChange={(e) => {
               setFormData({ ...formData, content: e.target.value });
             }}
-          ></textarea>
-        </fieldset>
-        <fieldset>
-          <div>
-            {/* <Image alt="" /> */}
-            <div></div>
-            <p></p>
-            <div></div>
+          ></TextArea>
+        </FormFieldset>
+        <FormFieldset>
+          <FormLable htmlFor="title">
+            Would you like to give this story a title:
+          </FormLable>
+          <FormInput
+            id="title"
+            name="title"
+            placeholder="Enter title..."
+            value={formData.title}
+            required
+            onChange={(e) => {
+              setFormData({ ...formData, title: e.target.value });
+            }}
+          ></FormInput>
+        </FormFieldset>
+        <FormFieldset>
+          <FormLable htmlFor="date">
+            Date when your story takes place:
+          </FormLable>
+          <FormInput
+            id="date"
+            type="date"
+            name="date"
+            placeholder="Select date..."
+            value={formData.date}
+            required
+            onChange={(e) => {
+              setFormData({ ...formData, date: e.target.value });
+            }}
+          ></FormInput>
+        </FormFieldset>
 
+        <FormFieldset>
+          <FileUpload onClick={handleClick}>
+            <img style={{ margin: "auto" }} src={imageupload.src} />
+            <div>
+              Click here to attach a photo of your beloved artwork, or anything
+              related to your experience!
+            </div>
+            <p>(max 50MB)</p>
             <input
               type="file"
-              name="image"
-              onChange={(e) => {
-                setUploadedImage(e.target.files[0]);
-              }}
-            ></input>
-          </div>
-          <ul className="info-list">
-            <li>Please use only your own original photos</li>
+              ref={hiddenFileInput}
+              onChange={handleChange}
+              style={{ display: "none" }}
+              required
+            />
+          </FileUpload>
+          <ul>
+            <li>Please use only your own original materials.</li>
           </ul>
-        </fieldset>
-
-        <button type="submit">Submit</button>
-      </form>
-      <div style={{ textAlign: "right" }}>
+        </FormFieldset>
+        <SubmitButton type="submit">Submit</SubmitButton>
+      </MainForm>
+      <div>
         <Link href="/user-profile">
           <p>here is a souvenir for you at the end of your journey</p>
         </Link>
@@ -247,25 +333,3 @@ export default function Form() {
     </>
   );
 }
-
-// const [chosenEmoji, setChosenEmoji] = useState(null);
-//   const [textAreaValue, setTextAreaValue] = useState('');
-//   const [selectedText, setSelectedText] = useState('');
-
-//   const onEmojiClick = (event, emojiObject) => {
-
-//     const textAreaElement = document.getElementById('text-area');
-//     setTextAreaValue(
-//       textAreaValue.substr(0, textAreaElement.selectionStart) +
-//         emojiObject.emoji +
-//         textAreaValue.substr(textAreaElement.selectionEnd)
-//     );
-//   };
-
-//   return (
-//     <div>
-//       <TextArea text={textAreaValue} setText={setTextAreaValue} />
-//       <br />
-//       <Picker onEmojiClick={onEmojiClick} />
-//     </div>
-//   );

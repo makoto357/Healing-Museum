@@ -15,6 +15,7 @@ const GlobalStyles = css`
 
   body {
     font-family: "Source Sans Pro", sans-serif;
+    font-size: 18px;
     background-color: #eeece5;
     color: #000000;
     font-weight: 400;

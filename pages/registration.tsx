@@ -21,7 +21,7 @@ const Heading = styled.h1`
   width: 100%;
   max-width: 458px;
   margin-bottom: 30px;
-  font-size: 20px;
+  font-size: 22px;
 `;
 
 const Form = styled.form`
@@ -30,7 +30,6 @@ const Form = styled.form`
 `;
 
 const FormControl = styled.input`
-  font-size: 15px;
   padding: 15px;
   width: 100%;
   margin: 5px 0 15px;
@@ -69,7 +68,6 @@ const MemberSignup = styled.div`
 `;
 
 const Button = styled.button`
-  font-size: 15px;
   padding: 15px;
   width: 100%;
   margin: 20px 0;
@@ -81,7 +79,6 @@ const Button = styled.button`
 `;
 
 const FBbutton = styled.button`
-  font-size: 15px;
   padding: 15px;
   width: 100%;
   margin-bottom: 15px;

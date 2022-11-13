@@ -33,6 +33,9 @@ const CommentContainer = styled.section`
   background: white;
 
   position: relative;
+  transition: all 0.5s ease;
+  filter: grayscale(100%);
+
   &:before {
     z-index: -1;
     background: white;
@@ -52,6 +55,7 @@ const CommentContainer = styled.section`
     transform: skewY(-4deg);
   }
   &:hover {
+    filter: grayscale(0%);
     &:before {
       z-index: -1;
       background: white;
@@ -80,13 +84,6 @@ const Post = styled.section`
 const MainImage = styled.div`
   width: 100%;
   min-height: 70px;
-
-  transition: all 0.5s ease;
-  filter: grayscale(100%);
-
-  &:hover {
-    filter: grayscale(0%);
-  }
 `;
 
 const Text = styled.div`
@@ -242,14 +239,17 @@ export default function VisitorPosts() {
                 </button>
               </Post>
             )}
+            {showComment && postComments?.id === post.id && (
+              <Post>
+                <strong>How Others Feel</strong>
+              </Post>
+            )}
             {showComment &&
               postComments?.id === post.id &&
               postComments?.comments?.map((c) => (
                 <>
                   <Post key={c.commentTime}>
-                    <h1>
-                      <strong>How Others Feel</strong>
-                    </h1>
+                    <h1></h1>
                     <p>{c.commentatorName}</p>
                     <p>{c.content}</p>
                   </Post>

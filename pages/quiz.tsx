@@ -14,6 +14,43 @@ import {
 import { db, storage } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
 import quiz from "../public/quiz.json";
+const QuizArea = styled.section`
+  width: 700px;
+  margin: 0 auto;
+  font-size: 22px;
+`;
+
+const Question = styled.h1`
+  margin-bottom: 20px;
+  font-size: 26px;
+`;
+
+const QuestionButton = styled.button`
+  font-size: 22px;
+  width: 80%;
+
+  margin-bottom: 30px;
+  padding: 30px;
+  background: white;
+  &:hover {
+    background: #2c2b2c;
+    opacity: 0.5;
+    border-left: 10px solid black;
+    color: white;
+  }
+`;
+
+const Button = styled.button`
+  font-size: 22px;
+  padding: 15px;
+  width: 30%;
+  margin-bottom: 10px;
+  color: white;
+  background-color: #2c2b2c;
+  border: 1px solid #2c2b2c;
+  cursor: pointer;
+  border-radius: 30px;
+`;
 
 export default function Quiz() {
   const router = useRouter();
@@ -26,24 +63,6 @@ export default function Quiz() {
   const [points, setPoints] = useState(0);
   const { user } = useAuth();
 
-  // const testResult = [
-  //   {
-  //     lowestScore: 0,
-  //     highestScore: 4,
-  //     testResult: "",
-  //     artworkImage: "",
-  //     artistName: "Frida",
-  //     artworkTitle: "",
-  //     completionYear: "",
-  //     artworkDescription: "",
-  //   },
-  // ];
-  // gwen-john
-  // vincent-van-gogh
-  // gustav-klimt
-  // frida-kahlo
-  // edward-hopper
-  // dorothea-tanning
   console.log("showAnswer", showAnswer, "points", points);
 
   const handleTestResult = async (artist) => {
@@ -73,37 +92,11 @@ export default function Quiz() {
 
   return (
     <>
-      <style jsx>
-        {`
-          section {
-            width: 60vw;
-            height: 500px;
-            border-radius: 10px;
-            margin: 200px auto;
-            padding: 20px 50px;
-            background: ${themeColor};
-            color: white;
-            display: flex;
-            flex-direction: column;
-          }
-          h1 {
-            text-align: center;
-
-            margin: 20px 0;
-          }
-          p {
-            margin-bottom: 20px;
-          }
-          img {
-            height: 150px;
-          }
-        `}
-      </style>
       {!gameStarted && (
-        <section>
-          <h1>
+        <QuizArea>
+          <Question>
             <strong>Take a test to see which artist you might like!</strong>
-          </h1>
+          </Question>
           <p>
             Lorem ipsum dolor sit amet consectetur adipisicing elit. Ut
             explicabo nulla tenetur corporis eos nam recusandae esse temporibus
@@ -112,55 +105,50 @@ export default function Quiz() {
             accusamus, sunt soluta quaerat iusto quam provident dolores
             consectetur earum rem!
           </p>
-          <button
+          <Button
             onClick={() => {
               setGameStarted(true);
             }}
           >
-            start
-          </button>
-        </section>
+            Start
+          </Button>
+        </QuizArea>
       )}
       {gameStarted && !showAnswer && (
-        <section>
-          <h1>{quiz[currentQuestion - subtractToIndex]?.questionText}</h1>
-          <div
-            style={{
-              height: "80%",
-
-              // display: "flex",
-              // flexWrap: "wrap",
-              // justifyContent: "space-between",
-            }}
-          >
+        <QuizArea>
+          <Question>
+            {quiz[currentQuestion - subtractToIndex]?.questionText}
+          </Question>
+          <div>
             {quiz[currentQuestion - subtractToIndex]?.answerOptions.map(
               (answerOption, index) => (
-                <div key={index}>
+                <QuestionButton
+                  key={index}
+                  onClick={() => handleQuizAnswers(answerOption)}
+                >
                   {/* <img src={answerOption.answerImage} /> */}
-                  <button onClick={() => handleQuizAnswers(answerOption)}>
-                    {answerOption.answerText}
-                  </button>
-                </div>
+                  <p>{answerOption.answerText}</p>
+                </QuestionButton>
               )
             )}
           </div>
-          <p style={{ textAlign: "left" }}>
+          <p>
             {currentQuestion}/{quiz.length}
           </p>
-        </section>
+        </QuizArea>
       )}
 
       {showAnswer && points >= 0 && points <= 4 && (
-        <section>
+        <QuizArea>
           <h1>you got {points} points, your artist is van gogh</h1>
-          <button
+          <Button
             onClick={() => {
               handleTestResult("vincent-van-gogh");
             }}
           >
             start explore the life stories of the artist!
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => {
               setGameStarted(false);
               setPoints(0);
@@ -169,20 +157,20 @@ export default function Quiz() {
             }}
           >
             Play again
-          </button>
-        </section>
+          </Button>
+        </QuizArea>
       )}
       {showAnswer && points >= 5 && points <= 8 && (
-        <section>
+        <QuizArea>
           <h1>you got {points} points, your artist is klimt</h1>
-          <button
+          <Button
             onClick={() => {
               handleTestResult("gustav-klimt");
             }}
           >
             start explore the life stories of the artist!
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => {
               setGameStarted(false);
               setPoints(0);
@@ -191,20 +179,20 @@ export default function Quiz() {
             }}
           >
             Play again
-          </button>
-        </section>
+          </Button>
+        </QuizArea>
       )}
       {showAnswer && points >= 9 && points <= 12 && (
-        <section>
+        <QuizArea>
           <h1>you got {points} points, your artist is frida</h1>
-          <button
+          <Button
             onClick={() => {
               handleTestResult("frida-kahlo");
             }}
           >
             start explore the life stories of the artist!
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => {
               setGameStarted(false);
               setPoints(0);
@@ -213,20 +201,20 @@ export default function Quiz() {
             }}
           >
             Play again
-          </button>
-        </section>
+          </Button>
+        </QuizArea>
       )}
       {showAnswer && points >= 13 && points <= 16 && (
-        <section>
+        <QuizArea>
           <h1>you got {points} points, your artist is edward</h1>
-          <button
+          <Button
             onClick={() => {
               handleTestResult("edward-hopper");
             }}
           >
             start explore the life stories of the artist!
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => {
               setGameStarted(false);
               setPoints(0);
@@ -235,8 +223,8 @@ export default function Quiz() {
             }}
           >
             Play again
-          </button>
-        </section>
+          </Button>
+        </QuizArea>
       )}
     </>
   );
