@@ -51,6 +51,27 @@ const CommentContainer = styled.section`
     -ms-transform: skewY(-4deg);
     transform: skewY(-4deg);
   }
+  &:hover {
+    &:before {
+      z-index: -1;
+      background: white;
+
+      position: absolute;
+
+      content: "";
+      height: 100%;
+      width: 100%;
+      bottom: -40px;
+      left: 0;
+      -webkit-transform-origin: 0 0;
+      -ms-transform-origin: 0 0;
+      transform-origin: 0 0;
+      -webkit-transform: skewY(-4deg);
+      -ms-transform: skewY(-4deg);
+      transform: skewY(-4deg);
+      box-shadow: 5px 5px 20px #888888;
+    }
+  }
 `;
 
 const Post = styled.section`
@@ -59,6 +80,13 @@ const Post = styled.section`
 const MainImage = styled.div`
   width: 100%;
   min-height: 70px;
+
+  transition: all 0.5s ease;
+  filter: grayscale(100%);
+
+  &:hover {
+    filter: grayscale(0%);
+  }
 `;
 
 const Text = styled.div`

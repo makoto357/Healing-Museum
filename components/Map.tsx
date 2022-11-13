@@ -28,9 +28,11 @@ import { useRouter } from "next/router";
 
 const google = window.google;
 import museumMarker from "../asset/new-marker.png";
+import { url } from "inspector";
 
 const ArtworkInfo = styled.div`
   display: flex;
+  min-height: 100px;
 `;
 
 const ArtworkText = styled.p`
@@ -169,11 +171,15 @@ export default function GoogleMaps() {
               >
                 <ArtworkInfo>
                   <Link href={`/collection-maps/${selectedMarker.id}`}>
-                    <img
-                      alt={selectedMarker.id}
-                      src={selectedMarker.image}
-                      style={{ width: "100px", marginRight: "12px" }}
-                    />
+                    <div
+                      style={{
+                        backgroundImage: `url(${selectedMarker.image})`,
+                        width: "100px",
+                        marginRight: "12px",
+                        backgroundSize: "cover",
+                        height: "100%",
+                      }}
+                    ></div>
                   </Link>
                   <div>
                     <ArtworkText>

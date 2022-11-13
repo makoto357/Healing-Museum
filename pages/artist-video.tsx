@@ -37,12 +37,13 @@ const VideoWrapper = styled.section`
 `;
 
 const YoutubeVideoWrapper = styled.div`
-  width: 70vw;
+  width: 65vw;
   margin: 0 auto 70px;
 `;
 
 const SwiperWrapper = styled.section`
-  margin: 0 64px;
+  margin: 0 70px;
+  height: 216px;
 `;
 
 export default function ArtistVideo({ results }) {
@@ -111,7 +112,7 @@ export default function ArtistVideo({ results }) {
         <Swiper
           modules={[Navigation, Pagination, Scrollbar, A11y]}
           spaceBetween={50}
-          slidesPerView={3}
+          slidesPerView={4}
           navigation
           loop
           // scrollbar={{ draggable: true }}

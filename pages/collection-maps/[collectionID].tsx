@@ -45,8 +45,8 @@ const SizeController = styled.div`
   display: flex;
   column-gap: 5px;
   justify-content: flex-end;
-  max-width: 40vw;
-  width: 100%;
+  width: fit-content;
+  max-width: 80vw;
 `;
 const ZoomIn = styled.div`
   background-image: url(${plus.src});
@@ -64,19 +64,19 @@ const ZoomOut = styled.div`
 `;
 const TextWrapper = styled.section`
   margin: 24px auto 0;
-  max-width: 40vw;
-  width: 100%;
+  width: fit-content;
+  max-width: 80vw;
 `;
 
 const TextHeader = styled.section`
   display: flex;
-  justify-content: space-between;
   padding-bottom: 10px;
 `;
 
 const IconGroup = styled.div`
   display: flex;
   column-gap: 20px;
+  margin-left: 30px;
 `;
 
 const LikeButton = styled.div`
@@ -247,7 +247,10 @@ export default function ArtworkDetail() {
                   <strong>Dimensions: </strong>
                   {artwork.sizeX} X {artwork.sizeY} cm
                 </li>
-                <li>Collection of the {artwork.galleries}</li>
+                <li>
+                  <strong>Collection: </strong>
+                  {artwork.galleries}
+                </li>
                 <li>
                   {artwork?.tags?.map((tag, index) => (
                     <span key={index}>

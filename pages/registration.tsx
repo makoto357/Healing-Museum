@@ -33,7 +33,7 @@ const FormControl = styled.input`
   font-size: 15px;
   padding: 15px;
   width: 100%;
-  margin-bottom: 15px;
+  margin: 5px 0 15px;
   border-radius: 5px;
 `;
 // border: solid 1px ${({ invalid }) => (invalid ? "#CB4042" : "#979797")};
@@ -72,7 +72,7 @@ const Button = styled.button`
   font-size: 15px;
   padding: 15px;
   width: 100%;
-  margin-bottom: 10px;
+  margin: 20px 0;
   color: white;
   background-color: #2c2b2c;
   border: 1px solid #2c2b2c;
@@ -158,8 +158,10 @@ export default function LoginPage() {
       {isSignedUp ? (
         <>
           <Heading>
-            Welcome back! <br />
-            Please log in to visit:
+            <strong>
+              Welcome back! <br />
+              Please log in to visit:
+            </strong>
           </Heading>
           <Form action="#" onSubmit={handleLogin}>
             <div>
@@ -197,21 +199,25 @@ export default function LoginPage() {
               />
             </div>
 
-            <Button type="submit">Log in</Button>
+            <Button type="submit">Login</Button>
           </Form>
           <div>
             <p>
               First time here? Please{" "}
-              <button onClick={() => setIsSignedUp(false)}>Sign up</button> this
-              way.
+              <button onClick={() => setIsSignedUp(false)}>
+                <strong>Sign up</strong>
+              </button>{" "}
+              this way.
             </p>
           </div>
         </>
       ) : (
         <>
           <Heading>
-            Sign up to <br />
-            collect and share artworks!
+            <strong>
+              Sign up to <br />
+              collect and share artworks!
+            </strong>
           </Heading>
           <Form action="#" onSubmit={handleSignup}>
             <div>
@@ -270,7 +276,10 @@ export default function LoginPage() {
           <div>
             <p>
               Already been here before? Simply{" "}
-              <button onClick={() => setIsSignedUp(true)}>Log in</button>.
+              <button onClick={() => setIsSignedUp(true)}>
+                <strong>Login</strong>
+              </button>
+              .
             </p>
           </div>
         </>
