@@ -6,12 +6,12 @@ import { ThemeColorContext } from "../context/ColorContext";
 export default function ThemeColor() {
   const router = useRouter();
   const themeColors = [
-    "#cf2e2e",
-    "#AF8C12",
-    "#F2C641",
-    "#4E74A6",
-    "#0094A3",
-    "#9966cb",
+    { primary: "#a13b34", secondary: "#d39a72" },
+    { primary: "#E77136", secondary: "#ffc87c" },
+    { primary: "#F2C641", secondary: "#Ffe9a1" },
+    { primary: "#8aa56e", secondary: "#B1C0A4" },
+    { primary: "#49626B", secondary: "#A0BCB8" },
+    { primary: "#595775", secondary: "#ABa6bf" },
   ];
 
   const [themeColor, setThemeColor] = useContext(ThemeColorContext);
@@ -23,16 +23,16 @@ export default function ThemeColor() {
       </h1>
       {themeColors.map((themeColor) => (
         <button
-          key={themeColor}
+          key={themeColor.primary}
           className="backgroundColor:"
           style={{
-            background: themeColor,
+            background: themeColor.primary,
             height: "500px",
             width: "100px",
             marginRight: "5px",
             borderRadius: "10px",
           }}
-          value={themeColor}
+          value={themeColor.secondary}
           onClick={(e) => {
             const target = e.target as HTMLButtonElement;
             setThemeColor(target.value);

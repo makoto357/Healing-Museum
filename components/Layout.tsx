@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
-
 import Link from "next/link";
-import { FacebookShareButton } from "next-share";
+import { useContext } from "react";
+import { ThemeColorContext } from "../context/ColorContext";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -10,19 +10,16 @@ interface LayoutProps {
 export default function Layout(props: LayoutProps) {
   const { children } = props;
 
+  const [themeColor] = useContext(ThemeColorContext);
+
   return (
     <>
       <Link href="/">
         <p>Back to Index Page</p>
       </Link>
-      <main>{children}</main>
-      <FacebookShareButton
-        url={"https://the-healing-museum-makoto357.vercel.app"}
-        quote={"next-share is a social share buttons for your next React apps."}
-        hashtag={"#nextshare"}
-      >
-        <div>share on fb</div>{" "}
-      </FacebookShareButton>
+      <main style={{ background: themeColor, minHeight: "100vh" }}>
+        {children}
+      </main>
     </>
   );
 }

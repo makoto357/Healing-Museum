@@ -21,7 +21,7 @@ import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
 import { ThemeColorContext } from "../context/ColorContext";
 
-import heart from "../asset/17d0747c12d59dd8fd244e90d91956b9.png";
+import heart from "../asset/heart.png";
 import Modal from "../components/Modal";
 export default function Artworks() {
   const { user } = useAuth();

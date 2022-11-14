@@ -1,13 +1,13 @@
 import styled from "@emotion/styled";
-
 import Link from "next/link";
 import Image from "next/image";
-import styles from "../styles/Home.module.css";
+import React from "react";
 import { useEffect, useRef, useState, useContext } from "react";
 import { useAuth } from "../context/AuthContext";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { useTranslation } from "next-i18next";
-import React from "react";
+import { FacebookShareButton } from "next-share";
+import fb from "../asset/fb.svg";
 
 export async function getStaticProps({ locale }) {
   return {
@@ -36,6 +36,26 @@ export default function Home(props) {
         `}</style>
 
         <ul>
+          <li>
+            <FacebookShareButton
+              url={"https://the-healing-museum-makoto357.vercel.app"}
+              quote={
+                "The Healing Museum brings you closer to the world of modern art."
+              }
+              hashtag={
+                "#modernart #artiststory #artquiz #audiovisualtour #interactive"
+              }
+            >
+              <div
+                style={{
+                  backgroundImage: `url(${fb.src})`,
+                  width: "30px",
+                  height: "30px",
+                  backgroundSize: "cover",
+                }}
+              ></div>
+            </FacebookShareButton>
+          </li>
           <li>
             <Link href="/registration">
               <div>{t("index:home")}</div>

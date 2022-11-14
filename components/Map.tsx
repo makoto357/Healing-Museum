@@ -1,16 +1,6 @@
 import styled from "@emotion/styled";
 import { ChakraProvider, theme } from "@chakra-ui/react";
-import {
-  Box,
-  Button,
-  ButtonGroup,
-  Flex,
-  HStack,
-  IconButton,
-  Input,
-  SkeletonText,
-  Text,
-} from "@chakra-ui/react";
+import { Box, Flex, Input, SkeletonText } from "@chakra-ui/react";
 import {
   useJsApiLoader,
   GoogleMap,

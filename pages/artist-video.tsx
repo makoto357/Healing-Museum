@@ -74,6 +74,7 @@ export default function ArtistVideo({ results }) {
       result?.snippet.title.toLowerCase().includes(artist.split("-").slice(1))
     )[0]
   );
+
   const [themeColor] = useContext(ThemeColorContext);
   // const scrollTop = () => {
   //   window.scrollTo({ top: 0, behavior: "smooth" });
