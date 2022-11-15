@@ -29,7 +29,7 @@ const MainForm = styled.form`
 `;
 
 const FormLegend = styled.legend`
-  font-size: 26px;
+  font-size: 2rem;
 `;
 
 const EmojiInput = styled.div`
@@ -62,7 +62,7 @@ const FormFieldset = styled.fieldset`
 `;
 
 const FormLable = styled.label`
-  font-size: 22px;
+  font-size: 1.5rem;
   margin-bottom: 10px;
 `;
 

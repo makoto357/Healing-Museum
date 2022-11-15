@@ -17,16 +17,16 @@ import quiz from "../public/quiz.json";
 const QuizArea = styled.section`
   width: 700px;
   margin: 0 auto;
-  font-size: 22px;
+  font-size: 1.5rem;
 `;
 
 const Question = styled.h1`
   margin-bottom: 20px;
-  font-size: 26px;
+  font-size: 2rem;
 `;
 
 const QuestionButton = styled.button`
-  font-size: 22px;
+  font-size: 1.5rem;
   width: 80%;
 
   margin-bottom: 30px;
@@ -127,7 +127,9 @@ export default function Quiz() {
                   onClick={() => handleQuizAnswers(answerOption)}
                 >
                   {/* <img src={answerOption.answerImage} /> */}
-                  <p>{answerOption.answerText}</p>
+                  <p>
+                    <strong>{answerOption.answerText}</strong>
+                  </p>
                 </QuestionButton>
               )
             )}

@@ -34,28 +34,7 @@ export default function Home(props) {
             margin: auto;
           }
         `}</style>
-
         <ul>
-          <li>
-            <FacebookShareButton
-              url={"https://the-healing-museum-makoto357.vercel.app"}
-              quote={
-                "The Healing Museum brings you closer to the world of modern art."
-              }
-              hashtag={
-                "#modernart #artiststory #artquiz #audiovisualtour #interactive"
-              }
-            >
-              <div
-                style={{
-                  backgroundImage: `url(${fb.src})`,
-                  width: "30px",
-                  height: "30px",
-                  backgroundSize: "cover",
-                }}
-              ></div>
-            </FacebookShareButton>
-          </li>
           <li>
             <Link href="/registration">
               <div>{t("index:home")}</div>
@@ -86,6 +65,7 @@ export default function Home(props) {
               <p>{t("index:posts")}</p>
             </Link>
           </li>
+
           {user && (
             <li>
               <Link href="/user-profile">
@@ -93,10 +73,29 @@ export default function Home(props) {
               </Link>
             </li>
           )}
+          <li>
+            <FacebookShareButton
+              url={"https://the-healing-museum-makoto357.vercel.app"}
+              quote={
+                "The Healing Museum brings you closer to the world of modern art."
+              }
+              hashtag={
+                "#modernart #artiststory #artquiz #audiovisualtour #interactive"
+              }
+            >
+              <div
+                style={{
+                  backgroundImage: `url(${fb.src})`,
+                  width: "30px",
+                  height: "30px",
+                  backgroundSize: "cover",
+                }}
+              ></div>
+            </FacebookShareButton>
+          </li>
         </ul>
-
         <section className="intro-text">
-          <h1>The Healing Museum</h1>
+          <h1 style={{ fontSize: "50px" }}>The Healing Museum</h1>
           <p>
             Lorem, ipsum dolor sit amet consectetur adipisicing elit.
             Accusantium magnam vitae laboriosam, nulla architecto ratione

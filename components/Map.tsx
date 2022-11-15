@@ -25,7 +25,7 @@ const ArtworkInfo = styled.div`
   min-height: 100px;
 `;
 
-const ArtworkText = styled.p`
+const ArtworkTitle = styled.p`
   padding: 12px 0;
 `;
 export default function GoogleMaps() {
@@ -104,15 +104,18 @@ export default function GoogleMaps() {
       <Flex
         position="relative"
         flexDirection="column"
-        alignItems="center"
-        h="100vh"
+        margin="140px auto"
+        h="500px"
         w="100vw"
       >
         <Box position="absolute" left={0} top={0} h="100%" w="100%">
           <GoogleMap
             center={center}
-            zoom={3}
-            mapContainerStyle={{ width: "100%", height: "100vh" }}
+            zoom={4}
+            mapContainerStyle={{
+              width: "100%",
+              height: "60vh",
+            }}
             options={{
               streetViewControl: false,
               mapTypeControl: false,
@@ -121,25 +124,26 @@ export default function GoogleMaps() {
             }}
             onLoad={onLoad}
           >
-            <MarkerClusterer>
-              {(clusterer) =>
-                galleries.map((g) => {
-                  return (
-                    <Marker
-                      key={g.id}
-                      position={g.geometry}
-                      onClick={() => {
-                        getGallery(g);
-                      }}
-                      icon={{
-                        url: `${museumMarker.src}`,
-                      }}
-                      clusterer={clusterer}
-                    />
-                  );
-                })
-              }
-            </MarkerClusterer>
+            {/* <MarkerClusterer>
+              {(clusterer) => */}
+            {galleries.map((g) => {
+              return (
+                <>
+                  <Marker
+                    key={g.id}
+                    position={g.geometry}
+                    onClick={() => {
+                      getGallery(g);
+                    }}
+                    icon={{
+                      url: `${museumMarker.src}`,
+                    }}
+                    // clusterer={clusterer}
+                  />
+                </>
+              );
+            })}
+            {/* </MarkerClusterer> */}
             {selectedMarker?.geometry && (
               <InfoWindow
                 onCloseClick={() => {
@@ -172,12 +176,12 @@ export default function GoogleMaps() {
                     ></div>
                   </Link>
                   <div>
-                    <ArtworkText>
+                    <ArtworkTitle>
                       <strong>
                         {selectedMarker.title},{" "}
                         {selectedMarker.completitionYear}
                       </strong>
-                    </ArtworkText>
+                    </ArtworkTitle>
                     <p>{selectedMarker.galleries}</p>
                   </div>
                 </ArtworkInfo>

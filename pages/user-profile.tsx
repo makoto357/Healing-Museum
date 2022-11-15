@@ -25,7 +25,7 @@ const FinalWords = styled.section`
 `;
 
 const Opening = styled.h1`
-  font-size: 22px;
+  font-size: 1.5rem;
 `;
 
 interface IUser {

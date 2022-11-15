@@ -21,7 +21,7 @@ const Heading = styled.h1`
   width: 100%;
   max-width: 458px;
   margin-bottom: 30px;
-  font-size: 22px;
+  font-size: 1.5rem;
 `;
 
 const Form = styled.form`

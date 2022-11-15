@@ -13,12 +13,9 @@ const GlobalStyles = css`
     box-sizing: border-box;
   }
 
-  html,
   body {
-    padding: 0;
-    margin: 0;
     font-family: "Source Sans Pro", sans-serif;
-    font-size: 18px;
+    font-size: 1.25rem;
     background-color: #eeece5;
     color: #000000;
     font-weight: 400;

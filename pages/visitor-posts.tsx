@@ -18,10 +18,11 @@ import { useAuth } from "../context/AuthContext";
 
 const MainContainer = styled.section`
   display: flex;
+  flex-wrap: wrap;
   max-width: 1200px;
   width: 65vw;
   margin: 70px auto;
-  row-gap: 50px;
+  row-gap: 80px;
   column-gap: 20px;
 `;
 
@@ -82,7 +83,7 @@ const Post = styled.section`
   margin: 20px 20px 0px;
 `;
 const MainImage = styled.div`
-  width: 100%;
+  width: 270px;
   min-height: 70px;
 `;
 
