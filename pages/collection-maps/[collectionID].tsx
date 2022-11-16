@@ -1,9 +1,6 @@
 import styled from "@emotion/styled";
-
 import Link from "next/link";
-import Image from "next/image";
 import dynamic from "next/dynamic";
-
 import { useRouter } from "next/router";
 import {
   collection,
@@ -21,14 +18,14 @@ import { db } from "../../config/firebase";
 import { useRef, useState, useEffect, useContext } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { ThemeColorContext } from "../../context/ColorContext";
+import ZoomModal from "../../components/ZoomModal";
 import heart from "../../asset/heart.png";
-import plus from "../../asset/plus.png";
-import minus from "../../asset/minus.png";
-
+import magnifyingGlass from "../../asset/magnifying-glass.png";
 import {
   TransformComponent,
   TransformWrapper,
 } from "@pronestor/react-zoom-pan-pinch";
+
 const ArtworkWrapper = styled.section`
   display: flex;
   flex-direction: column;
@@ -41,26 +38,10 @@ const ArtworkImage = styled.img`
 `;
 
 const SizeController = styled.div`
-  margin: 5px 0;
+  flex-direction: column;
   display: flex;
   column-gap: 5px;
-  justify-content: flex-end;
-  width: fit-content;
-  max-width: 80vw;
-`;
-const ZoomIn = styled.div`
-  background-image: url(${plus.src});
-  width: 25px;
-  height: 25px;
-  background-size: cover;
-  margin-bottom: 5px;
-`;
-
-const ZoomOut = styled.div`
-  background-image: url(${minus.src});
-  width: 25px;
-  height: 25px;
-  background-size: cover;
+  margin-right: 20px;
 `;
 const TextWrapper = styled.section`
   margin: 24px auto 0;
@@ -90,8 +71,74 @@ const DescriptionList = styled.div`
   list-style: none;
   padding: 10px 0;
 `;
+
+const CloseIcon = styled.button`
+  background: #262626;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  margin-left: 20px;
+  opacity: 0.8;
+  padding: 0;
+  width: 35px;
+  height: 35px;
+  position: absolute;
+  top: 1rem;
+  right: 2rem;
+  z-index: 200;
+  &:hover {
+    transition: border 0.3s;
+    border: 1px solid white;
+    // transform: translateY(calc(24px + 0.75vw)) scale(1);
+  }
+`;
+
+const ZoomIcon = styled.button`
+  background: #262626;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  opacity: 0.8;
+  width: 35px;
+  height: 35px;
+  position: absolute;
+  left: 2rem;
+  z-index: 500;
+  &:hover {
+    transition: border 0.3s;
+    border: 1px solid white;
+    // transform: translateY(calc(24px + 0.75vw)) scale(1);
+  }
+`;
+
+const MagnifyingGlassWrapper = styled.div`
+  position: absolute;
+  bottom: -20px;
+  right: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  height: 40px;
+  width: 40px;
+  background: white;
+  &:hover {
+    transition: border 0.5s;
+    border: 1px solid black;
+  }
+`;
+
+const MagnifyingGlass = styled.div`
+  margin: 8px auto 0;
+  border-radius: 0px;
+  width: 60%;
+  height: 60%;
+  z-index: 200;
+  border: none;
+  cursor: pointer;
+  background: white;
+`;
 export default function ArtworkDetail() {
   const { user } = useAuth();
+  const [showModal, setShowModal] = useState(false);
 
   const router = useRouter();
   const collectionID = router.query.collectionID;
@@ -153,10 +200,7 @@ export default function ArtworkDetail() {
   interface IArtworks extends Array<IArtwork> {}
 
   const CC = dynamic(
-    () =>
-      import("../../components/copy-clipboard").then(
-        (mod) => mod.CopyClipboard
-      ),
+    () => import("../../components/Clipboard").then((mod) => mod.CopyClipboard),
     { ssr: false }
   );
 
@@ -189,19 +233,17 @@ export default function ArtworkDetail() {
       {artwork &&
         artwork?.map((artwork, index) => (
           <ArtworkWrapper key={index}>
-            <TransformWrapper initialScale={1}>
-              {({ zoomIn, zoomOut, ...rest }) => (
-                <>
-                  <TransformComponent>
-                    <ArtworkImage alt={artwork.id} src={artwork.image} />
-                  </TransformComponent>
-                  <SizeController className="tools">
-                    <ZoomIn role="button" onClick={() => zoomIn()} />
-                    <ZoomOut role="button" onClick={() => zoomOut()} />
-                  </SizeController>
-                </>
-              )}
-            </TransformWrapper>
+            <div style={{ position: "relative" }}>
+              <ArtworkImage alt={artwork.id} src={artwork.image} />
+              <MagnifyingGlassWrapper onClick={() => setShowModal(true)}>
+                <MagnifyingGlass
+                  style={{
+                    backgroundImage: `url(${magnifyingGlass.src})`,
+                    backgroundSize: "cover",
+                  }}
+                />
+              </MagnifyingGlassWrapper>
+            </div>
 
             <TextWrapper>
               <TextHeader>
@@ -264,6 +306,85 @@ export default function ArtworkDetail() {
             </TextWrapper>
           </ArtworkWrapper>
         ))}
+      {showModal && (
+        <ZoomModal>
+          {artwork &&
+            artwork?.map((artwork, index) => (
+              <TransformWrapper
+                initialScale={1}
+                key={`${index} + ${artwork.id}`}
+              >
+                {({ zoomIn, zoomOut, ...rest }) => (
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "row",
+                      justifyContent: "flex-start",
+                    }}
+                  >
+                    <SizeController>
+                      <ZoomIcon onClick={() => zoomIn()} aria-label="Zoom in">
+                        <svg
+                          className="icon"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M17.5 8.086v18.875M8.088 17.5h18.813"
+                            fill="none"
+                            stroke="#fff"
+                          ></path>
+                        </svg>
+                      </ZoomIcon>
+                      <ZoomIcon
+                        style={{ top: "3rem" }}
+                        onClick={() => zoomOut()}
+                        aria-label="Zoom out"
+                      >
+                        <svg
+                          className="icon"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            fill="none"
+                            stroke="#fff"
+                            d="M8.088 17.5h18.813"
+                          ></path>
+                        </svg>
+                      </ZoomIcon>
+                    </SizeController>
+                    <TransformComponent>
+                      <img
+                        style={{
+                          height: "96vh",
+                          objectFit: "contain",
+                          marginBottom: "auto",
+                        }}
+                        alt={artwork.id}
+                        src={artwork.image}
+                      />
+                    </TransformComponent>
+                    <CloseIcon
+                      onClick={() => setShowModal(false)}
+                      aria-label="Close viewer"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="35"
+                        height="35"
+                      >
+                        <path
+                          d="M24.251 10.935L10.746 24.12m.194-13.344l13.143 13.462"
+                          fill="none"
+                          stroke="#fff"
+                        ></path>
+                      </svg>
+                    </CloseIcon>
+                  </div>
+                )}
+              </TransformWrapper>
+            ))}
+        </ZoomModal>
+      )}
       <div style={{ textAlign: "left" }}>
         <Link href="/collection-maps">
           <p>back to map page</p>

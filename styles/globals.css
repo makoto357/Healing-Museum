@@ -20,9 +20,12 @@
 }
 
 /* React-Google-Maps Info-window Style */
+
 .gm-style .gm-style-iw-c {
-  padding: 0px !important;
-  padding-bottom: -10px !important;
+  padding-top: 0px !important;
+  padding-bottom: 0px !important;
+  padding-left: 0px !important;
+  padding-right: 0px !important;
   height: auto !important;
   min-height: 100px !important;
   width: 350px !important;
@@ -36,4 +39,119 @@
 
 .gm-style-iw-d {
   overflow: hidden !important;
+}
+
+/* React-Zoom-Pinch-Pan Style */
+.transform-component-module_wrapper__7HFJe {
+  margin: 0 auto !important;
+}
+
+/* React-Masonry-CSS Style */
+
+.my-masonry-grid {
+  display: flex;
+  margin-left: -30px; /* gutter size offset */
+  max-width: 1200px;
+  width: 80vw;
+  margin: auto;
+}
+.my-masonry-grid_column {
+  padding-left: 30px; /* gutter size */
+  background-clip: padding-box;
+}
+
+/* Style your items */
+.my-masonry-grid_column > div {
+  background: grey;
+  margin-bottom: 30px;
+}
+
+/* React-Masonry-CSS Style */
+
+.grid {
+  display: grid;
+  grid-gap: 8px;
+  grid-template-columns: repeat(2, 1fr);
+  grid-auto-rows: 30vw;
+  list-style: none;
+  width: 80vw;
+  margin: auto;
+}
+
+.grid div:nth-child(9) {
+  grid-column: 1 / -1;
+  grid-row: span 2;
+}
+
+.grid figure,
+.grid img {
+  width: 100%;
+  height: 100%;
+}
+
+.grid img {
+  object-fit: cover;
+}
+
+@media (min-width: 850px) {
+  .grid {
+    grid-gap: 24px;
+    grid-template-columns: repeat(5, 1fr);
+    grid-auto-rows: 12vw;
+  }
+
+  .grid div:nth-child(1) {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+  }
+
+  .grid div:nth-child(2) {
+    grid-column: 2 / span 2;
+    grid-row: 1 / span 2;
+  }
+
+  .grid div:nth-child(3) {
+    grid-column: 4;
+    grid-row: 1;
+  }
+
+  .grid div:nth-child(4) {
+    grid-column: 5;
+    grid-row: 1;
+  }
+
+  .grid div:nth-child(5) {
+    grid-column: 4;
+    grid-row: 2;
+  }
+
+  .grid div:nth-child(6) {
+    grid-column: 5;
+    grid-row: 2 / span 2;
+  }
+
+  .grid div:nth-child(7) {
+    grid-column: 2;
+    grid-row: 3;
+  }
+
+  .grid div:nth-child(8) {
+    grid-column: 1;
+    grid-row: 3;
+  }
+
+  .grid div:nth-child(9) {
+    grid-column: 3 / span 2;
+    grid-row: 3 / span 2;
+  }
+
+  .grid div:nth-child(10) {
+    grid-column: 1 / span 2;
+    grid-row: 4;
+  }
+
+  .grid div:nth-child(11) {
+    grid-column: 5;
+    grid-row: 4;
+  }
 }
