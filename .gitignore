@@ -8,8 +8,6 @@
 # testing
 /coverage
 /firestore-data/
-/pages/colortest.tsx
-/pages/quiztest.tsx
 
 # next.js
 /.next/

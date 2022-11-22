@@ -153,6 +153,9 @@ export default function Quiz() {
     setPoints(points.concat(answerOption.points));
   };
 
+  // result = getResult(sortable)
+  // <QuizReult result={result} />
+
   return (
     <div style={{ height: "100vh" }}>
       {!gameStarted && (

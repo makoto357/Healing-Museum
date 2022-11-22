@@ -10,17 +10,18 @@ import { db } from "../config/firebase";
 
 const Wrapper = styled.div`
   margin: auto;
-  padding: 40px 56px 40px;
+  padding: 104px 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: left;
+  height: 100vh;
 `;
 
 const Heading = styled.h1`
   width: 100%;
   max-width: 458px;
-  margin-bottom: 30px;
+  margin-bottom: 35px;
   font-size: 1.5rem;
 `;
 
@@ -32,10 +33,8 @@ const Form = styled.form`
 const FormControl = styled.input`
   padding: 15px;
   width: 100%;
-  margin: 5px 0 15px;
-  border-radius: 5px;
+  margin: 10px 0 20px;
 `;
-// border: solid 1px ${({ invalid }) => (invalid ? "#CB4042" : "#979797")};
 
 const FormSplit = styled.div`
   display: flex;
@@ -75,28 +74,11 @@ const Button = styled.button`
   background-color: #2c2b2c;
   border: 1px solid #2c2b2c;
   cursor: pointer;
-  border-radius: 30px;
-`;
-
-const FBbutton = styled.button`
-  padding: 15px;
-  width: 100%;
-  margin-bottom: 15px;
-  color: #3b5998;
-  border: 1px solid #3b5998;
-  cursor: pointer;
-  background-color: white;
-  max-width: 458px;
-  border-radius: 30px;
-  &:hover {
-    transition: all 0.3s ease;
-    background-color: #3b5998;
-    color: white;
-  }
+  border-radius: 0px;
 `;
 
 export default function LoginPage() {
-  const { user, login, signup } = useAuth();
+  const { login, signup } = useAuth();
   const [isSignedUp, setIsSignedUp] = useState(true);
   const router = useRouter();
   const [loginData, setLoginData] = useState({
