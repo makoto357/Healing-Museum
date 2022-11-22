@@ -12,20 +12,27 @@ import {
 
 import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
-import quotes from "../public/quote.json";
+import quotes from "../public/visitorJourney.json";
 
 const FinalWords = styled.section`
-  width: 70vw;
-  max-width: 900px;
+  width: 90vw;
   margin: 0 auto;
-  text-align: center;
+  text-align: left;
   display: flex;
-  flex-direction: column;
-  row-gap: 15px;
+  flex-direction: row;
 `;
 
 const Opening = styled.h1`
-  font-size: 1.5rem;
+  font-size: 1.25rem;
+`;
+
+const ColorStripe = styled.div<{ $colorCode: string }>`
+  background: ${(props) => props.$colorCode};
+  width: 18vw;
+  height: 100vh;
+  position: absolute;
+  top: 0;
+  left: 12vw;
 `;
 
 interface IUser {
@@ -74,7 +81,7 @@ export default function UserProfile() {
     image: undefined,
   });
   const [quote, setQuote] = useState("");
-  console.log(artwork.artistName);
+  console.log(artwork);
 
   useEffect(() => {
     const getProfile = async () => {
@@ -102,55 +109,75 @@ export default function UserProfile() {
         ]
       );
     };
-    if (user) {
-      getProfile();
-    }
-  }, [user]);
+
+    getProfile();
+  }, []);
   return (
-    <>
+    <div style={{ paddingTop: "104px" }}>
       <div style={{ textAlign: "right" }}>
         <Link href="/visitor-posts">
           <p>check posts of other visitors.</p>
         </Link>
       </div>
-      <FinalWords>
-        <Opening>
-          <strong>
-            Thank you, {profile?.name}, <br />
-            for your visit to the Healing Museum.
-          </strong>
-        </Opening>
-        <p>
-          I hope you had a nice time and some understandings of{" "}
-          {artwork.artistName} <br />
-          whose life perspectives resonate with your own.
-        </p>
-        <p>
-          The artwork below is the last one you saved as favorite during your
-          journey, <br />
-          does it remind you of a special moment?
-        </p>
-        <img src={artwork.image} alt={artwork.title} />
-        <p>
-          <strong>{artwork.title}</strong>
-        </p>
-        <span>{artwork.completionYear}</span>
 
-        <p>
-          No matter what you have encountered, we hope this painting gives you
-          strength, <br />
-          for knowing there is someone who shares your feelings.
-        </p>
-        <p>
-          <strong>
-            {`"${quote}"`}-{artwork.artistName}
-          </strong>
-        </p>
-        <p>We feel, therefore we are.</p>
+      <FinalWords>
+        <div style={{ width: "10vw" }}></div>
+        <div
+          style={{
+            width: "200px",
+            position: "absolute",
+            top: "33vh",
+            left: "19vw",
+            zIndex: "3",
+          }}
+        >
+          <p style={{ fontSize: "1.25rem" }}>
+            <strong>
+              {`"${quote}"`}
+              <br />-{artwork.artistName}
+            </strong>
+          </p>
+        </div>
+        <ColorStripe
+          $colorCode={themeColor ? `${themeColor.secondary}` : "#BBB6AC"}
+        ></ColorStripe>
+        <div
+          style={{
+            backgroundImage: `url(${artwork.image})`,
+            minWidth: "500px",
+            height: "60vh",
+            backgroundSize: "cover",
+            marginLeft: "310px",
+          }}
+        />
+
+        <div style={{ width: "350px", padding: "0 40px" }}>
+          <Opening>
+            <strong>
+              Thank you, {profile?.name}, <br />
+              for your visit to the Healing Museum.
+            </strong>
+          </Opening>
+          <p>
+            I hope you had a nice time and some understandings of the artist
+            whose life perspectives resonate with your own.
+          </p>
+          <p>
+            <strong>
+              <i>{artwork.title}</i>
+            </strong>{" "}
+            by {artwork.artistName} is the last painting you saved as favorite
+            during your journey, <br />
+            We hope this painting gives you strength, <br />
+            for knowing there is someone who shares your feelings.
+          </p>
+
+          <span>{artwork.completionYear}</span>
+        </div>
       </FinalWords>
       <div
         style={{ background: themeColor, height: "100px", width: "100px" }}
       ></div>
-    </>
+    </div>
   );
 }
