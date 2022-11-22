@@ -1,6 +1,5 @@
 import styled from "@emotion/styled";
-
-import Link from "next/link";
+import Masonry from "react-masonry-css";
 import React from "react";
 import { useState, useEffect, useRef } from "react";
 import {
@@ -16,16 +15,6 @@ import heart from "../asset/heart.png";
 import commentIcon from "../asset/comments.svg";
 import { useAuth } from "../context/AuthContext";
 
-const MainContainer = styled.section`
-  display: flex;
-  flex-wrap: wrap;
-  max-width: 1200px;
-  width: 65vw;
-  margin: 70px auto;
-  row-gap: 80px;
-  column-gap: 20px;
-`;
-
 const CommentContainer = styled.section`
   width: 270px;
   height: fit-content;
@@ -36,7 +25,7 @@ const CommentContainer = styled.section`
   position: relative;
   transition: all 0.5s ease;
   filter: grayscale(100%);
-
+  margin-bottom: 80px;
   &:before {
     z-index: -1;
     background: white;
@@ -123,6 +112,13 @@ const Split = styled.div`
   margin-bottom: 20px;
 `;
 
+const breakpointColumnsObj = {
+  default: 4,
+  1400: 3,
+  1200: 2,
+  750: 1,
+};
+
 let comments: Array<{
   commentTime: Timestamp;
   commentatorId: string;
@@ -144,7 +140,6 @@ export default function VisitorPosts() {
   });
   const commentRef = useRef(null);
 
-  console.log("");
   const { user } = useAuth();
   useEffect(() => {
     const colRef = collection(db, "user-posts");
@@ -175,7 +170,7 @@ export default function VisitorPosts() {
   };
 
   const handleComment = async (singlePost) => {
-    console.log(singlePost.id);
+    console.log(singlePost.comments);
     console.log(commentRef.current.value);
     const requestRef = doc(db, "user-posts", singlePost.id);
     await updateDoc(requestRef, {
@@ -185,12 +180,35 @@ export default function VisitorPosts() {
         content: commentRef.current.value,
       }),
     });
+
+    const newPostComments = { ...singlePost };
+
+    const newComments =
+      newPostComments.comments.length !== 0
+        ? [...newPostComments?.comments]
+        : [];
+    console.log(newComments);
+    newComments?.push({
+      commentatorId: user.uid,
+      commentTime: new Date(),
+      content: commentRef.current.value,
+    });
+    console.log(newComments);
+    newPostComments.comments = newComments;
+    setPostComments(newPostComments);
+
     commentRef.current.value = "";
-    // base on singlePost id, update postComments
   };
   return (
-    <>
-      <MainContainer>
+    <div style={{ paddingTop: "104px" }}>
+      <Masonry
+        breakpointCols={breakpointColumnsObj}
+        className="my-masonry-grid"
+        // className={styles.my - masonry - grid}
+        // className={styles.hello}
+        columnClassName="my-masonry-grid_column"
+      >
+        {" "}
         {posts.map((post) => (
           <CommentContainer key={post.id}>
             <MainImage>
@@ -235,7 +253,12 @@ export default function VisitorPosts() {
                   name="visitorComment"
                   ref={commentRef}
                 />
-                <button type="button" onClick={() => handleComment(post)}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleComment(post);
+                  }}
+                >
                   submit
                 </button>
               </Post>
@@ -258,7 +281,7 @@ export default function VisitorPosts() {
               ))}
           </CommentContainer>
         ))}
-      </MainContainer>
-    </>
+      </Masonry>
+    </div>
   );
 }
