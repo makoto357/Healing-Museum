@@ -3,28 +3,34 @@ import { useRouter } from "next/router";
 import { useContext } from "react";
 import { ThemeColorContext } from "../context/ColorContext";
 
+interface Prop {
+  $colorCode?: string;
+}
+
 const Title = styled.h1`
-  font-size: 2rem;
+  font-size: 1.5rem;
   text-align: left;
-  margin: 0 auto 10px;
-  width: 1200px;
+  margin: 0 auto;
+  width: 80vw;
 `;
 
 const ColorPicker = styled.div`
   display: flex;
   margin: auto;
-  width: 1200px;
-  height: 65vh;
+  width: 80vw;
+  height: 60vh;
 `;
 
 const Event = styled.button`
-  width: 200px;
+  width: 12vw;
   border-radius: 10px;
   margin-right: 10px;
   height: 100%;
+  background-color: ${(props: Prop) => props.$colorCode};
+
   &:hover {
     transition: width 0.5s;
-    width: 600px;
+    width: 24vw;
   }
 `;
 
@@ -40,8 +46,16 @@ export default function ThemeColor() {
   ];
 
   const [themeColor, setThemeColor] = useContext(ThemeColorContext);
+
   return (
-    <>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100vh",
+        paddingTop: "104px",
+      }}
+    >
       <Title>
         Welcome to the Healing Museum.
         <br /> Please select a color which best represents your mood today:
@@ -50,18 +64,21 @@ export default function ThemeColor() {
         {themeColors.map((themeColor) => (
           <Event
             key={themeColor.primary}
-            style={{
-              background: themeColor.primary,
-            }}
+            $colorCode={`${themeColor.primary}`}
             value={themeColor.secondary}
             onClick={(e) => {
               const target = e.target as HTMLButtonElement;
-              setThemeColor(target.value);
-              router.push("/quiz");
+              setThemeColor(themeColor);
             }}
           ></Event>
         ))}
       </ColorPicker>
-    </>
+      <button
+        style={{ paddingBottom: "20px" }}
+        onClick={() => router.push("/quiz")}
+      >
+        I like this color!
+      </button>
+    </div>
   );
 }
