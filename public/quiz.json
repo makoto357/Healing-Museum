@@ -1,122 +1,85 @@
 [
   {
-    "questionText": "What is the capital of France?",
+    "questionText": "Which kind of living space best comforts you?",
     "answerOptions": [
       {
-        "answerText": "New York",
-        "isCorrect": false,
-        "points": 4,
-        "answerImage": "https://uploads2.wikiart.org/images/vincent-van-gogh/prisoners-exercising-prisoners-round-1890.jpg!Large.jpg"
+        "answerText": "A blue house in the suburbs surrounded by nice gardens and some pets.",
+        "points": ["F", "K"]
       },
       {
-        "answerText": "London",
-        "isCorrect": false,
-        "points": 3,
-        "answerImage": "https://uploads2.wikiart.org/images/vincent-van-gogh/prisoners-exercising-prisoners-round-1890.jpg!Large.jpg"
+        "answerText": "A yellow house in the countryside with a close circle of friends living together.",
+        "points": ["V"]
       },
       {
-        "answerText": "Paris",
-        "isCorrect": true,
-        "points": 2,
-        "answerImage": "https://uploads2.wikiart.org/images/vincent-van-gogh/prisoners-exercising-prisoners-round-1890.jpg!Large.jpg"
+        "answerText": "A slightly remote attic room with a window view of beautiful cityscapes.",
+        "points": ["G"]
       },
       {
-        "answerText": "Dublin",
-        "isCorrect": false,
-        "points": 1,
-        "answerImage": "https://uploads2.wikiart.org/images/vincent-van-gogh/prisoners-exercising-prisoners-round-1890.jpg!Large.jpg"
+        "answerText": "A flat in the modern city center with nice cafes in the neighborhood.",
+        "points": ["E", "D"]
       }
     ]
   },
   {
-    "questionText": "Who is CEO of Tesla?",
+    "questionText": "If you were to start making arts, which of the following subjects would you work on?",
     "answerOptions": [
       {
-        "answerText": "Jeff Bezos",
-        "isCorrect": false,
-        "points": 4,
-        "answerImage": null
+        "answerText": "Self portraits recording different stages of your life and your realities.",
+        "points": ["F", "V"]
       },
       {
-        "answerText": "Elon Musk",
-        "isCorrect": true,
-        "points": 2,
-        "answerImage": null
+        "answerText": "Your familiar Interior surroundings and people whose company you enjoy.",
+        "points": ["G", "E"]
       },
       {
-        "answerText": "Bill Gates",
-        "isCorrect": false,
-        "points": 3,
-        "answerImage": null
+        "answerText": "Abstract concepts reflecting the subconsciousness of your mind.",
+        "points": ["D"]
       },
       {
-        "answerText": "Tony Stark",
-        "isCorrect": false,
-        "points": 1,
-        "answerImage": null
+        "answerText": "The luxurious lives of flamboyant people which make you feel the joy of good material life.",
+        "points": ["K"]
       }
     ]
   },
   {
-    "questionText": "The iPhone was created by which company?",
+    "questionText": "After a tiring day of work, which activity helps with relieving your stress?",
     "answerOptions": [
       {
-        "answerText": "Apple",
-        "isCorrect": true,
-        "points": 3,
-
-        "answerImage": null
+        "answerText": "Reading in your room with some nice music.",
+        "points": ["G"]
       },
       {
-        "answerText": "Intel",
-        "isCorrect": false,
-        "points": 4,
-
-        "answerImage": null
+        "answerText": "Taking a walk on the streets and immerse yourself with people viewing.",
+        "points": ["E", "F"]
       },
       {
-        "answerText": "Amazon",
-        "isCorrect": false,
-
-        "points": 1,
-
-        "answerImage": null
+        "answerText": "Hanging out with friends to talk about your day.",
+        "points": ["D"]
       },
       {
-        "answerText": "Microsoft",
-        "isCorrect": false,
-        "points": 2,
-        "answerImage": null
+        "answerText": "Going into nature and enjoying beautiful sceneries.",
+        "points": ["V", "K"]
       }
     ]
   },
   {
-    "questionText": "How many Harry Potter books are there?",
+    "questionText": "You woke up from a nightmare, and it was about:",
     "answerOptions": [
       {
-        "answerText": "1",
-        "isCorrect": false,
-        "points": 1,
-        "answerImage": null
+        "answerText": "Having an argument with your best friend.",
+        "points": ["V"]
       },
       {
-        "answerText": "4",
-        "isCorrect": false,
-        "points": 4,
-        "answerImage": null
+        "answerText": "Learning that your partner is dating another person you also know.",
+        "points": ["F"]
       },
       {
-        "answerText": "6",
-        "isCorrect": false,
-        "points": 3,
-
-        "answerImage": null
+        "answerText": "Going bankrupt due to business failure.",
+        "points": ["K", "E"]
       },
       {
-        "answerText": "7",
-        "isCorrect": true,
-        "points": 2,
-        "answerImage": null
+        "answerText": "Assigned to the same project with a colleague you don’t get along well.",
+        "points": ["D", "G"]
       }
     ]
   }
