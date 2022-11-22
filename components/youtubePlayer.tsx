@@ -1,4 +1,3 @@
-import "./react-player.css";
 import ReactPlayer from "react-player";
 import { Box } from "@chakra-ui/react";
 

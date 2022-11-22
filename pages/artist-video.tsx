@@ -5,7 +5,6 @@ import { ThemeColorContext } from "../context/ColorContext";
 import { YoutubeVideoPlayer } from "../components/YoutubePlayer";
 import Image from "next/image";
 import { collection, query, where, getDocs } from "firebase/firestore";
-
 import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
 import { Navigation, Pagination, Scrollbar, A11y } from "swiper";
@@ -13,14 +12,8 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/effect-fade";
-
 import "swiper/css/pagination";
 import "swiper/css/scrollbar";
-const VideoWrapper = styled.section`
-  margin: 24px auto;
-  min-height: 100vh;
-`;
-
 const YoutubeVideoWrapper = styled.div`
   width: 65vw;
   margin: 0 auto 70px;
@@ -28,27 +21,13 @@ const YoutubeVideoWrapper = styled.div`
 
 const SwiperWrapper = styled.section`
   margin: 0 70px;
-  height: 216px;
 `;
 
-export async function getStaticProps() {
-  const MY_PLAYLIST = process.env.YOUTUBE_PLAYLIST_ID;
-  const API_KEY = process.env.YOUTUBE_API_KEY;
-  const REQUEST_URL = `https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${MY_PLAYLIST}&key=${API_KEY}&maxResults=50`;
-  const response = await fetch(REQUEST_URL);
-  const results = await response?.json();
-  const allResults = JSON.parse(JSON.stringify(results));
-  return {
-    props: { results: allResults.items || null },
-    revalidate: 10,
-  };
-  //set how many seconds you want to revalidate data, if there's new code then it will rebuild
-}
-
-export default function ArtistVideo({ results }) {
+export default function ArtistVideo() {
+  const [videos, setVideos] = useState([]);
   const { user } = useAuth();
   const [artist, setArtist] = useState("");
-  console.log(results);
+  const [playing, setPlaying] = useState(false);
   interface IVideo {
     id: string | undefined;
     snippet: {
@@ -56,12 +35,13 @@ export default function ArtistVideo({ results }) {
       resourceId: { videoId: string | undefined };
     };
   }
-
-  const [currentVideo, setCurrentVideo] = useState(null);
-  // console.log(currentVideo.snippet.title);
-  const [playing, setPlaying] = useState(false);
-  const [themeColor] = useContext(ThemeColorContext);
-
+  const [currentVideo, setCurrentVideo] = useState<IVideo>({
+    id: undefined,
+    snippet: {
+      title: undefined,
+      resourceId: { videoId: undefined },
+    },
+  });
   useEffect(() => {
     const getArtist = async () => {
       const q = query(collection(db, "users"), where("id", "==", user.uid));
@@ -71,19 +51,33 @@ export default function ArtistVideo({ results }) {
         docs[0].visitorJourney[docs[0].visitorJourney.length - 1]
           .recommendedArtist;
       setArtist(recommendedArtist);
+    };
+
+    const getVideos = async () => {
+      const REQUEST_URL = `https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=PLx8RujK7Fijbp0NHNGNhW8uyVL_sC26Hx&key=AIzaSyBzzO-nkGKBcmL4IQsVRZHXS6Nr-axv8Sw&maxResults=50`;
+      const response = await fetch(REQUEST_URL);
+      const results = await response.json();
+      console.log(results);
+      setVideos(
+        results?.items.filter((item) =>
+          item?.snippet.title.toLowerCase().includes(artist.split("-").slice(1))
+        )
+      );
       setCurrentVideo(
-        results?.filter((result) =>
-          result?.snippet.title
-            .toLowerCase()
-            .includes(recommendedArtist.split("-").slice(1))
+        results?.items.filter((item) =>
+          item?.snippet.title.toLowerCase().includes(artist.split("-").slice(1))
         )[0]
       );
     };
-    getArtist();
-  }, [user?.uid, results]);
+    const getCurrentVideo = async () => {
+      await getArtist();
+      await getVideos();
+    };
+    getCurrentVideo();
+  }, [user?.uid, artist]);
 
   return (
-    <VideoWrapper>
+    <section style={{ height: "85%", paddingTop: "104px" }}>
       <YoutubeVideoWrapper>
         <YoutubeVideoPlayer
           key={currentVideo?.snippet?.title}
@@ -101,48 +95,38 @@ export default function ArtistVideo({ results }) {
           onSwiper={(swiper) => console.log(swiper)}
           onSlideChange={() => console.log("slide change")}
         >
-          {results &&
-            results
-              ?.filter((result) =>
-                result?.snippet.title
-                  .toLowerCase()
-                  .includes(artist.split("-").slice(1))
-              )
-              .map((video) => (
-                <SwiperSlide key={video.id}>
-                  <div
-                    role="button"
-                    onClick={() => {
-                      setCurrentVideo(video);
-                      setPlaying(true);
-                    }}
-                  >
-                    <Image
-                      src={
-                        video.snippet.thumbnails.maxres?.url ||
-                        video.snippet.thumbnails.medium?.url
-                      }
-                      // layout="intrinsic"
-                      width={1280}
-                      height={720}
-                      alt={video.snippet.title}
-                    />
-                    <h1>
-                      <strong>{video.snippet.title}</strong>
-                    </h1>
-                  </div>
-                </SwiperSlide>
-              ))}
+          {videos &&
+            videos.map((video) => (
+              <SwiperSlide key={video.id}>
+                <div
+                  role="button"
+                  onClick={() => {
+                    setCurrentVideo(video);
+                    setPlaying(true);
+                  }}
+                >
+                  <Image
+                    src={
+                      video.snippet.thumbnails.maxres?.url ||
+                      video.snippet.thumbnails.medium?.url
+                    }
+                    width={1280}
+                    height={720}
+                    alt={video.snippet.title}
+                  />
+                  <h1 style={{ fontSize: "0.5rem" }}>
+                    <strong>{video.snippet.title}</strong>
+                  </h1>
+                </div>
+              </SwiperSlide>
+            ))}
         </Swiper>
       </SwiperWrapper>
-      <div style={{ textAlign: "right" }}>
+      <div style={{ textAlign: "left" }}>
         <Link href="/form">
           <p>And Finally...</p>
         </Link>
       </div>
-      <div
-        style={{ background: themeColor, height: "500px", width: "250px" }}
-      ></div>
-    </VideoWrapper>
+    </section>
   );
 }
