@@ -1,51 +1,47 @@
+import styled from "@emotion/styled";
 import Link from "next/link";
 import { useState, useContext, useEffect } from "react";
 import { ThemeColorContext } from "../context/ColorContext";
-import { YoutubeVideoPlayer } from "../components/youtubePlayer";
-import Head from "next/head";
+import { YoutubeVideoPlayer } from "../components/YoutubePlayer";
 import Image from "next/image";
-import { Box, Center, Heading, SimpleGrid } from "@chakra-ui/layout";
-import { Button } from "@chakra-ui/button";
-import noImage from "../asset/no-thumbnail.jpeg";
-import {
-  collection,
-  onSnapshot,
-  doc,
-  query,
-  where,
-  getDocs,
-  getDoc,
-  setDoc,
-  Timestamp,
-  orderBy,
-  updateDoc,
-  arrayUnion,
-} from "firebase/firestore";
-
+import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
+import { Navigation, Pagination, Scrollbar, A11y } from "swiper";
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/effect-fade";
+import "swiper/css/pagination";
+import "swiper/css/scrollbar";
+const YoutubeVideoWrapper = styled.div`
+  width: 65vw;
+  margin: 0 auto 70px;
+`;
 
-export default function ArtistVideo({ results }) {
+const SwiperWrapper = styled.section`
+  margin: 0 70px;
+`;
+
+export default function ArtistVideo() {
+  const [videos, setVideos] = useState([]);
   const { user } = useAuth();
   const [artist, setArtist] = useState("");
-
-  const [currentVideo, setCurrentVideo] = useState({
-    title: "",
+  const [playing, setPlaying] = useState(false);
+  interface IVideo {
+    id: string | undefined;
     snippet: {
-      resourceId: { videoId: "" },
+      title: string | undefined;
+      resourceId: { videoId: string | undefined };
+    };
+  }
+  const [currentVideo, setCurrentVideo] = useState<IVideo>({
+    id: undefined,
+    snippet: {
+      title: undefined,
+      resourceId: { videoId: undefined },
     },
   });
-  // const [playing, setPlaying] = useState(false);
-  console.log(
-    results?.filter((result) =>
-      result?.snippet.title.toLowerCase().includes(artist.split("-").slice(1))
-    )[0]
-  );
-  const [themeColor] = useContext(ThemeColorContext);
-  const scrollTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
   useEffect(() => {
     const getArtist = async () => {
       const q = query(collection(db, "users"), where("id", "==", user.uid));
@@ -55,106 +51,82 @@ export default function ArtistVideo({ results }) {
         docs[0].visitorJourney[docs[0].visitorJourney.length - 1]
           .recommendedArtist;
       setArtist(recommendedArtist);
+    };
+
+    const getVideos = async () => {
+      const REQUEST_URL = `https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=PLx8RujK7Fijbp0NHNGNhW8uyVL_sC26Hx&key=AIzaSyBzzO-nkGKBcmL4IQsVRZHXS6Nr-axv8Sw&maxResults=50`;
+      const response = await fetch(REQUEST_URL);
+      const results = await response.json();
+      console.log(results);
+      setVideos(
+        results?.items.filter((item) =>
+          item?.snippet.title.toLowerCase().includes(artist.split("-").slice(1))
+        )
+      );
       setCurrentVideo(
-        results.filter((result) =>
-          result?.snippet.title
-            .toLowerCase()
-            .includes(recommendedArtist.split("-").slice(1))
+        results?.items.filter((item) =>
+          item?.snippet.title.toLowerCase().includes(artist.split("-").slice(1))
         )[0]
       );
     };
-    getArtist();
-  }, [user?.uid]);
+    const getCurrentVideo = async () => {
+      await getArtist();
+      await getVideos();
+    };
+    getCurrentVideo();
+  }, [user?.uid, artist]);
 
   return (
-    <>
-      <Box width="100%" mx="auto" my={4}>
-        <Heading my={8} as="h1" textAlign="center">
-          YouTube Video Gallery{" "}
-        </Heading>
-        <Box
-          maxWidth="720px"
-          mx="auto"
-          p={4}
-          borderRadius="lg"
-          boxShadow="2xl"
-          my={8}
+    <section style={{ height: "85%", paddingTop: "104px" }}>
+      <YoutubeVideoWrapper>
+        <YoutubeVideoPlayer
+          key={currentVideo?.snippet?.title}
+          id={currentVideo?.snippet?.resourceId.videoId}
+          playing={onplaying}
+        />
+      </YoutubeVideoWrapper>
+      <SwiperWrapper>
+        <Swiper
+          modules={[Navigation, Pagination, Scrollbar, A11y]}
+          spaceBetween={50}
+          slidesPerView={4}
+          navigation
+          loop
+          onSwiper={(swiper) => console.log(swiper)}
+          onSlideChange={() => console.log("slide change")}
         >
-          <YoutubeVideoPlayer
-            key={currentVideo.title}
-            id={currentVideo.snippet.resourceId.videoId}
-            playing={onplaying}
-          />
-        </Box>
-
-        <SimpleGrid columns={[1, 2, 3]} spacing={8}>
-          {/* 1 column for sm, 2 for md and 3 for large */}
-          {results &&
-            results
-              .filter((result) =>
-                result?.snippet.title
-                  .toLowerCase()
-                  .includes(artist.split("-").slice(1))
-              )
-              .map((video) => (
-                <Box key={video.id} mx={4}>
+          {videos &&
+            videos.map((video) => (
+              <SwiperSlide key={video.id}>
+                <div
+                  role="button"
+                  onClick={() => {
+                    setCurrentVideo(video);
+                    setPlaying(true);
+                  }}
+                >
                   <Image
-                    src={video.snippet.thumbnails.maxres?.url || noImage}
-                    // layout="intrinsic"
+                    src={
+                      video.snippet.thumbnails.maxres?.url ||
+                      video.snippet.thumbnails.medium?.url
+                    }
                     width={1280}
                     height={720}
                     alt={video.snippet.title}
                   />
-                  <Heading
-                    as="h5"
-                    fontSize="sm"
-                    textAlign="left"
-                    noOfLines={1}
-                    mb={2}
-                  >
-                    {video.snippet.title}
-                  </Heading>
-                  <Center>
-                    <Button
-                      mx="auto"
-                      my={4}
-                      colorScheme="red"
-                      onClick={() => {
-                        setCurrentVideo(video);
-                        // setPlaying(true);
-                        scrollTop();
-                      }}
-                    >
-                      Watch Now
-                    </Button>
-                  </Center>
-                </Box>
-              ))}
-        </SimpleGrid>
-      </Box>
-
-      <div style={{ textAlign: "right" }}>
+                  <h1 style={{ fontSize: "0.5rem" }}>
+                    <strong>{video.snippet.title}</strong>
+                  </h1>
+                </div>
+              </SwiperSlide>
+            ))}
+        </Swiper>
+      </SwiperWrapper>
+      <div style={{ textAlign: "left" }}>
         <Link href="/form">
           <p>And Finally...</p>
         </Link>
       </div>
-      <div
-        style={{ background: themeColor, height: "500px", width: "250px" }}
-      ></div>
-    </>
+    </section>
   );
-}
-
-export async function getStaticProps() {
-  const MY_PLAYLIST = process.env.YOUTUBE_PLAYLIST_ID;
-  const API_KEY = process.env.YOUTUBE_API_KEY;
-  const REQUEST_URL = `https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${MY_PLAYLIST}&key=${API_KEY}&maxResults=50`;
-  const response = await fetch(REQUEST_URL);
-  const results = await response.json();
-
-  return {
-    props: { results: results.items },
-    revalidate: 10,
-  };
-  //set how many seconds you want to revalidate data, if there's new code then it will rebuild
 }

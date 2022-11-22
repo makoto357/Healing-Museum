@@ -44,7 +44,6 @@ export const AuthContextProvider = ({
   const logout = async () => {
     setUser(null);
     await signOut(auth);
-    // router.push("/");
   };
 
   return (

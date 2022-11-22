@@ -1,26 +1,147 @@
+import styled from "@emotion/styled";
 import Link from "next/link";
-import Image from "next/image";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import {
   collection,
-  onSnapshot,
   doc,
   updateDoc,
   arrayUnion,
-  arrayRemove,
   query,
   where,
   getDocs,
-  orderBy,
 } from "firebase/firestore";
 import { db } from "../../config/firebase";
-import { useRef, useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { ThemeColorContext } from "../../context/ColorContext";
-import heart from "../../asset/17d0747c12d59dd8fd244e90d91956b9.png";
+import ZoomModal from "../../components/ZoomModal";
+import heart from "../../asset/heart.png";
+import magnifyingGlass from "../../asset/magnifying-glass.png";
+import {
+  TransformComponent,
+  TransformWrapper,
+} from "@pronestor/react-zoom-pan-pinch";
 
+const ArtworkWrapper = styled.section`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+`;
+
+const ArtworkImage = styled.img`
+  height: 60vh;
+`;
+
+const SizeController = styled.div`
+  flex-direction: column;
+  display: flex;
+  column-gap: 5px;
+  margin-right: 20px;
+`;
+const TextWrapper = styled.section`
+  margin: 24px auto 0;
+  width: 60vw;
+`;
+
+const TextHeader = styled.section`
+  display: flex;
+  padding-bottom: 10px;
+`;
+
+const IconGroup = styled.div`
+  display: flex;
+  column-gap: 20px;
+  margin: 10px 0 0 30px;
+`;
+
+const LikeButton = styled.div`
+  background-image: url(${heart.src});
+  width: 25px;
+  height: 25px;
+  background-size: cover;
+`;
+
+const DescriptionList = styled.div`
+  list-style: none;
+  padding: 10px 0;
+`;
+
+const CloseIcon = styled.button`
+  background: white;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  margin-left: 20px;
+  opacity: 0.8;
+  padding: 0;
+  width: 50px;
+  height: 50px;
+  position: absolute;
+  top: 0;
+  right: 2rem;
+  z-index: 200;
+  padding-left: 6px;
+  &:hover {
+    transition: border 0.5s;
+    border: 1px solid white;
+    height: 48px;
+    width: 48px;
+  }
+`;
+
+const ZoomIcon = styled.button`
+  padding-top: 7px;
+  padding-left: 6px;
+  background: white;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  opacity: 0.8;
+  width: 50px;
+  height: 50px;
+  position: absolute;
+  left: 2rem;
+  z-index: 500;
+  &:hover {
+    transition: border 0.5s;
+    border: 1px solid white;
+    height: 48px;
+    width: 48px;
+  }
+`;
+
+const MagnifyingGlassWrapper = styled.div`
+  position: absolute;
+  bottom: -20px;
+  right: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  height: 40px;
+  width: 40px;
+  background: #e1ddd6;
+  &:hover {
+    transition: border 0.5s;
+    border: 1px solid #e1ddd6;
+    height: 38px;
+    width: 38px;
+  }
+`;
+
+const MagnifyingGlass = styled.div`
+  margin: 8px auto 0;
+  border-radius: 0px;
+  width: 60%;
+  height: 60%;
+  z-index: 200;
+  border: none;
+  cursor: pointer;
+  background: #e1ddd6;
+`;
 export default function ArtworkDetail() {
   const { user } = useAuth();
+  const [showModal, setShowModal] = useState(false);
 
   const router = useRouter();
   const collectionID = router.query.collectionID;
@@ -81,6 +202,11 @@ export default function ArtworkDetail() {
   }
   interface IArtworks extends Array<IArtwork> {}
 
+  const CC = dynamic(
+    () => import("../../components/Clipboard").then((mod) => mod.CopyClipboard),
+    { ssr: false }
+  );
+
   useEffect(() => {
     const getArtworks = async () => {
       const q = query(
@@ -106,88 +232,181 @@ export default function ArtworkDetail() {
   const [themeColor] = useContext(ThemeColorContext);
   console.log(themeColor);
   return (
-    <>
-      <style jsx>
-        {`
-          section {
-            text-align: center;
-          }
-          .imageBox {
-            box-shadow: 12px 12px 2px 1px ${themeColor};
-            display: inline-block;
-          }
-        `}
-      </style>
-      <section>
-        {artwork &&
-          artwork?.map((artwork, index) => (
-            <div key={index}>
-              <div className="imageBox">
-                <img alt={artwork.id} src={artwork.image} />
-              </div>
-              <div>
-                <h1>{artwork.title}</h1>
-                <h2>
-                  <span>{artwork.artistName}</span>
-                  <span>{artwork.completitionYear}</span>
-                </h2>
-              </div>
-              <div
-                role="button"
-                style={{
-                  margin: "auto",
-                  backgroundImage: `url(${heart.src})`,
-                  width: "30px",
-                  height: "30px",
-                  backgroundSize: "cover",
-                }}
-                onClick={saveToFavorites}
-              ></div>
-              <section>
-                <div>
-                  <p>{artwork.description}</p>
-                </div>
-              </section>
-              <section>
-                <div>
-                  <ul>
-                    <li>
-                      <span>{artwork.genres}</span>
-                    </li>
-                    <li>
-                      <span>{artwork.styles}</span>
-                    </li>
-                    <li>
-                      {artwork?.media?.map((medium, index) => (
-                        <span key={index}>{medium},</span>
-                      ))}
-                    </li>
-                    <li>
-                      <p>
-                        {artwork.sizeX} X {artwork.sizeY} cm
-                      </p>
-                    </li>
-                    <li>Collection of the {artwork.galleries}</li>
-                    {artwork?.tags?.map((tag, index) => (
-                      <span key={index}>#{tag} </span>
-                    ))}
-                  </ul>
-                </div>
-              </section>
+    <div style={{ paddingTop: "104px" }}>
+      {artwork &&
+        artwork?.map((artwork, index) => (
+          <ArtworkWrapper key={index}>
+            <div style={{ position: "relative" }}>
+              <ArtworkImage alt={artwork.id} src={artwork.image} />
+              <MagnifyingGlassWrapper onClick={() => setShowModal(true)}>
+                <MagnifyingGlass
+                  style={{
+                    backgroundImage: `url(${magnifyingGlass.src})`,
+                    backgroundSize: "cover",
+                  }}
+                />
+              </MagnifyingGlassWrapper>
             </div>
-          ))}
-        <div style={{ textAlign: "left" }}>
-          <Link href="/collection-maps">
-            <p>back to map page</p>
-          </Link>
-        </div>
 
-        <div style={{ textAlign: "right" }}>
-          <Link href="/artworks">
-            <p>Explore more artworks!</p>
-          </Link>
-        </div>
-      </section>
-    </>
+            <TextWrapper>
+              <TextHeader>
+                <div>
+                  <h1 style={{ fontSize: "1.75rem" }}>
+                    <strong>{artwork.title}</strong>
+                    <strong></strong>
+                  </h1>
+                  <h2 style={{ fontSize: "1.5rem" }}>
+                    <span>{artwork.artistName}, </span>
+                    <span>{artwork.completitionYear}</span>
+                  </h2>
+                </div>
+                <IconGroup>
+                  <LikeButton
+                    role="button"
+                    onClick={saveToFavorites}
+                  ></LikeButton>
+                  <div style={{ width: "20px", height: "20px" }}>
+                    <CC content={window.location.href} />
+                  </div>
+                </IconGroup>
+              </TextHeader>
+              <p>{artwork.description}</p>
+              <DescriptionList>
+                <li>
+                  {" "}
+                  <strong>Genres: </strong>
+                  {artwork.genres}
+                </li>
+                <li>
+                  <strong>Styles: </strong>
+                  {artwork.styles}
+                </li>
+                <li>
+                  <strong>Medium: </strong>
+
+                  {artwork?.media?.map((medium, index) => (
+                    <span key={index}>{medium}, </span>
+                  ))}
+                </li>
+                <li>
+                  <strong>Dimensions: </strong>
+                  {artwork.sizeX} X {artwork.sizeY} cm
+                </li>
+                <li>
+                  <strong>Collection: </strong>
+                  {artwork.galleries}
+                </li>
+              </DescriptionList>
+              <li style={{ listStyle: "none" }}>
+                {artwork?.tags?.map((tag, index) => (
+                  <span
+                    style={{
+                      background: "#e1ddd6",
+                      marginRight: "10px",
+                      borderRadius: "5px",
+                      padding: "5px",
+                    }}
+                    key={index}
+                  >
+                    {" "}
+                    <strong>#</strong>
+                    {tag}{" "}
+                  </span>
+                ))}
+              </li>
+            </TextWrapper>
+          </ArtworkWrapper>
+        ))}
+      {showModal && (
+        <ZoomModal>
+          {artwork &&
+            artwork?.map((artwork, index) => (
+              <TransformWrapper
+                initialScale={1}
+                key={`${index} + ${artwork.id}`}
+              >
+                {({ zoomIn, zoomOut, ...rest }) => (
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "row",
+                      justifyContent: "flex-start",
+                    }}
+                  >
+                    <SizeController>
+                      <ZoomIcon onClick={() => zoomIn()} aria-label="Zoom in">
+                        <svg
+                          className="icon"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M17.5 8.086v18.875M8.088 17.5h18.813"
+                            fill="none"
+                            stroke="black"
+                          ></path>
+                        </svg>
+                      </ZoomIcon>
+                      <ZoomIcon
+                        style={{ top: "4rem" }}
+                        onClick={() => zoomOut()}
+                        aria-label="Zoom out"
+                      >
+                        <svg
+                          className="icon"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            fill="none"
+                            stroke="black"
+                            d="M8.088 17.5h18.813"
+                          ></path>
+                        </svg>
+                      </ZoomIcon>
+                    </SizeController>
+                    <TransformComponent>
+                      <img
+                        style={{
+                          height: "96vh",
+                          objectFit: "contain",
+                          marginBottom: "auto",
+                        }}
+                        alt={artwork.id}
+                        src={artwork.image}
+                      />
+                    </TransformComponent>
+                    <CloseIcon
+                      onClick={() => setShowModal(false)}
+                      aria-label="Close viewer"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="35"
+                        height="35"
+                      >
+                        <path
+                          d="M24.251 10.935L10.746 24.12m.194-13.344l13.143 13.462"
+                          fill="none"
+                          stroke="black"
+                        ></path>
+                      </svg>
+                    </CloseIcon>
+                  </div>
+                )}
+              </TransformWrapper>
+            ))}
+        </ZoomModal>
+      )}
+      <div style={{ textAlign: "left" }}>
+        <Link href="/collection-maps">
+          <p>back to map page</p>
+        </Link>
+      </div>
+
+      <div style={{ textAlign: "left" }}>
+        <Link href="/artworks">
+          <p>Explore more artworks!</p>
+        </Link>
+      </div>
+    </div>
   );
 }

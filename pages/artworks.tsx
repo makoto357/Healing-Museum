@@ -1,30 +1,96 @@
+import styled from "@emotion/styled";
 import Link from "next/link";
-import { useEffect, useRef, useState, useContext, use } from "react";
+import React from "react";
+import { useEffect, useState } from "react";
 import {
   collection,
-  onSnapshot,
   doc,
   query,
   where,
   getDocs,
-  getDoc,
-  setDoc,
-  Timestamp,
   orderBy,
   updateDoc,
   arrayUnion,
 } from "firebase/firestore";
-
 import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
-import { ThemeColorContext } from "../context/ColorContext";
+import heart from "../asset/heart.png";
+import ArtworkModal from "../components/ArtworkModal";
+import close from "../asset/cancel.png";
+import artistStyle from "../public/visitorJourney.json";
 
-import heart from "../asset/17d0747c12d59dd8fd244e90d91956b9.png";
-import Modal from "../components/Modal";
-export default function Artworks() {
+const ArtworkGrid = styled.section`
+  margin: 0 auto;
+  width: 90vw;
+  display: flex;
+  flex-direction: column;
+  row-gap: 20px;
+`;
+
+const CloseIcon = styled.div`
+  background-image: url(${close.src});
+  background-size: cover;
+  width: 25px;
+  height: 25px;
+  position: fixed;
+  top: 1rem;
+  right: 1.5rem;
+`;
+
+const Content = styled.div`
+  display: flex;
+  height: 100%;
+`;
+
+const Text = styled.div`
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  row-gap: 36px;
+`;
+
+const Figure = styled.figure`
+  height: 100%;
+  width: 100%;
+  display: flex;
+  max-height: calc(100vh - 12rem);
+`;
+
+const FavoritesIcon = styled.div`
+  background-image: url(${heart.src});
+  width: 30px;
+  height: 30px;
+  background-size: cover;
+`;
+
+const ArtworkImage = styled.img`
+  display: block;
+  width: 100%;
+  max-height: inherit;
+  object-fit: contain;
+  object-position: center;
+  margin-bottom: auto;
+`;
+
+function ArtWork({ onClick, imgSrc, width = "320", height = "427" }) {
+  return (
+    <div onClick={onClick}>
+      <figure>
+        <img width={width} height={height} src={imgSrc} alt="" />
+      </figure>
+    </div>
+  );
+}
+
+const ARTWORK_STYLE = {
+  0: { width: "640", height: "1138" },
+  1: { width: "640", height: "427" },
+  2: { width: "320", height: "427" },
+};
+
+export default function Masonry() {
   const { user } = useAuth();
-  const [themeColor] = useContext(ThemeColorContext);
-
   const [artworks, setArtworks] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [modalInfo, setModalInfo] = useState<IModalInfo>({
@@ -85,7 +151,17 @@ export default function Artworks() {
       const querySnapshot = await getDocs(q);
       const docs = querySnapshot.docs?.map((doc) => doc.data());
       console.log(docs);
-      setArtworks(docs);
+      const setsOfartworks = sdivceIntoChunks(docs, 11);
+      setArtworks(setsOfartworks);
+
+      function sdivceIntoChunks(arr, chunkSize) {
+        const res = [];
+        for (let i = 0; i < arr.length; i += chunkSize) {
+          const chunk = arr.slice(i, i + chunkSize);
+          res.push(chunk);
+        }
+        return res;
+      }
     };
     getArtist();
   }, [user.uid]);
@@ -97,63 +173,68 @@ export default function Artworks() {
   };
   return (
     <>
-      <div className="painints-container">
-        <h1>Click to see the artwork details:</h1>
-        <style jsx>{`
-          .painints-container {
-            display: flex;
-            flex-wrap: wrap;
-            row-gap: 50px;
-            column-gap: 20px;
-          }
-          .imageBox {
-            box-shadow: 12px 12px 2px 1px ${themeColor};
-            display: inline-block;
-            width: 250px;
-          }
-        `}</style>
-        {artworks &&
-          artworks?.map((artwork) => (
-            <div
-              className="imageBox"
-              key={artwork.id}
-              onClick={(e) => {
-                console.log(e.target);
-                getModalInfo(artwork);
-              }}
-            >
-              <img alt={artwork.title} src={artwork.image} />
-            </div>
-          ))}
+      <div style={{ width: "80vw", margin: "0 auto", padding: "104px 0 20px" }}>
+        <h1>
+          <strong>
+            Save your favorite artwork by clicking on the heart icon, before you
+            leave for the next gallery.
+          </strong>
+        </h1>
+        <p>
+          {artworks &&
+            artistStyle?.filter(
+              (location) => location?.artistUrl === artworks[0]?.[0].artistUrl
+            )[0]?.artistStyle}
+        </p>
       </div>
+      <ArtworkGrid>
+        {artworks?.map((setOfartwork, i) => (
+          <ul key={i} className="grid">
+            {setOfartwork.map((artWork, index) => {
+              const { width, height } = ARTWORK_STYLE[index] ?? {}; //fallback to no value oif there's no image
+              return (
+                <ArtWork
+                  key={artWork.image}
+                  onClick={() => {
+                    getModalInfo(artWork);
+                  }}
+                  width={width}
+                  height={height}
+                  imgSrc={artWork.image}
+                />
+              );
+            })}
+          </ul>
+        ))}
+      </ArtworkGrid>
       <div>
         {showModal && (
-          <Modal onClose={() => setShowModal(false)}>
-            <img
-              alt={modalInfo.title}
-              src={modalInfo.image}
-              style={{ width: "250px" }}
-            />
-            <h1>{modalInfo.title}</h1>
-            <p>{modalInfo.artistName}</p>
-            <span>{modalInfo.completitionYear}</span>
-            <p>
-              {modalInfo.width} X {modalInfo.height} cm
-            </p>
-            <div
-              role="button"
-              style={{
-                backgroundImage: `url(${heart.src})`,
-                width: "30px",
-                height: "30px",
-                backgroundSize: "cover",
-              }}
-              onClick={saveToFavorites}
-            ></div>
-          </Modal>
+          <ArtworkModal>
+            <CloseIcon role="button" onClick={() => setShowModal(false)} />
+            <Content>
+              <Text>
+                <h1>
+                  <strong>{modalInfo.title}</strong>
+                </h1>
+                <p>
+                  {modalInfo.artistName}, {modalInfo.completitionYear}
+                  <br />
+                  {modalInfo.width} X {modalInfo.height} cm
+                </p>
+                <FavoritesIcon
+                  role="button"
+                  onClick={saveToFavorites}
+                ></FavoritesIcon>
+              </Text>
+
+              <Figure>
+                <ArtworkImage alt={modalInfo.title} src={modalInfo.image} />
+              </Figure>
+            </Content>
+          </ArtworkModal>
         )}
       </div>
-      <div style={{ textAlign: "right" }}>
+      <div style={{ textAlign: "left" }}>
         <Link href="/artist-video">
           <p>See some videos!</p>
         </Link>
