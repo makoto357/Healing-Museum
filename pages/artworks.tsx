@@ -16,17 +16,25 @@ import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
 import heart from "../asset/heart.png";
 import ArtworkModal from "../components/ArtworkModal";
+import close from "../asset/cancel.png";
+import artistStyle from "../public/visitorJourney.json";
 
 const ArtworkGrid = styled.section`
+  margin: 0 auto;
+  width: 90vw;
   display: flex;
   flex-direction: column;
   row-gap: 20px;
 `;
 
 const CloseIcon = styled.div`
+  background-image: url(${close.src});
+  background-size: cover;
+  width: 25px;
+  height: 25px;
   position: fixed;
   top: 1rem;
-  right: 2rem;
+  right: 1.5rem;
 `;
 
 const Content = styled.div`
@@ -64,6 +72,23 @@ const ArtworkImage = styled.img`
   object-position: center;
   margin-bottom: auto;
 `;
+
+function ArtWork({ onClick, imgSrc, width = "320", height = "427" }) {
+  return (
+    <div onClick={onClick}>
+      <figure>
+        <img width={width} height={height} src={imgSrc} alt="" />
+      </figure>
+    </div>
+  );
+}
+
+const ARTWORK_STYLE = {
+  0: { width: "640", height: "1138" },
+  1: { width: "640", height: "427" },
+  2: { width: "320", height: "427" },
+};
+
 export default function Masonry() {
   const { user } = useAuth();
   const [artworks, setArtworks] = useState([]);
@@ -146,177 +171,46 @@ export default function Masonry() {
       favoriteArtworksID: arrayUnion(modalInfo.id),
     });
   };
-
   return (
     <>
-      <h1>Click to see the artwork details:</h1>
+      <div style={{ width: "80vw", margin: "0 auto", padding: "104px 0 20px" }}>
+        <h1>
+          <strong>
+            Save your favorite artwork by clicking on the heart icon, before you
+            leave for the next gallery.
+          </strong>
+        </h1>
+        <p>
+          {artworks &&
+            artistStyle?.filter(
+              (location) => location?.artistUrl === artworks[0]?.[0].artistUrl
+            )[0]?.artistStyle}
+        </p>
+      </div>
       <ArtworkGrid>
-        {artworks &&
-          artworks?.map((setOfartwork, index) => (
-            <ul key={index} className="grid">
-              <div
-                onClick={() => {
-                  getModalInfo(setOfartwork[0]);
-                }}
-              >
-                <figure>
-                  <img
-                    width="640"
-                    height="1138"
-                    src={setOfartwork[0]?.image}
-                    alt=""
-                  />
-                </figure>
-              </div>
-              <div
-                onClick={() => {
-                  getModalInfo(setOfartwork[1]);
-                }}
-              >
-                <figure>
-                  <img
-                    width="640"
-                    height="427"
-                    src={setOfartwork[1]?.image}
-                    alt=""
-                  />
-                </figure>
-              </div>
-              <div
-                onClick={() => {
-                  getModalInfo(setOfartwork[2]);
-                }}
-              >
-                <figure>
-                  <img
-                    width="320"
-                    height="427"
-                    src={setOfartwork[2]?.image}
-                    alt=""
-                  />
-                </figure>
-              </div>
-              <div
-                onClick={() => {
-                  getModalInfo(setOfartwork[3]);
-                }}
-              >
-                <figure>
-                  <img
-                    width="320"
-                    height="427"
-                    src={setOfartwork[3]?.image}
-                    alt=""
-                  />
-                </figure>
-              </div>
-              <div
-                onClick={() => {
-                  getModalInfo(setOfartwork[4]);
-                }}
-              >
-                <figure>
-                  <img
-                    width="320"
-                    height="427"
-                    src={setOfartwork[4]?.image}
-                    alt=""
-                  />
-                </figure>
-              </div>
-              <div
-                onClick={() => {
-                  getModalInfo(setOfartwork[5]);
-                }}
-              >
-                <figure>
-                  <img
-                    width="320"
-                    height="427"
-                    src={setOfartwork[5]?.image}
-                    alt=""
-                  />
-                </figure>
-              </div>
-              <div
-                onClick={() => {
-                  getModalInfo(setOfartwork[6]);
-                }}
-              >
-                <figure>
-                  <img
-                    width="320"
-                    height="427"
-                    src={setOfartwork[6]?.image}
-                    alt=""
-                  />
-                </figure>
-              </div>
-              <div
-                onClick={() => {
-                  getModalInfo(setOfartwork[7]);
-                }}
-              >
-                <figure>
-                  <img
-                    width="320"
-                    height="427"
-                    src={setOfartwork[7]?.image}
-                    alt=""
-                  />
-                </figure>
-              </div>
-              <div
-                onClick={() => {
-                  getModalInfo(setOfartwork[8]);
-                }}
-              >
-                <figure>
-                  <img
-                    width="320"
-                    height="427"
-                    src={setOfartwork[8]?.image}
-                    alt=""
-                  />
-                </figure>
-              </div>
-              <div
-                onClick={() => {
-                  getModalInfo(setOfartwork[9]);
-                }}
-              >
-                <figure>
-                  <img
-                    width="320"
-                    height="427"
-                    src={setOfartwork[9]?.image}
-                    alt=""
-                  />
-                </figure>
-              </div>
-              <div
-                onClick={() => {
-                  getModalInfo(setOfartwork[10]);
-                }}
-              >
-                <figure>
-                  <img
-                    width="320"
-                    height="427"
-                    src={setOfartwork[10]?.image}
-                    alt=""
-                  />
-                </figure>
-              </div>
-            </ul>
-          ))}
+        {artworks?.map((setOfartwork, i) => (
+          <ul key={i} className="grid">
+            {setOfartwork.map((artWork, index) => {
+              const { width, height } = ARTWORK_STYLE[index] ?? {}; //fallback to no value oif there's no image
+              return (
+                <ArtWork
+                  key={artWork.image}
+                  onClick={() => {
+                    getModalInfo(artWork);
+                  }}
+                  width={width}
+                  height={height}
+                  imgSrc={artWork.image}
+                />
+              );
+            })}
+          </ul>
+        ))}
       </ArtworkGrid>
       <div>
         {showModal && (
           <ArtworkModal>
-            <CloseIcon role="button" onClick={() => setShowModal(false)}>
-              X
-            </CloseIcon>
+            <CloseIcon role="button" onClick={() => setShowModal(false)} />
             <Content>
               <Text>
                 <h1>
@@ -340,7 +234,7 @@ export default function Masonry() {
           </ArtworkModal>
         )}
       </div>
-      <div style={{ textAlign: "right" }}>
+      <div style={{ textAlign: "left" }}>
         <Link href="/artist-video">
           <p>See some videos!</p>
         </Link>
