@@ -22,6 +22,10 @@ import {
   TransformComponent,
   TransformWrapper,
 } from "@pronestor/react-zoom-pan-pinch";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import SignpostButton from "../../components/Button";
+import map from "../../asset/world.png";
 
 const ArtworkWrapper = styled.section`
   display: flex;
@@ -139,6 +143,21 @@ const MagnifyingGlass = styled.div`
   cursor: pointer;
   background: #e1ddd6;
 `;
+
+const LinkToMap = styled(Link)`
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  display: flex;
+  flex-direction: column;
+`;
+const MapIcon = styled.div`
+  background-image: url(${map.src});
+  width: 30px;
+  height: 30px;
+  background-size: cover;
+  margin-right: auto;
+`;
 export default function ArtworkDetail() {
   const { user } = useAuth();
   const [showModal, setShowModal] = useState(false);
@@ -233,6 +252,19 @@ export default function ArtworkDetail() {
   console.log(themeColor);
   return (
     <div style={{ paddingTop: "104px" }}>
+      <ToastContainer
+        position="bottom-right"
+        autoClose={1000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
+
       {artwork &&
         artwork?.map((artwork, index) => (
           <ArtworkWrapper key={index}>
@@ -265,7 +297,21 @@ export default function ArtworkDetail() {
                     role="button"
                     onClick={saveToFavorites}
                   ></LikeButton>
-                  <div style={{ width: "20px", height: "20px" }}>
+                  <div
+                    style={{ width: "20px", height: "20px" }}
+                    onClick={() =>
+                      toast("Copied to clipboard.", {
+                        position: "bottom-right",
+                        autoClose: 1000,
+                        hideProgressBar: true,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "light",
+                      })
+                    }
+                  >
                     <CC content={window.location.href} />
                   </div>
                 </IconGroup>
@@ -396,17 +442,14 @@ export default function ArtworkDetail() {
             ))}
         </ZoomModal>
       )}
-      <div style={{ textAlign: "left" }}>
-        <Link href="/collection-maps">
-          <p>back to map page</p>
-        </Link>
-      </div>
 
-      <div style={{ textAlign: "left" }}>
-        <Link href="/artworks">
-          <p>Explore more artworks!</p>
-        </Link>
-      </div>
+      <LinkToMap href="/collection-maps">
+        <MapIcon />
+        <div>
+          <strong>Back to map</strong>
+        </div>
+      </LinkToMap>
+      <SignpostButton href="/artworks">Explore more artworks</SignpostButton>
     </div>
   );
 }

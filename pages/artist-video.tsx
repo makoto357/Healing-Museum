@@ -1,8 +1,8 @@
 import styled from "@emotion/styled";
 import Link from "next/link";
 import { useState, useContext, useEffect } from "react";
-import { ThemeColorContext } from "../context/ColorContext";
-import { YoutubeVideoPlayer } from "../components/YoutubePlayer";
+import SignpostButton from "../components/Button";
+import { YoutubeVideoPlayer } from "../components/youtubePlayer";
 import Image from "next/image";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../config/firebase";
@@ -122,11 +122,8 @@ export default function ArtistVideo() {
             ))}
         </Swiper>
       </SwiperWrapper>
-      <div style={{ textAlign: "left" }}>
-        <Link href="/form">
-          <p>And Finally...</p>
-        </Link>
-      </div>
+
+      <SignpostButton href="/form">Express your feelings</SignpostButton>
     </section>
   );
 }

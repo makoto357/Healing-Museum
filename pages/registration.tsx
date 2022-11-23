@@ -7,6 +7,10 @@ import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { doc, setDoc, Timestamp } from "firebase/firestore";
 import { db } from "../config/firebase";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import brandIcon from "../asset/healing-museum-website-icon.png";
+import SignpostButton from "../components/Button";
 
 const Wrapper = styled.div`
   margin: auto;
@@ -91,9 +95,23 @@ export default function LoginPage() {
     console.log(loginData);
     try {
       await login(loginData.email, loginData.password);
-      router.push("/theme-color");
+      // router.push("/theme-color");
     } catch (err) {
-      alert(err);
+      toast(
+        "We couldn't find your email or password...Do you mind try again?",
+        {
+          position: "top-center",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+          icon: ({ theme, type }) => <img src={brandIcon.src} />,
+        }
+      );
+
       console.log(err);
     }
   };
@@ -113,11 +131,34 @@ export default function LoginPage() {
         email: signupData.email,
         last_changed: Timestamp.fromDate(new Date()),
       });
-      alert("Successful registration!");
-      router.push("/theme-color");
+      toast("Successful registration!", {
+        position: "top-center",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        icon: ({ theme, type }) => <img src={brandIcon.src} />,
+      });
+      // router.push("/theme-color");
     } catch (error) {
       console.log(error);
-      alert(error);
+      toast(
+        "An error occcurred, please check your email and password again, thank you!",
+        {
+          position: "top-center",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+          icon: ({ theme, type }) => <img src={brandIcon.src} />,
+        }
+      );
     }
   };
 
@@ -127,13 +168,24 @@ export default function LoginPage() {
       const res = await signup(signupData.email, signupData.password);
       sendData(res.user.uid);
     } catch (err) {
-      alert(err);
       console.log(err);
     }
   };
 
   return (
     <Wrapper>
+      <ToastContainer
+        position="top-center"
+        // autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
       {isSignedUp ? (
         <>
           <Heading>
@@ -263,10 +315,7 @@ export default function LoginPage() {
           </div>
         </>
       )}
-      <h1>
-        <strong>OR</strong>
-      </h1>
-      <Link href="/theme-color">Directly enter the museum!</Link>
+      <SignpostButton href="/theme-color">Enter the museum</SignpostButton>
     </Wrapper>
   );
 }

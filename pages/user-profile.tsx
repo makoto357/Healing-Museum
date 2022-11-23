@@ -9,10 +9,10 @@ import {
   getDocs,
   Timestamp,
 } from "firebase/firestore";
-
 import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
 import quotes from "../public/visitorJourney.json";
+import SignpostButton from "../components/Button";
 
 const FinalWords = styled.section`
   width: 90vw;
@@ -114,12 +114,6 @@ export default function UserProfile() {
   }, []);
   return (
     <div style={{ paddingTop: "104px" }}>
-      <div style={{ textAlign: "right" }}>
-        <Link href="/visitor-posts">
-          <p>check posts of other visitors.</p>
-        </Link>
-      </div>
-
       <FinalWords>
         <div style={{ width: "10vw" }}></div>
         <div
@@ -175,9 +169,9 @@ export default function UserProfile() {
           <span>{artwork.completionYear}</span>
         </div>
       </FinalWords>
-      <div
-        style={{ background: themeColor, height: "100px", width: "100px" }}
-      ></div>
+      <SignpostButton href="/visitor-posts">
+        Read about how other visitors feel
+      </SignpostButton>
     </div>
   );
 }

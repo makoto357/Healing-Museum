@@ -1,4 +1,5 @@
 import styled from "@emotion/styled";
+import Link from "next/link";
 import Masonry from "react-masonry-css";
 import React from "react";
 import { useState, useEffect, useRef } from "react";
@@ -14,6 +15,23 @@ import { db } from "../config/firebase";
 import heart from "../asset/heart.png";
 import commentIcon from "../asset/comments.svg";
 import { useAuth } from "../context/AuthContext";
+import home from "../asset/back-to-homepage.png";
+
+const LinkToHomepage = styled(Link)`
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+`;
+const HomeIcon = styled.div`
+  background-image: url(${home.src});
+  width: 30px;
+  height: 30px;
+  background-size: cover;
+  margin-left: auto;
+`;
 
 const CommentContainer = styled.section`
   width: 270px;
@@ -282,6 +300,12 @@ export default function VisitorPosts() {
           </CommentContainer>
         ))}
       </Masonry>
+      <LinkToHomepage href="/theme-color">
+        <HomeIcon />
+        <div>
+          <strong>Start again</strong>
+        </div>
+      </LinkToHomepage>
     </div>
   );
 }

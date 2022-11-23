@@ -166,14 +166,14 @@ export default function Quiz() {
           <p>
             Welcome! How are you feeling?
             <br />
+            Artist Georges Braque once said “Art is a wound turned into light”.
+            It is in today&apos;s busy modern world, we could be greatly
+            benefited from looking and feeling arts and its healing properties.
+            <br />
             Take this quiz to reflect on your present well-being and find out
             which artist in the healing museum has viewpoints and attitudes
             towards life resembling your own. You’ll be asked to imagine
             yourself in different situations.
-            <br />
-            Artist Georges Braque once said “Art is a wound turned into light”.
-            It is in today&apos;s busy modern world, we could be greatly
-            benefited from looking and feeling arts and its healing properties.
             <br />
             This is not a diagnostic tool. If you are seeking therapeutic
             treatments or wish to talk with someone about your mental health,

@@ -1,6 +1,7 @@
 import styled from "@emotion/styled";
 import Link from "next/link";
 import React from "react";
+import SignpostButton from "../components/Button";
 import { useEffect, useState } from "react";
 import {
   collection,
@@ -173,7 +174,14 @@ export default function Masonry() {
   };
   return (
     <>
-      <div style={{ width: "80vw", margin: "0 auto", padding: "104px 0 20px" }}>
+      <div
+        style={{
+          width: "80vw",
+          margin: "0 auto",
+          padding: "104px 0 20px",
+          overflow: "hidden",
+        }}
+      >
         <h1>
           <strong>
             Save your favorite artwork by clicking on the heart icon, before you
@@ -234,11 +242,10 @@ export default function Masonry() {
           </ArtworkModal>
         )}
       </div>
-      <div style={{ textAlign: "left" }}>
-        <Link href="/artist-video">
-          <p>See some videos!</p>
-        </Link>
-      </div>
+
+      <SignpostButton href="/artist-video">
+        Hear about the artist
+      </SignpostButton>
     </>
   );
 }

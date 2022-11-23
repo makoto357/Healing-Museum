@@ -19,6 +19,7 @@ import like from "../asset/like.png";
 import hope from "../asset/heart.png";
 import love from "../asset/surprise.png";
 import backToPrevious from "../asset/back-to-previous.svg";
+import SignpostButton from "../components/Button";
 const MainForm = styled.form`
   width: 60vw;
   margin: 0 auto;
@@ -105,7 +106,7 @@ const BackToPrevious = styled.span<{ $hideOption: string }>`
   background-position: 50%;
   display: ${(props) => props.$hideOption};
 `;
-
+console.log([].length);
 export default function Form() {
   const router = useRouter();
   const { user } = useAuth();
@@ -179,6 +180,7 @@ export default function Form() {
           textContent: formData.content,
           postTime: timeStamp,
           userId: user.uid,
+          comments: [],
         });
         console.log("Document written with ID: ", docRef.id);
         const IDRef = doc(db, "user-posts", docRef.id);
@@ -331,6 +333,7 @@ export default function Form() {
               <FormInput
                 id="date"
                 type="date"
+                lang="en-GB"
                 name="date"
                 placeholder="Select date..."
                 value={formData.date}
@@ -385,6 +388,7 @@ export default function Form() {
           </FormWrapper>
         )}
       </MainForm>
+      <SignpostButton href="/user-profile">Skip this step...</SignpostButton>
     </div>
   );
 }

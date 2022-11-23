@@ -1,7 +1,9 @@
 import styled from "@emotion/styled";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { useContext } from "react";
 import { ThemeColorContext } from "../context/ColorContext";
+import SignpostButton from "../components/Button";
 
 interface Prop {
   $colorCode?: string;
@@ -32,6 +34,17 @@ const Event = styled.button`
     transition: width 0.5s;
     width: 24vw;
   }
+`;
+
+const Button = styled.button`
+  padding: 15px;
+  width: 200px;
+  margin: 20px auto;
+  color: white;
+  background-color: #2c2b2c;
+  border: 1px solid #2c2b2c;
+  cursor: pointer;
+  border-radius: 0px;
 `;
 
 export default function ThemeColor() {
@@ -67,18 +80,12 @@ export default function ThemeColor() {
             $colorCode={`${themeColor.primary}`}
             value={themeColor.secondary}
             onClick={(e) => {
-              const target = e.target as HTMLButtonElement;
               setThemeColor(themeColor);
             }}
           ></Event>
         ))}
       </ColorPicker>
-      <button
-        style={{ paddingBottom: "20px" }}
-        onClick={() => router.push("/quiz")}
-      >
-        I like this color!
-      </button>
+      <SignpostButton href="/quiz">Go with this color</SignpostButton>
     </div>
   );
 }

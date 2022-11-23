@@ -2,24 +2,9 @@ import styled from "@emotion/styled";
 import Link from "next/link";
 import { useContext, useEffect, useState } from "react";
 import { ThemeColorContext } from "../context/ColorContext";
-import home from "../asset/back-to-homepage.png";
 import { motion, Variants } from "framer-motion";
 import logo from "../asset/healing-museum-low-resolution-logo-black-on-transparent-background.png";
-const LinkToHomepage = styled(Link)`
-  position: fixed;
-  bottom: 10px;
-  right: 10px;
-  display: flex;
-  column-gap: 20px;
-`;
 
-const HomeIcon = styled.div`
-  background-image: url(${home.src});
-  width: 50px;
-  height: 50px;
-  background-size: cover;
-  padding-top: 10px;
-`;
 interface LayoutProps {
   children: React.ReactNode;
 }
@@ -71,7 +56,7 @@ export default function Layout(props: LayoutProps) {
           top: "0",
           left: "0",
           pointerEvents: "none",
-          zIndex: "9999",
+          zIndex: "99999",
         }}
         variants={variants}
         animate={cursorVariant}
@@ -84,29 +69,22 @@ export default function Layout(props: LayoutProps) {
           transition: "background 1.5s ease",
         }}
       >
-        <div
-          style={{
-            height: "15px",
-            width: "80px",
-            margin: "auto",
-            paddingTop: "24px",
-          }}
-        >
-          <img src={logo.src} />
-        </div>
-        {children}
-        <LinkToHomepage
-          onMouseEnter={textEnter}
-          onMouseLeave={textLeave}
-          href="/"
-        >
-          <div>
-            <strong>
-              Quit the Experience <br />( Return to Homepage )
-            </strong>
+        <Link href="/">
+          <div
+            onMouseEnter={textEnter}
+            onMouseLeave={textLeave}
+            style={{
+              height: "60px",
+              width: "120px",
+              margin: "auto",
+              paddingTop: "24px",
+            }}
+            title="Quit the experience (Return to Homepage)"
+          >
+            <img src={logo.src} />
           </div>
-          <HomeIcon />
-        </LinkToHomepage>
+        </Link>
+        {children}
       </main>
     </>
   );
