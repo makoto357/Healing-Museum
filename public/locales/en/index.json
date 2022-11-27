@@ -1,9 +1,11 @@
 {
-  "artworks": "Artist Life Story (Videos)",
+  "artworks": "Hear about the Artist (Videos)",
   "detail": "Emotional Gallery",
   "home": "Enter the Museum",
   "map": "Explore the Art Map",
   "posts": "How They Feel (Visitor Posts)",
   "profile": "Your Profile",
-  "quiz": "Quiz: How Are You Feeling?"
+  "quiz": "Quiz: How Are You Feeling?",
+  "color": "A Color for Yourself",
+  "form": "Express Your Feelings"
 }

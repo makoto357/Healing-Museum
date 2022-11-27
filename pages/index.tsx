@@ -7,10 +7,19 @@ import { useAuth } from "../context/AuthContext";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { useTranslation } from "next-i18next";
 import { FacebookShareButton } from "next-share";
+import github from "../asset/github.png";
 import fb from "../asset/fb.svg";
+import profile from "../asset/profile.png";
+import logout from "../asset/log-out.png";
+
+import brandIcon from "../asset/healing-museum-website-icon.png";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import close from "../asset/cancel-white.png";
 import toggle from "../asset/menu.png";
-
+import language from "../asset/translate.png";
+import { useRouter } from "next/router";
+import SignpostButton from "../components/Button";
 import { Navigation, Pagination, Scrollbar, A11y } from "swiper";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
@@ -18,21 +27,24 @@ import "swiper/css/navigation";
 import "swiper/css/effect-fade";
 import "swiper/css/pagination";
 import "swiper/css/scrollbar";
-import museumOfMind from "../asset/museum-of-the-mind.jpeg";
-import happiness from "../asset/on-happiness.png";
+// import museumOfMind from "../asset/museum-of-the-mind.jpeg";
+import happiness from "../asset/happiness.png";
 import benUri from "../asset/ben-uri.jpeg";
 const Menulist = styled.ul<{ $menuStyle: string }>`
+  z-index: 20;
   position: absolute;
   top: 0;
   list-style: none;
   width: 300px;
-  height: 100%;
+  height: 100vh;
   background-color: #2c2b2c;
   transform: ${(props) => props.$menuStyle};
   transition: transform 300ms;
   color: white;
-  font-size: 1.25rem;
   padding: 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 `;
 
 const CloseMenuIcon = styled.div`
@@ -54,6 +66,17 @@ const MenuToggle = styled.div`
   cursor: pointer;
 `;
 
+const TranslationToggle = styled.div`
+  background-image: url(${language.src});
+  background-size: cover;
+  height: 30px;
+  width: 30px;
+  position: fixed;
+  top: 24px;
+  left: 64px;
+  cursor: pointer;
+`;
+
 const Page = styled.div`
   background-image: linear-gradient(180deg, transparent 95%, white 0);
   background-repeat: no-repeat;
@@ -69,23 +92,49 @@ const FBicon = styled.div`
   background-image: url(${fb.src});
   width: 30px;
   height: 30px;
-  position: absolute;
-  bottom: 30px;
   background-size: cover;
+  &:hover {
+    border: 2px solid #2c2b2c;
+  }
+`;
+const ProfileIcon = styled.div`
+  background-image: url(${profile.src});
+  width: 30px;
+  height: 30px;
+  background-size: cover;
+  &:hover {
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    border: 2px solid #2c2b2c;
+  }
+`;
+
+const LogoutIcon = styled.div`
+  background-image: url(${logout.src});
+  width: 30px;
+  height: 30px;
+  background-size: cover;
+  &:hover {
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    border: 2px solid #2c2b2c;
+  }
 `;
 
 const SwiperWrapper = styled.section`
-  margin: 0 70px;
-  width: 500px;
+  width: 80vw;
+  height: 450px;
 `;
 
 const bannerImages = [
-  {
-    image: museumOfMind.src,
-    caption:
-      "The Bethlem Museum of the Mind in London, situated within the gounds of Bethlem Royal Hospital, holds an internationally renowned collection of archives, art and historic objects, which together offer an unparalleled resource to support the history of mental healthcare and treatment. ",
-    webpage: "https://museumofthemind.org.uk/",
-  },
+  // {
+  //   image: museumOfMind.src,
+  //   caption: "",
+  // "The Bethlem Museum of the Mind in London, situated within the gounds of Bethlem Royal Hospital, holds an internationally renowned collection of archives, art and historic objects, which together offer an unparalleled resource to support the history of mental healthcare and treatment. ",
+  //   webpage: "https://museumofthemind.org.uk/",
+  // },
   {
     image: happiness.src,
     caption: "Exhibiitons on wellbeing at the Wellcome Collection.",
@@ -101,11 +150,12 @@ const bannerImages = [
 
 const menuLinks = [
   { link: "/registration", text: "index:home" },
+  { link: "/theme-color", text: "index:color" },
   { link: "/quiz", text: "index:quiz" },
   { link: "/collection-maps", text: "index:map" },
-  { link: "/artworks", text: "index:details" },
+  { link: "/artworks", text: "index:detail" },
   { link: "/artist-video", text: "index:artworks" },
-
+  { link: "/form", text: "index:form" },
   { link: "/visitor-posts", text: "index:posts" },
 ];
 export async function getStaticProps({ locale }) {
@@ -117,41 +167,65 @@ export async function getStaticProps({ locale }) {
 }
 export default function Home(props) {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const router = useRouter();
+  const { locale } = router;
   const [showMenu, setShowMenu] = useState(false);
-
   return (
-    <div style={{ height: "100vh", display: "flex" }}>
+    <>
+      <ToastContainer
+        position="top-center"
+        // autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
       <MenuToggle
         role="button"
         onClick={() => {
           setShowMenu(true);
         }}
       ></MenuToggle>
-
+      {locale == "en" ? (
+        <Link href="/" locale="zh">
+          <TranslationToggle role="button"></TranslationToggle>
+        </Link>
+      ) : (
+        <Link href="/" locale="en">
+          <TranslationToggle role="button"></TranslationToggle>
+        </Link>
+      )}
       <Menulist $menuStyle={!showMenu ? "translateX(-100%)" : "none"}>
-        <CloseMenuIcon
-          role="button"
-          onClick={() => {
-            setShowMenu(false);
-          }}
-        />
-        {menuLinks.map((menuLink, index) => (
-          <li key={index}>
-            <Link href={menuLink.link}>
-              <Page>{t(menuLink.text)}</Page>
-            </Link>
-          </li>
-        ))}
+        <div>
+          <CloseMenuIcon
+            role="button"
+            onClick={() => {
+              setShowMenu(false);
+            }}
+          />
 
-        {user && (
-          <li>
-            <Link href="/user-profile">
-              <Page>{t("index:profile")}</Page>
-            </Link>
-          </li>
-        )}
-        <li>
+          {menuLinks.map((menuLink, index) => (
+            <li key={index}>
+              <Page
+                onClick={() => {
+                  if (user?.uid) {
+                    router.push(menuLink.link);
+                  } else {
+                    router.push("/registration");
+                  }
+                }}
+              >
+                {t(menuLink.text)}
+              </Page>
+            </li>
+          ))}
+        </div>
+        <div>
           <FacebookShareButton
             url={"https://the-healing-museum-makoto357.vercel.app"}
             quote={
@@ -163,19 +237,41 @@ export default function Home(props) {
           >
             <FBicon />
           </FacebookShareButton>
-        </li>
-      </Menulist>
 
+          {/* {user && (
+            <li>
+              <Link href="/user-profile">
+                <ProfileIcon />{" "}
+              </Link>
+            </li>
+          )} */}
+          {/* <li>
+                <div
+                  onClick={() => {
+                    logout();
+                  }}
+                >
+                  <LogoutIcon />
+                </div>
+              </li> */}
+        </div>
+      </Menulist>
       <div
         style={{
           display: "flex",
-          padding: "104px 0",
-          margin: "auto",
+          flexDirection: "column",
+          margin: "0 70px",
+          padding: "40px 0 0",
           alignItems: "center",
         }}
       >
-        <section style={{ width: "45vw", padding: "0 2rem" }}>
-          <h1 style={{ fontSize: "2rem" }}>The Healing Museum</h1>
+        <div
+          style={{
+            display: "flex",
+            columnGap: "30px",
+            width: "80vw",
+          }}
+        >
           <p>
             The Healing Museum is an online experience inspired by two concepts:
             “art as therapy” and “museum on prescription”. The former has its
@@ -184,7 +280,8 @@ export default function Home(props) {
             workings of the mind”, while the latter considers museums as places
             with potential to facilitate the healing process as well as serving
             as social prescriptions to complement primary medical care.
-            <br />
+          </p>
+          <p>
             Art as healing means to direct personal or traumatic experiences
             towards creative expressions of who you are, how you feel and what
             you identify with. By presenting the artworks of 3 female and 3 male
@@ -192,7 +289,8 @@ export default function Home(props) {
             transcended their adversities into ever-lasting arts, the Healing
             Museum aims to explore the source of their strength and learn about
             resilience.
-            <br />
+          </p>
+          {/* <br />
             We invite you to enter this Museum, and enjoy the colors and stories
             of these artists through a series of interactive experiences.
             Starting from choosing a color which echoes with your mood, and a
@@ -200,9 +298,10 @@ export default function Home(props) {
             you will be going on a journey to the inner worlds and great minds
             of the artists, accompanied by audio-visual materials. At the end of
             your visits, we hope to bring you a bit of feelings and
-            inspirations.
-          </p>
-        </section>
+            inspirations. */}
+        </div>
+        <SignpostButton href="/registration">Start your journey</SignpostButton>
+
         <SwiperWrapper>
           <Swiper
             modules={[Navigation, Pagination, Scrollbar, A11y]}
@@ -231,6 +330,6 @@ export default function Home(props) {
           </Swiper>
         </SwiperWrapper>
       </div>
-    </div>
+    </>
   );
 }
