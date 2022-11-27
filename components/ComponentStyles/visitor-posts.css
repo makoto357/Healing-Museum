@@ -1,19 +1,26 @@
 /* React-Masonry-CSS Style */
 .my-masonry-grid {
   display: flex;
-  margin-left: -30px; /* gutter size offset */
+  /* margin-left: -30px;  */
   max-width: 1200px;
   width: 80vw;
   margin: auto;
 }
-.my-masonry-grid_column {
-  /* padding-left: 30px; gutter size */
-  background-clip: padding-box;
-  padding: 0 30px;
+
+@media screen and (max-width: 500px) {
+  .my-masonry-grid {
+    margin: 0 auto 100px;
+  }
+}
+
+@media screen and (max-width: 1400px) {
+  .my-masonry-grid_column {
+    padding: 0 50px;
+  }
 }
 
 /* Style your items */
 .my-masonry-grid_column > div {
   background: grey;
-  margin-bottom: 30px;
+  /* margin-bottom: 30px; */
 }

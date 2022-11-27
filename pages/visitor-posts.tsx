@@ -10,10 +10,17 @@ import {
   doc,
   arrayUnion,
   Timestamp,
+  query,
+  where,
+  getDocs,
+  arrayRemove,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
-import heart from "../asset/heart.png";
-import commentIcon from "../asset/comments.svg";
+import commentFilled from "../asset/comments-filled.png";
+import commentUnfilled from "../asset/comments-unfilled.png";
+import filledHeart from "../asset/black-heal.png";
+import unfilledHeart from "../asset/white-heal.png";
+
 import { useAuth } from "../context/AuthContext";
 import home from "../asset/back-to-homepage.png";
 
@@ -31,6 +38,10 @@ const HomeIcon = styled.div`
   height: 30px;
   background-size: cover;
   margin-left: auto;
+  &:hover {
+    width: 34px;
+    height: 34px;
+  }
 `;
 
 const CommentContainer = styled.section`
@@ -64,6 +75,8 @@ const CommentContainer = styled.section`
   }
   &:hover {
     filter: grayscale(0%);
+    box-shadow: 5px 5px 20px #888888;
+
     &:before {
       z-index: -1;
       background: white;
@@ -81,7 +94,6 @@ const CommentContainer = styled.section`
       -webkit-transform: skewY(-4deg);
       -ms-transform: skewY(-4deg);
       transform: skewY(-4deg);
-      box-shadow: 5px 5px 20px #888888;
     }
   }
 `;
@@ -105,15 +117,15 @@ const ButtonGroup = styled.div`
   justify-content: space-between;
   padding-top: 20px;
 `;
-const CollectionButton = styled.div`
-  background-image: url(${heart.src});
+const CollectionButton = styled.div<{ $heart: string }>`
+  background-image: url(${(props) => props.$heart});
   width: 20px;
   height: 20px;
   background-size: cover;
 `;
 
-const CommentButton = styled.div`
-  background-image: url(${commentIcon.src});
+const CommentButton = styled.div<{ $showComment: string }>`
+  background-image: url(${(props) => props.$showComment});
   width: 20px;
   height: 20px;
   background-size: cover;
@@ -123,11 +135,23 @@ const TextArea = styled.textarea`
   border: 1px solid #2c2b2c;
   padding: 5px;
   width: 100%;
+  resize: none;
+  &:focus {
+    outline: none;
+  }
 `;
 
 const Split = styled.div`
   border-bottom: 1px solid #2c2b2c;
   margin-bottom: 20px;
+`;
+
+const SubmitButton = styled.button`
+  padding: 1px 3px;
+  border: 1px solid black;
+  margin-left: 175px;
+  background: #2c2b2c;
+  color: white;
 `;
 
 const breakpointColumnsObj = {
@@ -157,9 +181,18 @@ export default function VisitorPosts() {
     comments,
   });
   const commentRef = useRef(null);
+  const [favorite, setFavorite] = useState([]);
 
   const { user } = useAuth();
   useEffect(() => {
+    const getArtist = async () => {
+      const q = query(collection(db, "users"), where("id", "==", user.uid));
+      const querySnapshot = await getDocs(q);
+      const docs = querySnapshot.docs.map((doc) => doc.data() as any);
+      setFavorite(docs[0].favoriteArtworksID);
+    };
+    getArtist();
+
     const colRef = collection(db, "user-posts");
     const unSubscribe = onSnapshot(colRef, (snapshot) => {
       let posts = [];
@@ -176,9 +209,21 @@ export default function VisitorPosts() {
   }, []);
 
   const saveToFavorites = async (id) => {
+    setFavorite((prev) => [...prev, id]);
     const requestRef = doc(db, "users", user?.uid);
     return await updateDoc(requestRef, {
       favoritePostsID: arrayUnion(id),
+    });
+  };
+
+  const deleteFromFavorites = async (id) => {
+    const index = favorite.indexOf(id);
+    favorite.splice(index, 1);
+    console.log(favorite);
+    setFavorite([...favorite]);
+    const requestRef = doc(db, "users", user?.uid);
+    return await updateDoc(requestRef, {
+      favoritePostsID: arrayRemove(id),
     });
   };
 
@@ -218,7 +263,7 @@ export default function VisitorPosts() {
     commentRef.current.value = "";
   };
   return (
-    <div style={{ paddingTop: "104px" }}>
+    <div style={{ paddingTop: "80px" }}>
       <Masonry
         breakpointCols={breakpointColumnsObj}
         className="my-masonry-grid"
@@ -254,12 +299,27 @@ export default function VisitorPosts() {
               </Text>
               <ButtonGroup>
                 <CommentButton
+                  $showComment={
+                    showComment && postComments?.id === post?.id
+                      ? commentFilled.src
+                      : commentUnfilled.src
+                  }
                   role="button"
                   onClick={() => handleShowComments(post)}
                 ></CommentButton>
                 <CollectionButton
+                  $heart={
+                    favorite?.includes(post.id)
+                      ? `${filledHeart.src}`
+                      : `${unfilledHeart.src}`
+                  }
                   role="button"
-                  onClick={() => saveToFavorites(post.id)}
+                  onClick={() => {
+                    if (!favorite.includes(post.id)) saveToFavorites(post.id);
+                    else if (favorite.includes(post.id)) {
+                      deleteFromFavorites(post.id);
+                    }
+                  }}
                 ></CollectionButton>
               </ButtonGroup>
             </Post>
@@ -271,14 +331,14 @@ export default function VisitorPosts() {
                   name="visitorComment"
                   ref={commentRef}
                 />
-                <button
-                  type="button"
+
+                <SubmitButton
                   onClick={() => {
                     handleComment(post);
                   }}
                 >
-                  submit
-                </button>
+                  Submit
+                </SubmitButton>
               </Post>
             )}
             {showComment && postComments?.id === post.id && (
