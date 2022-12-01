@@ -1,0 +1,13 @@
+/* React-Masonry-CSS Style */
+.my-masonry-grid {
+  display: flex;
+  max-width: 1200px;
+  width: 80vw;
+  margin: auto;
+}
+
+@media screen and (max-width: 500px) {
+  .my-masonry-grid {
+    margin: 0 auto;
+  }
+}
