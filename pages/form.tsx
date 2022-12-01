@@ -16,11 +16,10 @@ import {
 } from "firebase/firestore";
 import { db, storage } from "../config/firebase";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import SignpostButton from "../components/Button";
 import imageupload from "../asset/imageupload.svg";
 import backToPrevious from "../asset/back-to-previous.svg";
-import SignpostButton from "../components/Button";
 import image from "../asset/canvas.png";
-
 import heartFilled from "../asset/filled-heal.png";
 import heartUnfilled from "../asset/white-heal.png";
 import relateFilled from "../asset/relate-filled.png";
@@ -93,7 +92,9 @@ const UploadedImage = styled.div<{
   $uploadedImage: string;
 }>`
   background-image: url(${(props) => props.$uploadedImage});
-  background-size: cover;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
 `;
 
 const TextArea = styled.textarea`
@@ -148,7 +149,7 @@ const EmojiLabel = styled.div<{ $showLabel: string }>`
 `;
 const EmojiWrapper = styled.div`
   display: flex;
-  margin: auto;
+  margin: 25px auto 0px;
   justify-content: space-between;
   column-gap: 100px;
   text-align: center;
@@ -198,7 +199,7 @@ export default function Form() {
       unfilled: relateUnfilled.src,
     },
     {
-      value: "I feel mentally supported",
+      value: "I feel supported",
       filled: togetherFilled.src,
       unfilled: togetherUnfilled.src,
     },
@@ -216,22 +217,25 @@ export default function Form() {
     content: "",
     date: "",
   });
+
   useEffect(() => {
     const getUserJourney = async () => {
-      const q = query(collection(db, "users"), where("id", "==", user.uid));
+      const q = query(collection(db, "users"), where("id", "==", user?.uid));
       const querySnapshot = await getDocs(q);
       const docs = querySnapshot.docs.map((doc) => doc.data() as any);
       const artistRecommendation = docs[0].visitorJourney[
         docs[0].visitorJourney.length - 1
-      ].recommendedArtist
+      ]?.recommendedArtist
         .split("-")
         .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
         .join(" ");
       setArtist(artistRecommendation);
       setUsername(docs[0].name);
     };
-    getUserJourney();
-  }, [user.uid, nextPage]);
+    if (user) {
+      getUserJourney();
+    }
+  }, [user, nextPage]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -248,26 +252,22 @@ export default function Form() {
 
   const sendForm = (url) => {
     async function sendData() {
-      try {
-        const docRef = await addDoc(collection(db, "user-posts"), {
-          emoji: formData.emoji,
-          date: formData.date,
-          title: formData.title,
-          textContent: formData.content,
-          postTime: timeStamp,
-          userId: user.uid,
-          comments: [],
-        });
-        const IDRef = doc(db, "user-posts", docRef.id);
-        await updateDoc(IDRef, {
-          id: docRef.id,
-          uploadedImage: url,
-          artistForThisVisit: artist,
-          postMadeBy: username,
-        });
-      } catch (e) {
-        console.error("Error adding document: ", e);
-      }
+      const docRef = await addDoc(collection(db, "user-posts"), {
+        emoji: formData.emoji,
+        date: formData.date,
+        title: formData.title,
+        textContent: formData.content,
+        postTime: timeStamp,
+        userId: user?.uid,
+        comments: [],
+      });
+      const IDRef = doc(db, "user-posts", docRef.id);
+      await updateDoc(IDRef, {
+        id: docRef.id,
+        uploadedImage: url,
+        artistForThisVisit: artist,
+        postMadeBy: username,
+      });
     }
     sendData();
   };
@@ -276,7 +276,7 @@ export default function Form() {
     if (uploadedImage === null) return;
     const sendImage = () => {
       return new Promise((resolve) => {
-        const imageRef = ref(storage, `${user.uid}/${uploadedImage.name}`);
+        const imageRef = ref(storage, `${user?.uid}/${uploadedImage.name}`);
         const uploadTask = uploadBytesResumable(imageRef, uploadedImage);
 
         uploadTask.on(
@@ -291,7 +291,6 @@ export default function Form() {
       });
     };
     const newRes = await sendImage();
-    console.log(newRes);
     sendForm(newRes);
   };
 
@@ -335,31 +334,30 @@ export default function Form() {
               </FormLable>
               <EmojiWrapper>
                 {emojis.map((emoji, index) => (
-                  <>
-                    <EmojiInput
-                      key={emoji.value}
-                      onMouseEnter={() => {
-                        setShowLabel(emoji);
+                  <EmojiInput
+                    key={emoji.value}
+                    onMouseEnter={() => {
+                      setShowLabel(emoji);
+                    }}
+                    onMouseLeave={() =>
+                      setShowLabel({
+                        value: " ",
+                        filled: " ",
+                        unfilled: " ",
+                      })
+                    }
+                  >
+                    <RadioInput
+                      type="radio"
+                      name="feeling"
+                      value="emoji.value"
+                      required
+                      checked={formData.emoji === emoji.value}
+                      onChange={(e) => {
+                        setFormData({ ...formData, emoji: emoji.value });
                       }}
-                      onMouseLeave={() =>
-                        setShowLabel({
-                          value: " ",
-                          filled: " ",
-                          unfilled: " ",
-                        })
-                      }
-                    >
-                      <RadioInput
-                        type="radio"
-                        name="feeling"
-                        value="emoji.value"
-                        required
-                        checked={formData.emoji === emoji.value}
-                        onChange={(e) => {
-                          if (e.target.checked) console.log(emoji.value);
-                          setFormData({ ...formData, emoji: emoji.value });
-                        }}
-                      />
+                    />
+                    <div>
                       <Emoticon>
                         <img
                           alt={emoji.value}
@@ -378,8 +376,8 @@ export default function Form() {
                       >
                         {emoji.value}
                       </EmojiLabel>
-                    </EmojiInput>
-                  </>
+                    </div>
+                  </EmojiInput>
                 ))}
               </EmojiWrapper>
             </FormFieldset>
@@ -398,7 +396,7 @@ export default function Form() {
                 value={formData.content}
                 required
                 onChange={(e) => {
-                  setFormData({ ...formData, content: e.target.value });
+                  setFormData({ ...formData, content: e.target.value.trim() });
                 }}
               ></TextArea>
             </FormFieldset>
@@ -440,6 +438,8 @@ export default function Form() {
                 type="date"
                 lang="en"
                 name="date"
+                min="1900-01-01"
+                max="3000-01-01"
                 placeholder="Select date..."
                 value={formData.date}
                 required
@@ -505,7 +505,7 @@ export default function Form() {
           </FormWrapper>
         )}
       </MainForm>
-      <SignpostButton href="/user-profile">Skip this step...</SignpostButton>
+      <SignpostButton href="/visitor-posts">Skip this step...</SignpostButton>
     </div>
   );
 }

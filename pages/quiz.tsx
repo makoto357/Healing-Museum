@@ -1,18 +1,17 @@
 import styled from "@emotion/styled";
 import { useRouter } from "next/router";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Timestamp, doc, updateDoc, arrayUnion } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { getStorage, ref, getDownloadURL, listAll } from "firebase/storage";
 import { useAuth } from "../context/AuthContext";
-import quiz from "../public/quiz.json";
+import quiz from "../public/artist-info/quiz.json";
 import frida from "../asset/frida.jpg";
 import dorothea from "../asset/Dorothea_Tanning.jpeg";
 import klimt from "../asset/klimt_gustav.jpeg";
 import vanGogh from "../asset/vangogh.jpeg";
 import gwen from "../asset/gwen.jpeg";
 import hopper from "../asset/edward-hopper.jpg";
-import { urlToHttpOptions } from "url";
 const QuizArea = styled.section`
   width: 40vw;
   margin: 0 auto;
@@ -25,6 +24,7 @@ const QuizArea = styled.section`
 const Question = styled.h1`
   margin-bottom: 35px;
   width: 100%;
+  height: 60px;
   font-size: 1.25rem;
 `;
 
@@ -69,6 +69,7 @@ const ButtonGroup = styled.div`
 `;
 
 const HalfButton = styled.button`
+  height: fit-content;
   font-size: 1.25rem;
   padding: 15px;
   width: 48%;
@@ -84,8 +85,7 @@ const HalfButton = styled.button`
 const AudioOption = styled.div`
   text-align: center;
   width: 50px;
-  margin-bottom: 20px;
-  margin-right: 20px;
+  margin: auto 20px auto 0px;
   padding: 15px;
   background: white;
   &:hover {
@@ -109,16 +109,8 @@ export default function Quiz() {
   const [showAnswer, setShowAnswer] = useState(false);
   const [points, setPoints] = useState([]);
   const { user } = useAuth();
-  const [audios, setAudios] = useState([]);
-  console.log(audios);
-  console.log("showAnswer", showAnswer, "points", points.sort());
-  const audioInput = useRef(null);
-
-  console.log(
-    typeof quiz[4].answerOptions.map((option) => new Audio(option.audio))[0]
-  );
-
-  // const audioRef  new Audio("/happy-day-113985.mp3")
+  // const [audios, setAudios] = useState([]);
+  // const audioInput = useRef(null);
 
   const count = {};
 
@@ -138,8 +130,6 @@ export default function Quiz() {
   sortable.sort(function (a, b) {
     return b[1] - a[1];
   });
-
-  console.log(sortable);
 
   const quizResults = [
     {
@@ -219,32 +209,30 @@ export default function Quiz() {
 
   // result = getResult(sortable)
   // <QuizReult result={result} />
-  useEffect(() => {
-    audioInput.current = new Audio("/happy-day-113985.mp3");
-    const storage = getStorage();
-    const listRef = ref(storage, "quiz-sound-files");
-    const paths = [];
-    listAll(listRef)
-      .then((res) => {
-        res.items.forEach((itemRef) => {
-          paths.push(itemRef.fullPath);
-        });
-        getUrls(paths);
-      })
-      .catch((error) => {});
-    const getUrls = async (paths) => {
-      const audioUrls = [];
-      console.log(paths);
-      paths.map((path) => {
-        getDownloadURL(ref(storage, path))
-          .then((url) => {
-            audioUrls.push(url);
-            setAudios(audioUrls);
-          })
-          .catch((error) => {});
-      });
-    };
-  }, []);
+  // useEffect(() => {
+  //   const storage = getStorage();
+  //   const listRef = ref(storage, "quiz-sound-files");
+  //   const paths = [];
+  //   listAll(listRef)
+  //     .then((res) => {
+  //       res.items.forEach((itemRef) => {
+  //         paths.push(itemRef.fullPath);
+  //       });
+  //       getUrls(paths);
+  //     })
+  //     .catch((error) => {});
+  //   const getUrls = async (paths) => {
+  //     const audioUrls = [];
+  //     paths.map((path) => {
+  //       getDownloadURL(ref(storage, path))
+  //         .then((url) => {
+  //           audioUrls.push(url);
+  //           setAudios(audioUrls);
+  //         })
+  //         .catch((error) => {});
+  //     });
+  //   };
+  // }, []);
   return (
     <div style={{}}>
       {!gameStarted && (
@@ -257,16 +245,18 @@ export default function Quiz() {
               Welcome! How are you feeling?
             </li>
             <li style={{ marginBottom: "10px" }}>
-              Artist Georges Braque once said “Art is a wound turned into
-              light”. It is in today&apos;s busy modern world, we could be
-              greatly benefited from looking and feeling arts and its healing
-              properties.
+              Artist Georges Braque once said{" "}
+              <strong>“Art is a wound turned into light.”</strong> It is in
+              today&apos;s busy modern world, we could be greatly benefited from
+              looking and feeling arts and its healing properties.
             </li>
             <li style={{ marginBottom: "10px" }}>
-              Take this quiz to reflect on your present well-being and find out
-              which artist in the healing museum has viewpoints and attitudes
-              towards life resembling your own. You’ll be asked to imagine
-              yourself in different situations.
+              <strong>
+                Take this quiz to reflect on your present well-being and find
+                out which artist has viewpoints and attitudes towards life
+                resembling your own.
+              </strong>{" "}
+              You’ll be asked to imagine yourself in different situations.
             </li>
 
             <li style={{ marginBottom: "10px" }}>
@@ -306,7 +296,11 @@ export default function Quiz() {
                         >
                           {index + 1}
                         </AudioOption>
-                        <audio src={answerOption.audio} controls />
+                        <audio
+                          style={{ margin: "auto 0" }}
+                          src={answerOption.audio}
+                          controls
+                        />
                       </div>
 
                       {/* <button onClick={() => audioInput.current.play()}>
@@ -344,12 +338,13 @@ export default function Quiz() {
               backgroundImage: `url(${quizResults[0].artistImage})`,
               width: "300px",
               height: "300px",
+              maxWidth: "100%",
               backgroundSize: "cover",
               margin: "0 auto",
             }}
           />
           <div style={{ margin: "20px 0" }}>
-            <h1 style={{ marginBottom: "10px" }}>
+            <h1 style={{ marginBottom: "10px", fontSize: "1.25rem" }}>
               Your artist is <strong>{quizResults[0].artistName}.</strong>
             </h1>
             <p>{quizResults[0].artistIntro}</p>
@@ -387,7 +382,7 @@ export default function Quiz() {
             }}
           />
           <div style={{ margin: "20px 0" }}>
-            <h1 style={{ marginBottom: "10px" }}>
+            <h1 style={{ marginBottom: "10px", fontSize: "1.25rem" }}>
               Your artist is <strong>{quizResults[1].artistName}.</strong>
             </h1>
             <p>{quizResults[1].artistIntro}</p>
@@ -425,7 +420,7 @@ export default function Quiz() {
             }}
           />
           <div style={{ margin: "20px 0" }}>
-            <h1 style={{ marginBottom: "10px" }}>
+            <h1 style={{ marginBottom: "10px", fontSize: "1.25rem" }}>
               Your artist is <strong>{quizResults[2].artistName}.</strong>
             </h1>
             <p>{quizResults[2].artistIntro}</p>
@@ -463,7 +458,7 @@ export default function Quiz() {
             }}
           />
           <div style={{ margin: "20px 0" }}>
-            <h1 style={{ marginBottom: "10px" }}>
+            <h1 style={{ marginBottom: "10px", fontSize: "1.25rem" }}>
               Your artist is <strong>{quizResults[3].artistName}.</strong>
             </h1>
             <p>{quizResults[3].artistIntro}</p>
@@ -501,7 +496,7 @@ export default function Quiz() {
             }}
           />
           <div style={{ margin: "20px 0" }}>
-            <h1 style={{ marginBottom: "10px" }}>
+            <h1 style={{ marginBottom: "10px", fontSize: "1.25rem" }}>
               Your artist is <strong>{quizResults[4].artistName}.</strong>
             </h1>
             <p>{quizResults[4].artistIntro}</p>
@@ -539,7 +534,7 @@ export default function Quiz() {
             }}
           />
           <div style={{ margin: "20px 0" }}>
-            <h1 style={{ marginBottom: "10px" }}>
+            <h1 style={{ marginBottom: "10px", fontSize: "1.25rem" }}>
               Your artist is <strong>{quizResults[5].artistName}.</strong>
             </h1>
             <p>{quizResults[5].artistIntro}</p>

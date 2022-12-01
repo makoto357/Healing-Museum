@@ -1,7 +1,6 @@
 import styled from "@emotion/styled";
 
 import React from "react";
-import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
@@ -14,63 +13,33 @@ import SignpostButton from "../components/Button";
 
 const Wrapper = styled.div`
   margin: auto;
-  padding: 104px 0;
+  padding: 40px 0 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: left;
-  height: 100vh;
 `;
 
 const Heading = styled.h1`
-  width: 100%;
-  max-width: 458px;
   margin-bottom: 35px;
   font-size: 1.5rem;
 `;
 
 const Form = styled.form`
-  width: 100%;
-  max-width: 458px;
+  width: 90vw;
+  max-width: 450px;
+  min-width: 320px;
 `;
 
 const FormControl = styled.input`
   padding: 15px;
   width: 100%;
   margin: 10px 0 20px;
-`;
-
-const FormSplit = styled.div`
-  display: flex;
-  margin-bottom: 10px;
-  width: 100%;
-  max-width: 458px;
-`;
-
-const Split = styled.div`
-  width: 45%;
-  border-bottom: 1px solid #313538;
-  margin-bottom: 15px;
-`;
-
-const SplitText = styled.div`
-  margin-top: 10px 10px 0px;
-  padding: 10px;
-`;
-
-const Signup = styled.div`
-  display: flex;
-  width: 100%;
-  max-width: 458px;
-  justify-content: flex-end;
-`;
-
-const MemberSignup = styled.div`
-  border-bottom: 1px solid;
-  cursor: pointer;
+  outline: none;
 `;
 
 const Button = styled.button`
+  font-size: 1.25rem;
   padding: 15px;
   width: 100%;
   margin: 20px 0;
@@ -81,38 +50,30 @@ const Button = styled.button`
   border-radius: 0px;
 `;
 
+const ReminderText = styled.div`
+  cursor: pointer;
+  text-align: center;
+`;
+
 export default function LoginPage() {
-  const { login, signup } = useAuth();
+  const { login, signup, user } = useAuth();
   const [isSignedUp, setIsSignedUp] = useState(true);
   const router = useRouter();
   const [loginData, setLoginData] = useState({
     email: "",
     password: "",
   });
-
+  const notify = (message) =>
+    toast(message, {
+      icon: () => <img src={brandIcon.src} />,
+    });
   const handleLogin = async (e) => {
     e.preventDefault();
-    console.log(loginData);
     try {
       await login(loginData.email, loginData.password);
-      // router.push("/theme-color");
+      router.push("/theme-color");
     } catch (err) {
-      toast(
-        "We couldn't find your email or password...Do you mind try again?",
-        {
-          position: "top-center",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "light",
-          icon: ({ theme, type }) => <img src={brandIcon.src} />,
-        }
-      );
-
-      console.log(err);
+      notify(err.message);
     }
   };
 
@@ -123,43 +84,17 @@ export default function LoginPage() {
   });
 
   const sendData = async (uid) => {
-    try {
-      const userDoc = doc(db, "users", uid);
-      await setDoc(userDoc, {
-        id: uid,
-        name: signupData.username,
-        email: signupData.email,
-        last_changed: Timestamp.fromDate(new Date()),
-      });
-      toast("Successful registration!", {
-        position: "top-center",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "light",
-        icon: ({ theme, type }) => <img src={brandIcon.src} />,
-      });
-      // router.push("/theme-color");
-    } catch (error) {
-      console.log(error);
-      toast(
-        "An error occcurred, please check your email and password again, thank you!",
-        {
-          position: "top-center",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "light",
-          icon: ({ theme, type }) => <img src={brandIcon.src} />,
-        }
-      );
-    }
+    const userDoc = doc(db, "users", uid);
+    await setDoc(userDoc, {
+      id: uid,
+      name: signupData.username,
+      email: signupData.email,
+      last_changed: Timestamp.fromDate(new Date()),
+      favoriteArtworksId: [],
+      visitorJourney: [],
+      favoritePostsId: [],
+    });
+    router.push("/theme-color");
   };
 
   const handleSignup = async (e) => {
@@ -168,7 +103,7 @@ export default function LoginPage() {
       const res = await signup(signupData.email, signupData.password);
       sendData(res.user.uid);
     } catch (err) {
-      console.log(err);
+      notify(err.message);
     }
   };
 
@@ -176,7 +111,6 @@ export default function LoginPage() {
     <Wrapper>
       <ToastContainer
         position="top-center"
-        // autoClose={3000}
         hideProgressBar={false}
         newestOnTop={false}
         closeOnClick
@@ -188,13 +122,13 @@ export default function LoginPage() {
       />
       {isSignedUp ? (
         <>
-          <Heading>
-            <strong>
-              Welcome back! <br />
-              Please log in to visit:
-            </strong>
-          </Heading>
           <Form action="#" onSubmit={handleLogin}>
+            <Heading>
+              <strong>
+                Welcome back! <br />
+                Please log in to visit:
+              </strong>
+            </Heading>
             <div>
               <label htmlFor="email">Email</label>
               <FormControl
@@ -213,10 +147,11 @@ export default function LoginPage() {
               />
             </div>
             <div>
-              <label htmlFor="password">Password</label>
+              <label htmlFor="password">Password (at least 6 digits)</label>
               <FormControl
                 type="password"
                 name="password"
+                autoComplete="on"
                 id="password"
                 placeholder="••••••••"
                 required
@@ -232,25 +167,20 @@ export default function LoginPage() {
 
             <Button type="submit">Login</Button>
           </Form>
-          <div>
-            <p>
-              First time here? Please{" "}
-              <button onClick={() => setIsSignedUp(false)}>
-                <strong>Sign up</strong>
-              </button>{" "}
-              this way.
-            </p>
-          </div>
+          <ReminderText onClick={() => setIsSignedUp(false)}>
+            First time here? Please
+            <strong> Sign up</strong>.
+          </ReminderText>
         </>
       ) : (
         <>
-          <Heading>
-            <strong>
-              Sign up to <br />
-              collect and share artworks!
-            </strong>
-          </Heading>
           <Form action="#" onSubmit={handleSignup}>
+            <Heading>
+              <strong>
+                Sign up to <br />
+                collect and share artworks!
+              </strong>
+            </Heading>
             <div>
               <label htmlFor="email">Name</label>
               <FormControl
@@ -303,19 +233,20 @@ export default function LoginPage() {
               />
             </div>
             <Button type="submit">Create an account</Button>
+
+            <ReminderText onClick={() => setIsSignedUp(true)}>
+              Already been here before? Simply <strong>Login</strong>.
+            </ReminderText>
           </Form>
-          <div>
-            <p>
-              Already been here before? Simply{" "}
-              <button onClick={() => setIsSignedUp(true)}>
-                <strong>Login</strong>
-              </button>
-              .
-            </p>
-          </div>
         </>
       )}
-      <SignpostButton href="/theme-color">Enter the museum</SignpostButton>
+      {user?.uid && (
+        <SignpostButton href="/theme-color">
+          Logged in already?
+          <br />
+          Directly enter the museum!
+        </SignpostButton>
+      )}
     </Wrapper>
   );
 }

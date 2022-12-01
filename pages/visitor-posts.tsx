@@ -1,8 +1,9 @@
 import styled from "@emotion/styled";
-import Link from "next/link";
 import Masonry from "react-masonry-css";
 import React from "react";
 import { useState, useEffect, useRef } from "react";
+import SignpostButton from "../components/Button";
+
 import {
   collection,
   onSnapshot,
@@ -22,27 +23,6 @@ import filledHeart from "../asset/black-heal.png";
 import unfilledHeart from "../asset/white-heal.png";
 
 import { useAuth } from "../context/AuthContext";
-import home from "../asset/back-to-homepage.png";
-
-const LinkToHomepage = styled(Link)`
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-`;
-const HomeIcon = styled.div`
-  background-image: url(${home.src});
-  width: 30px;
-  height: 30px;
-  background-size: cover;
-  margin-left: auto;
-  &:hover {
-    width: 34px;
-    height: 34px;
-  }
-`;
 
 const CommentContainer = styled.section`
   width: 270px;
@@ -54,7 +34,7 @@ const CommentContainer = styled.section`
   position: relative;
   transition: all 0.5s ease;
   filter: grayscale(100%);
-  margin-bottom: 80px;
+  margin: 0 auto 80px;
   &:before {
     z-index: -1;
     background: white;
@@ -157,7 +137,7 @@ const SubmitButton = styled.button`
 const breakpointColumnsObj = {
   default: 4,
   1400: 3,
-  1200: 2,
+  1050: 2,
   750: 1,
 };
 
@@ -182,14 +162,13 @@ export default function VisitorPosts() {
   });
   const commentRef = useRef(null);
   const [favorite, setFavorite] = useState([]);
-
   const { user } = useAuth();
   useEffect(() => {
     const getArtist = async () => {
       const q = query(collection(db, "users"), where("id", "==", user.uid));
       const querySnapshot = await getDocs(q);
       const docs = querySnapshot.docs.map((doc) => doc.data() as any);
-      setFavorite(docs[0].favoriteArtworksID);
+      setFavorite(docs[0].favoritePostsId);
     };
     getArtist();
 
@@ -206,24 +185,44 @@ export default function VisitorPosts() {
     return () => {
       unSubscribe();
     };
-  }, []);
+  }, [user.uid]);
 
-  const saveToFavorites = async (id) => {
-    setFavorite((prev) => [...prev, id]);
+  const saveToFavorites = async (post) => {
+    setFavorite((prev) => [
+      ...prev,
+      {
+        postTime: post.postTime,
+        title: post.title,
+        artist: post.artistForThisVisit,
+        postBy: post.postMadeBy,
+        id: post.id,
+      },
+    ]);
     const requestRef = doc(db, "users", user?.uid);
     return await updateDoc(requestRef, {
-      favoritePostsID: arrayUnion(id),
+      favoritePostsId: arrayUnion({
+        postTime: post.date,
+        title: post.title,
+        artist: post.artistForThisVisit,
+        postBy: post.postMadeBy,
+        id: post.id,
+      }),
     });
   };
 
-  const deleteFromFavorites = async (id) => {
-    const index = favorite.indexOf(id);
-    favorite.splice(index, 1);
-    console.log(favorite);
+  const deleteFromFavorites = async (post) => {
+    const index = favorite?.indexOf(post);
+    favorite?.splice(index, 1);
     setFavorite([...favorite]);
     const requestRef = doc(db, "users", user?.uid);
     return await updateDoc(requestRef, {
-      favoritePostsID: arrayRemove(id),
+      favoritePostsId: arrayRemove({
+        postTime: post.date,
+        title: post.title,
+        artist: post.artistForThisVisit,
+        postBy: post.postMadeBy,
+        id: post.id,
+      }),
     });
   };
 
@@ -233,8 +232,6 @@ export default function VisitorPosts() {
   };
 
   const handleComment = async (singlePost) => {
-    console.log(singlePost.comments);
-    console.log(commentRef.current.value);
     const requestRef = doc(db, "user-posts", singlePost.id);
     await updateDoc(requestRef, {
       comments: arrayUnion({
@@ -250,32 +247,39 @@ export default function VisitorPosts() {
       newPostComments.comments.length !== 0
         ? [...newPostComments?.comments]
         : [];
-    console.log(newComments);
     newComments?.push({
       commentatorId: user.uid,
       commentTime: new Date(),
       content: commentRef.current.value,
     });
-    console.log(newComments);
     newPostComments.comments = newComments;
     setPostComments(newPostComments);
 
     commentRef.current.value = "";
   };
   return (
-    <div style={{ paddingTop: "80px" }}>
+    <div style={{ paddingTop: "40px" }}>
+      <SignpostButton href="/user-profile">
+        A thank you note at the end
+      </SignpostButton>
+
       <Masonry
         breakpointCols={breakpointColumnsObj}
         className="my-masonry-grid"
-        // className={styles.my - masonry - grid}
-        // className={styles.hello}
         columnClassName="my-masonry-grid_column"
       >
         {" "}
         {posts.map((post) => (
-          <CommentContainer key={post.id}>
+          <CommentContainer
+            key={post.id}
+            onMouseEnter={() => handleShowComments(post)}
+          >
             <MainImage>
-              <img alt={post.title} src={post.uploadedImage} />
+              <img
+                alt={post.title}
+                src={post.uploadedImage}
+                style={{ width: "100%" }}
+              />
             </MainImage>
             <Post>
               <Text>
@@ -309,15 +313,16 @@ export default function VisitorPosts() {
                 ></CommentButton>
                 <CollectionButton
                   $heart={
-                    favorite?.includes(post.id)
+                    favorite?.map((f) => f.id).includes(post.id)
                       ? `${filledHeart.src}`
                       : `${unfilledHeart.src}`
                   }
                   role="button"
                   onClick={() => {
-                    if (!favorite.includes(post.id)) saveToFavorites(post.id);
-                    else if (favorite.includes(post.id)) {
-                      deleteFromFavorites(post.id);
+                    if (!favorite?.map((f) => f.id).includes(post.id))
+                      saveToFavorites(post);
+                    else if (favorite?.map((f) => f.id).includes(post.id)) {
+                      deleteFromFavorites(post);
                     }
                   }}
                 ></CollectionButton>
@@ -360,12 +365,6 @@ export default function VisitorPosts() {
           </CommentContainer>
         ))}
       </Masonry>
-      <LinkToHomepage href="/theme-color">
-        <HomeIcon />
-        <div>
-          <strong>Start again</strong>
-        </div>
-      </LinkToHomepage>
     </div>
   );
 }
