@@ -63,7 +63,7 @@ const CloseMenuIcon = styled.div`
 
 const Menulist = styled.ul<{ $menuStyle: string }>`
   z-index: 20;
-  position: absolute;
+  position: fixed;
   top: 0;
   list-style: none;
   width: 300px;
@@ -109,6 +109,14 @@ const MainVisual = styled.div`
   height: 450px;
   width: 100vw;
   background-position: center;
+`;
+
+const MuseumEntrance = styled.div`
+  position: absolute;
+  top: 50%;
+  width: 40vw;
+  margin: auto 30vw;
+  height: 50%;
 `;
 const EntranceIcon = styled.div`
   width: 45px;
@@ -219,54 +227,61 @@ export default function Home(props) {
           <TranslationToggle role="button"></TranslationToggle>
         </Link>
       )}
-
-      <MenuToggle
-        role="button"
-        onClick={() => {
-          setShowMenu(true);
-        }}
-      ></MenuToggle>
-      <Menulist $menuStyle={!showMenu ? "translateX(-100%)" : "none"}>
-        <div>
-          <CloseMenuIcon
+      {user?.uid && (
+        <>
+          <MenuToggle
             role="button"
             onClick={() => {
-              setShowMenu(false);
+              setShowMenu(true);
             }}
-          />
-
-          {menuLinks.map((menuLink, index) => (
-            <li key={index}>
-              <Page
+          ></MenuToggle>
+          <Menulist $menuStyle={!showMenu ? "translateX(-100%)" : "none"}>
+            <div>
+              <CloseMenuIcon
+                role="button"
                 onClick={() => {
-                  if (user?.uid) {
-                    router.push(menuLink.link);
-                  } else {
-                    router.push("/registration");
-                  }
+                  setShowMenu(false);
                 }}
+              />
+
+              {menuLinks.map((menuLink, index) => (
+                <li key={index}>
+                  <Page
+                    onClick={() => {
+                      if (user?.uid) {
+                        router.push(menuLink.link);
+                      } else {
+                        router.push("/registration");
+                      }
+                    }}
+                  >
+                    {t(menuLink.text)}
+                  </Page>
+                </li>
+              ))}
+            </div>
+            <div>
+              <FacebookShareButton
+                url={"https://the-healing-museum-makoto357.vercel.app"}
+                quote={
+                  "The Healing Museum brings you closer to the world of modern art."
+                }
+                hashtag={
+                  "#modernart #artiststory #artquiz #audiovisualtour #interactive"
+                }
               >
-                {t(menuLink.text)}
-              </Page>
-            </li>
-          ))}
-        </div>
-        <div>
-          <FacebookShareButton
-            url={"https://the-healing-museum-makoto357.vercel.app"}
-            quote={
-              "The Healing Museum brings you closer to the world of modern art."
-            }
-            hashtag={
-              "#modernart #artiststory #artquiz #audiovisualtour #interactive"
-            }
-          >
-            <FBicon />
-          </FacebookShareButton>
-        </div>
-      </Menulist>
+                <FBicon />
+              </FacebookShareButton>
+            </div>
+          </Menulist>
+        </>
+      )}
       <div style={{ display: "block", paddingTop: "14px" }}>
-        <MainVisual title={t("index:museumOfMind")} />
+        <MainVisual title={t("index:museumOfMind")}>
+          <Link href="/registration">
+            <MuseumEntrance />
+          </Link>
+        </MainVisual>
 
         <div
           style={{
@@ -281,17 +296,23 @@ export default function Home(props) {
         >
           <EntranceIcon />
 
-          <Link
+          <div
             style={{
               cursor: "pointer",
               margin: "auto 3px auto 10px",
               fontSize: "1.25rem",
               fontWeight: "600",
             }}
-            href="/registration"
+            onClick={() => {
+              if (user.uid) {
+                router.push("/theme-color");
+              } else if (!user.uid) {
+                router.push("/registration");
+              }
+            }}
           >
             {t("index:start")}
-          </Link>
+          </div>
           <ArrowIcon />
         </div>
         <h1
@@ -364,7 +385,7 @@ export default function Home(props) {
                   <div>
                     <Link href={bannerImage.webpage}>
                       <Image
-                        style={{ cursor: "pointer" }}
+                        style={{ cursor: "pointer", margin: "0 auto" }}
                         src={bannerImage.image}
                         width={1280}
                         height={720}

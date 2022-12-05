@@ -11,7 +11,6 @@ import profile from "../asset/profile.png";
 import logout from "../asset/log-out.png";
 import close from "../asset/cancel-white.png";
 import toggle from "../asset/menu.png";
-// import fb from "../asset/fb.svg";
 import share from "../asset/share.png";
 
 const Cursor = styled(motion.div)`
@@ -34,6 +33,7 @@ const Logo = styled.div`
   width: 120px;
   margin: auto;
   padding-top: 24px;
+  position: relative;
 `;
 
 const ProfileIcon = styled.div`
@@ -87,11 +87,13 @@ const CloseMenuIcon = styled.div`
 
 const Menulist = styled.ul<{ $menuStyle: string }>`
   z-index: 20;
-  position: absolute;
+  position: fixed;
   top: 0;
   list-style: none;
   width: 300px;
   height: 100vh;
+
+  /* min-height: 700px; */
   background-color: #2c2b2c;
   transform: ${(props) => props.$menuStyle};
   transition: transform 300ms;
@@ -141,20 +143,26 @@ const FBicon = styled.div`
     height: 32px;
   }
 `;
-
-const ProgressBarColor = styled.div`
-  position: absolute;
-  top: 38px;
-  left: 76px;
+const ProgressBarWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  height: 50px;
   width: 25vw;
-  height: 3px;
-  z-index: 30px;
-  border-bottom: 3px solid black;
+  justify-content: space-between;
+  position: absolute;
+  top: 15px;
+  left: 64px;
   @media screen and (max-width: 700px) {
     width: 77.5vw;
-    top: 62.5px;
+    top: 52.5px;
     left: 10vw;
   }
+`;
+const ProgressBarColor = styled.div`
+  position: absolute;
+  width: 100%;
+  z-index: 30px;
+  border-bottom: 1px solid black;
 `;
 
 const Indicator = styled.div<{
@@ -166,11 +174,8 @@ const Indicator = styled.div<{
 }>`
   width: ${(props) => props.$width};
   height: ${(props) => props.$height};
-  position: absolute;
   border-radius: 50%;
   background: ${(props) => props.$bgcolor};
-  top: ${(props) => props.$top};
-  left: ${(props) => props.$colorBarlength};
 `;
 
 interface LayoutProps {
@@ -240,24 +245,23 @@ export default function Layout(props: LayoutProps) {
   return (
     <>
       {router.pathname !== "/" && router.pathname !== "/registration" && (
-        <>
-          <ProgressBarColor>
-            {progressBarItems.map((progressBarItem, index) => (
-              <Indicator
-                key={progressBarItem}
-                $bgcolor="black"
-                $colorBarlength={
-                  progressBarItem == router.pathname
-                    ? `${0 + index * 12.25}%`
-                    : `${0 + index * 12.5}%`
-                }
-                $height={progressBarItem == router.pathname ? "20px" : "12px"}
-                $width={progressBarItem == router.pathname ? "20px" : "12px"}
-                $top={progressBarItem == router.pathname ? "-9px" : "-5px"}
-              />
-            ))}
-          </ProgressBarColor>
-        </>
+        <ProgressBarWrapper>
+          <ProgressBarColor></ProgressBarColor>
+          {progressBarItems.map((progressBarItem, index) => (
+            <Indicator
+              key={progressBarItem}
+              $bgcolor="black"
+              $colorBarlength={
+                progressBarItem == router.pathname
+                  ? `${0 + index * 12.25}%`
+                  : `${0 + index * 12.5}%`
+              }
+              $height={progressBarItem == router.pathname ? "12px" : "6px"}
+              $width={progressBarItem == router.pathname ? "12px" : "6px"}
+              $top={progressBarItem == router.pathname ? "-5.5px" : "-2.5px"}
+            />
+          ))}
+        </ProgressBarWrapper>
       )}
       <Cursor variants={variants} animate={cursorVariant} />
       <main
@@ -265,6 +269,7 @@ export default function Layout(props: LayoutProps) {
           background: themeColor?.secondary,
           minHeight: "100vh",
           transition: "background 1.5s ease",
+          boxSizing: "border-box",
         }}
       >
         <div>
@@ -280,28 +285,29 @@ export default function Layout(props: LayoutProps) {
         </div>
 
         <div>
-          {router.pathname !== "/" && (
-            <div
-              onClick={() => {
-                if (user) {
-                  router.push("/user-profile");
-                } else if (!user) {
-                  router.push("/registration");
-                }
-              }}
-            >
-              <ProfileIcon />
-            </div>
-          )}
-          {user && router.pathname !== "/" && (
-            <div
-              onClick={() => {
-                logout();
-                router.push("/");
-              }}
-            >
-              <LogoutIcon />
-            </div>
+          {user && (
+            <>
+              <div
+                onClick={() => {
+                  if (user) {
+                    router.push("/user-profile");
+                  } else if (!user) {
+                    router.push("/registration");
+                  }
+                }}
+              >
+                <ProfileIcon />
+              </div>
+
+              <div
+                onClick={() => {
+                  logout();
+                  router.push("/");
+                }}
+              >
+                <LogoutIcon />
+              </div>
+            </>
           )}
         </div>
 
