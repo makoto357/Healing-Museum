@@ -212,8 +212,11 @@ export default function GoogleMaps() {
     libraries: Libraries,
   });
   const center = useMemo(
-    () => ({ lat: 42.44163943619658, lng: -26.132456899797923 }),
-    []
+    () =>
+      artist == "frida-kahlo" || "dorothea-tanning || "
+        ? { lat: 30.2845084110191, lng: -97.74119954552144 }
+        : { lat: 52.35836306220029, lng: 4.881396717020184 },
+    [artist]
   );
   const clusterStyles = [
     {
@@ -231,7 +234,7 @@ export default function GoogleMaps() {
       const querySnapshot = await getDocs(q);
       const docs = querySnapshot.docs.map((doc) => doc.data() as any);
       const ArtistIndex =
-        docs[0].visitorJourney[docs[0].visitorJourney.length - 1]
+        docs[0].visitorJourney?.[docs[0]?.visitorJourney?.length - 1]
           ?.recommendedArtist;
       if (!ArtistIndex) {
         toast(({ closeToast, toastProps }) => (

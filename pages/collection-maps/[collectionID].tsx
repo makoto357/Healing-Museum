@@ -437,8 +437,14 @@ export default function ArtworkDetail() {
                     key={index}
                   >
                     {" "}
-                    <strong>#</strong>
-                    {tag}{" "}
+                    <a
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      href={`https://www.wikiart.org/en/Search/${tag}`}
+                    >
+                      <strong>#</strong>
+                      {tag}{" "}
+                    </a>
                   </div>
                 ))}
               </li>
