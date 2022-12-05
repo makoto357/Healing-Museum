@@ -6,20 +6,18 @@ import {
   where,
   getDocs,
   Timestamp,
+  doc,
+  updateDoc,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
 import visitorJourney from "../public/artist-info/visitorJourney.json";
 import { useRouter } from "next/router";
-import dynamic from "next/dynamic";
 import { DragDropContext } from "react-beautiful-dnd";
-// const CollectionColumn = dynamic(() => import("../components/DragNDrop"), {
-//   ssr: false,
-// });
+import CollectionColumn from "../components/DragNDrop";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-const CollectionColumn = dynamic(() => import("../components/DragNDrop"), {
-  ssr: false,
-});
 const Opening = styled.h1`
   font-size: 1.25rem;
   text-align: left;
@@ -72,7 +70,7 @@ const ButtonGroup = styled.div`
   justify-content: space-between;
   margin: 20px 0 20px 5vw;
   column-gap: 20px;
-  @media screen and (max-width: 600px) {
+  @media screen and (max-width: 900px) {
     flex-direction: column;
     width: 90vw;
   }
@@ -91,6 +89,15 @@ const HalfButton = styled.button<{ $textColor: string; $bgColor: string }>`
     color: white;
     background-color: #2c2b2c;
   }
+`;
+
+const SaveUpdates = styled.div`
+  height: fit-content;
+  font-size: 1rem;
+  width: fit-content;
+  margin: auto 20px 4px 20px;
+  border-bottom: 0.5px solid black;
+  cursor: pointer;
 `;
 
 interface IUser {
@@ -122,7 +129,6 @@ interface EnumJourneyItems extends Array<EnumJourneyItem> {}
 export default function UserProfile() {
   const [favoritePosts, setFavoritePosts] = useState([]);
   const [showText, setShowText] = useState(null);
-  const [dragNDrop, setDragNDrop] = useState(null);
   const router = useRouter();
   const [showFavoriteArtworks, setShowFavoriteArtworks] = useState(true);
   const { user } = useAuth();
@@ -143,7 +149,8 @@ export default function UserProfile() {
       Math.floor(Math.random() * visitorJourney[0].quotes?.length)
     ]
   );
-
+  console.log(artwork);
+  console.log(favoritePosts);
   useEffect(() => {
     const exitingFunction = () => {
       console.log(favoritePosts);
@@ -199,8 +206,6 @@ export default function UserProfile() {
     setFavoritePosts(newPostOrder);
   };
 
-  // const [remove] = newPagesOrder.splice(source.index, 1);
-  console.log(artwork.map((art) => art.id).includes(dragNDrop));
   const onDragEnd = (result) => {
     const { destination, source } = result;
     if (!destination) return;
@@ -217,9 +222,42 @@ export default function UserProfile() {
     }
     reorderPosts(destination, source);
   };
+
+  const updateOrder = async () => {
+    notify("Successfully saved the current progress!");
+    const requestRef = doc(db, "users", user?.uid);
+    return await updateDoc(requestRef, {
+      favoriteArtworksId: artwork,
+      favoritePostsId: favoritePosts,
+    });
+  };
+
+  const notify = (message) =>
+    toast(message, {
+      position: "top-center",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "light",
+    });
   return (
     <DragDropContext onDragEnd={(e) => onDragEnd(e)}>
       {/* add event listener */}
+      <ToastContainer
+        position="top-center"
+        autoClose={false}
+        hideProgressBar={true}
+        newestOnTop={true}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
       <div style={{ paddingTop: "15px" }}>
         <ArtworkWrapper>
           <ArtworkImage
@@ -263,7 +301,7 @@ export default function UserProfile() {
           </TextWrapper>
         </ArtworkWrapper>
         <ButtonGroup>
-          <div>
+          <div style={{ display: "flex" }}>
             <HalfButton
               onClick={() => setShowFavoriteArtworks(true)}
               $textColor={showFavoriteArtworks ? "white" : "black"}
@@ -278,6 +316,7 @@ export default function UserProfile() {
             >
               Favorite Posts
             </HalfButton>
+            <SaveUpdates onClick={updateOrder}>Save this order</SaveUpdates>
           </div>
 
           <HalfButton
@@ -294,8 +333,6 @@ export default function UserProfile() {
           setShowText={setShowText}
           showText={showText}
           favoritePosts={favoritePosts}
-          dragNDrop={dragNDrop}
-          setDragNDrop={setDragNDrop}
         />
       </div>
     </DragDropContext>

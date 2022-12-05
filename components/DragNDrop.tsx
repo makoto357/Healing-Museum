@@ -79,10 +79,7 @@ export default function CollectionColumn({
   setShowText,
   showText,
   favoritePosts,
-  dragNDrop,
-  setDragNDrop,
 }) {
-  console.log(favoritePosts, artwork);
   return (
     <CollectionWrapper>
       <div
@@ -105,7 +102,6 @@ export default function CollectionColumn({
             >
               {showFavoriteArtworks &&
                 artwork.map((artwork, index) => {
-                  // const Template = templatesArr[page.type];
                   return (
                     <Draggable
                       draggableId={artwork.id}
@@ -129,7 +125,6 @@ export default function CollectionColumn({
                           <div
                             onMouseEnter={() => setShowText(artwork.id)}
                             onMouseLeave={() => setShowText(null)}
-                            onClick={() => setDragNDrop(artwork.id)}
                             style={{
                               height: "150px",
                               width: "150px",
@@ -171,17 +166,13 @@ export default function CollectionColumn({
                 })}
               {!showFavoriteArtworks &&
                 favoritePosts?.map((post, index) => {
-                  // const Template = templatesArr[page.type];
                   return (
                     <Draggable
                       draggableId={post?.id}
                       index={index}
                       key={post?.id}
                     >
-                      {(
-                        provided,
-                        snapshot ///change var names
-                      ) => (
+                      {(provided, snapshot) => (
                         <div
                           ref={provided.innerRef}
                           {...provided.draggableProps}
@@ -191,7 +182,6 @@ export default function CollectionColumn({
                             provided.draggableProps.style
                           )}
                         >
-                          {/* independent div */}
                           <PostWrapper key={post?.id}>
                             <div>
                               <h1>
@@ -216,7 +206,6 @@ export default function CollectionColumn({
                   );
                 })}
               {droppableProvided.placeholder}
-              {/* placeholder here */}
             </div>
           )}
         </Droppable>
