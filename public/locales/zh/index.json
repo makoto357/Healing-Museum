@@ -4,8 +4,20 @@
   "home": "進入美術館",
   "map": "探索藝術地圖",
   "posts": "訪客回憶錄",
-  "profile": "你的專屬頁面",
   "quiz": "小測驗: 今天感覺如何?",
   "color": "療癒色彩",
-  "form": "心情日記本"
+  "form": "心情日記本",
+
+  "museumOfMind": "The Bethlem Museum of the Mind in London, situated within the gounds of Bethlem Royal Hospital, holds an internationally renowned collection of archives, art and historic objects, which together offer an unparalleled resource to support the history of mental healthcare and treatment.",
+  "start": "開啟旅程",
+  "experience": "參觀焦點",
+  "selectColor": "選擇最能代表你/妳今天心情的顏色。",
+  "artQuiz": "進行心理測驗獲得藝術家推薦。",
+  "audiovisual": "從Google地圖和Youtube影片，認識藝術家和他們的作品。",
+  "postFeeling": "留下這段旅程的回憶，並閱讀其他參觀者的心情。",
+  "museum": "館所宗旨",
+  "paragraph1": "TheHealing Museum is an online experience inspired by two concepts: art as therapy” and “museum on prescription”. The former has its root in the 19th century psychologists’ theories and their perspective of “artistic expression as a window into the inner workings of the mind”, while the latter considers museums as places with potential to facilitate the healing process as well as serving as social prescriptions to complement primary medical care.",
+  "paragraph2": "Art as healing means to direct personal or traumatic experiences towards creative expressions of who you are, how you feel and what you identify with. By presenting the artworks of 3 female and 3 male modern artists, who have shared their visions of realities and transcended their adversities into ever-lasting arts, the Healing Museum aims to explore the source of their strength and learn about resilience.",
+  "caption1": "Exhibition on wellbeing at the Wellcome Collection, London.",
+  "caption2": "Art therapy session at the Ben Uri Gallery and Museum, London."
 }

@@ -2,7 +2,9 @@
 const { i18n } = require("./next-i18next.config");
 module.exports = {
   reactStrictMode: false,
-  // swcMinify: true,
+  devIndicators: {
+    buildActivity: false,
+  },
   i18n,
   images: {
     domains: ["i.ytimg.com"],
