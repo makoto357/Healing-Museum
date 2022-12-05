@@ -14,6 +14,16 @@ const firebaseConfig = {
   measurementId: "G-ZZ10KSQBVX",
 };
 
+// const firebaseConfig = {
+//   apiKey: "AIzaSyCxROXCY05ZV5sCFeHbAskoFJhDx4k7k30",
+//   authDomain: "healing-backup.firebaseapp.com",
+//   projectId: "healing-backup",
+//   storageBucket: "healing-backup.appspot.com",
+//   messagingSenderId: "860984119196",
+//   appId: "1:860984119196:web:da05715fb1e8cab900c259",
+//   measurementId: "G-KX41EJBH5J",
+// };
+
 const app = initializeApp(firebaseConfig);
 // const analytics = getAnalytics(app);
 export const db = getFirestore(app);

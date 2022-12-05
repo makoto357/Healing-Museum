@@ -1,4 +1,3 @@
-import "../styles/globals.css";
 import { Global, css } from "@emotion/react";
 import { ChakraProvider } from "@chakra-ui/react";
 import type { AppProps } from "next/app";
@@ -7,14 +6,24 @@ import Layout from "../components/Layout";
 import { AuthContextProvider } from "../context/AuthContext";
 import { ThemeColorContextProvider } from "../context/ColorContext";
 import { appWithTranslation } from "next-i18next";
-import "../components/ComponentStyles/visitor-posts.css";
+import "../components/PageStyles/visitor-posts.css";
+import "../components/PageStyles/signpost-arrow.css";
+import "../components/PageStyles/artworks-grid.css";
+import "../components/PageStyles/collection-maps.css";
+import "../components/PageStyles/artist-video.css";
+import "../components/PageStyles/miscellany.css";
 
 const GlobalStyles = css`
   * {
     box-sizing: border-box;
-    // cursor: none;
+    cursor: none;
   }
 
+  @media screen and (max-width: 950px) {
+    * {
+      cursor: initial;
+    }
+  }
   body {
     position: relative;
     font-family: "Source Sans Pro", sans-serif;
@@ -22,10 +31,12 @@ const GlobalStyles = css`
     background-color: #eeece5;
     color: #000000;
     font-weight: 400;
+    text-align: justify;
   }
   a {
     color: inherit;
     text-decoration: none;
+    outline: none;
     &:link {
       text-decoration: none;
     }
@@ -38,6 +49,15 @@ const GlobalStyles = css`
     &:active {
       text-decoration: none;
     }
+  }
+  ::-moz-selection {
+    color: white;
+    background: black;
+  }
+
+  ::selection {
+    color: white;
+    background: black;
   }
 `;
 
@@ -55,10 +75,6 @@ function App({ Component, pageProps }: AppProps) {
               rel="preconnect"
               href="https://fonts.gstatic.com"
               crossOrigin="true"
-            ></link>
-            <link
-              href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300&display=swap"
-              rel="stylesheet"
             ></link>
           </Head>
           <ChakraProvider>

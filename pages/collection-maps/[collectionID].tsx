@@ -10,28 +10,40 @@ import {
   query,
   where,
   getDocs,
+  arrayRemove,
 } from "firebase/firestore";
 import { db } from "../../config/firebase";
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
-import { ThemeColorContext } from "../../context/ColorContext";
 import ZoomModal from "../../components/ZoomModal";
-import heart from "../../asset/heart.png";
 import magnifyingGlass from "../../asset/magnifying-glass.png";
 import {
   TransformComponent,
   TransformWrapper,
 } from "@pronestor/react-zoom-pan-pinch";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import SignpostButton from "../../components/Button";
+import map from "../../asset/world.png";
+import filledHeart from "../../asset/black-heal.png";
+import unfilledHeart from "../../asset/white-heal.png";
 
 const ArtworkWrapper = styled.section`
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  @media screen and (max-width: 800px) {
+    margin-bottom: 40px;
+  }
 `;
 
 const ArtworkImage = styled.img`
   height: 60vh;
+  @media screen and (max-width: 800px) {
+    height: auto;
+    width: 80vw;
+  }
 `;
 
 const SizeController = styled.div`
@@ -41,8 +53,13 @@ const SizeController = styled.div`
   margin-right: 20px;
 `;
 const TextWrapper = styled.section`
-  margin: 24px auto 0;
-  width: 60vw;
+  margin: 35px auto 0;
+  width: 50vw;
+  max-width: 60vw;
+  @media screen and (max-width: 800px) {
+    width: 80vw;
+    max-width: 80vw;
+  }
 `;
 
 const TextHeader = styled.section`
@@ -53,11 +70,11 @@ const TextHeader = styled.section`
 const IconGroup = styled.div`
   display: flex;
   column-gap: 20px;
-  margin: 10px 0 0 30px;
+  margin: 5px 0 0 30px;
 `;
 
-const LikeButton = styled.div`
-  background-image: url(${heart.src});
+const LikeButton = styled.div<{ $heart: string }>`
+  background-image: url(${(props) => props.$heart});
   width: 25px;
   height: 25px;
   background-size: cover;
@@ -80,8 +97,8 @@ const CloseIcon = styled.button`
   height: 50px;
   position: absolute;
   top: 0;
-  right: 2rem;
-  z-index: 200;
+  right: 1rem;
+  z-index: 600;
   padding-left: 6px;
   &:hover {
     transition: border 0.5s;
@@ -91,18 +108,18 @@ const CloseIcon = styled.button`
   }
 `;
 
-const ZoomIcon = styled.button`
+const ZoomIcon = styled.div`
   padding-top: 7px;
   padding-left: 6px;
   background: white;
   border-radius: 50px;
   border: none;
-  cursor: pointer;
   opacity: 0.8;
   width: 50px;
   height: 50px;
   position: absolute;
   left: 2rem;
+  cursor: pointer;
   z-index: 500;
   &:hover {
     transition: border 0.5s;
@@ -139,10 +156,34 @@ const MagnifyingGlass = styled.div`
   cursor: pointer;
   background: #e1ddd6;
 `;
+
+const LinkToMap = styled(Link)`
+  position: fixed;
+  bottom: 10px;
+  left: 24px;
+  display: flex;
+  flex-direction: column;
+  @media screen and (max-width: 800px) {
+    position: absolute;
+  }
+`;
+const MapIcon = styled.div`
+  background-image: url(${map.src});
+  width: 30px;
+  height: 30px;
+  background-size: cover;
+  margin-right: auto;
+  cursor: pointer;
+  &:hover {
+    height: 34px;
+    width: 34px;
+  }
+`;
 export default function ArtworkDetail() {
   const { user } = useAuth();
   const [showModal, setShowModal] = useState(false);
-
+  const [favorite, setFavorite] = useState([]);
+  console.log(favorite);
   const router = useRouter();
   const collectionID = router.query.collectionID;
   const [artwork, setArtwork] = useState<IArtworks>([
@@ -220,19 +261,70 @@ export default function ArtworkDetail() {
       setArtwork(IArtworks);
     };
     getArtworks();
-  }, [collectionID]);
+    const getArtist = async () => {
+      const q = query(collection(db, "users"), where("id", "==", user.uid));
+      const querySnapshot = await getDocs(q);
+      const docs = querySnapshot.docs.map((doc) => doc.data() as any);
+      setFavorite(docs[0].favoriteArtworksId);
+    };
+    getArtist();
+  }, [collectionID, user.uid]);
 
-  const saveToFavorites = async (id) => {
+  const saveToFavorites = async (artwork) => {
+    setFavorite((prev) => [
+      ...prev,
+      {
+        id: artwork.id,
+        title: artwork.title,
+        year: artwork.completitionYear,
+        artistName: artwork.artistName,
+        image: artwork.image,
+      },
+    ]);
     const requestRef = doc(db, "users", user?.uid);
     return await updateDoc(requestRef, {
-      favoriteArtworksID: arrayUnion(collectionID),
+      favoriteArtworksId: arrayUnion({
+        id: artwork.id,
+        title: artwork.title,
+        year: artwork.completitionYear,
+        artistName: artwork.artistName,
+        image: artwork.image,
+      }),
     });
   };
 
-  const [themeColor] = useContext(ThemeColorContext);
-  console.log(themeColor);
+  const deleteFromFavorites = async (artwork) => {
+    const index = favorite?.indexOf(artwork);
+    favorite?.splice(index, 1);
+    console.log(favorite);
+    setFavorite([...favorite]);
+    const requestRef = doc(db, "users", user?.uid);
+    return await updateDoc(requestRef, {
+      favoriteArtworksId: arrayRemove({
+        id: artwork.id,
+        title: artwork.title,
+        year: artwork.completitionYear,
+        artistName: artwork.artistName,
+        image: artwork.image,
+      }),
+    });
+  };
+
   return (
-    <div style={{ paddingTop: "104px" }}>
+    <div style={{ paddingTop: "40px" }}>
+      <ToastContainer
+        position="bottom-right"
+        autoClose={1000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
+
       {artwork &&
         artwork?.map((artwork, index) => (
           <ArtworkWrapper key={index}>
@@ -251,21 +343,49 @@ export default function ArtworkDetail() {
             <TextWrapper>
               <TextHeader>
                 <div>
-                  <h1 style={{ fontSize: "1.75rem" }}>
-                    <strong>{artwork.title}</strong>
-                    <strong></strong>
-                  </h1>
-                  <h2 style={{ fontSize: "1.5rem" }}>
-                    <span>{artwork.artistName}, </span>
+                  <h1 style={{ fontSize: "1.5rem" }}>{artwork.artistName}</h1>
+                  <h2 style={{ fontSize: "1.25rem" }}>
+                    <span>
+                      <strong>
+                        <i>{artwork.title} </i>
+                      </strong>
+                    </span>
                     <span>{artwork.completitionYear}</span>
                   </h2>
                 </div>
                 <IconGroup>
                   <LikeButton
+                    $heart={
+                      favorite?.map((f) => f.id).includes(artwork.id)
+                        ? `${filledHeart.src}`
+                        : `${unfilledHeart.src}`
+                    }
                     role="button"
-                    onClick={saveToFavorites}
+                    onClick={() => {
+                      if (!favorite?.map((f) => f.id).includes(artwork.id))
+                        saveToFavorites(artwork);
+                      else if (
+                        favorite?.map((f) => f.id).includes(artwork.id)
+                      ) {
+                        deleteFromFavorites(artwork);
+                      }
+                    }}
                   ></LikeButton>
-                  <div style={{ width: "20px", height: "20px" }}>
+                  <div
+                    style={{ width: "20px", height: "20px", cursor: "pointer" }}
+                    onClick={() =>
+                      toast("Copied to clipboard.", {
+                        position: "bottom-right",
+                        autoClose: 1000,
+                        hideProgressBar: true,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "light",
+                      })
+                    }
+                  >
                     <CC content={window.location.href} />
                   </div>
                 </IconGroup>
@@ -297,21 +417,35 @@ export default function ArtworkDetail() {
                   {artwork.galleries}
                 </li>
               </DescriptionList>
-              <li style={{ listStyle: "none" }}>
+              <li
+                style={{
+                  listStyle: "none",
+                  display: "flex",
+                  flexWrap: "wrap",
+                  columnGap: "10px",
+                }}
+              >
                 {artwork?.tags?.map((tag, index) => (
-                  <span
+                  <div
                     style={{
                       background: "#e1ddd6",
-                      marginRight: "10px",
                       borderRadius: "5px",
                       padding: "5px",
+                      width: "fit-content",
+                      margin: "5px 10px 5px 0px",
                     }}
                     key={index}
                   >
                     {" "}
-                    <strong>#</strong>
-                    {tag}{" "}
-                  </span>
+                    <a
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      href={`https://www.wikiart.org/en/Search/${tag}`}
+                    >
+                      <strong>#</strong>
+                      {tag}{" "}
+                    </a>
+                  </div>
                 ))}
               </li>
             </TextWrapper>
@@ -336,6 +470,7 @@ export default function ArtworkDetail() {
                     <SizeController>
                       <ZoomIcon onClick={() => zoomIn()} aria-label="Zoom in">
                         <svg
+                          style={{ cursor: "pointer" }}
                           className="icon"
                           xmlns="http://www.w3.org/2000/svg"
                         >
@@ -352,6 +487,7 @@ export default function ArtworkDetail() {
                         aria-label="Zoom out"
                       >
                         <svg
+                          style={{ cursor: "pointer" }}
                           className="icon"
                           xmlns="http://www.w3.org/2000/svg"
                         >
@@ -379,6 +515,7 @@ export default function ArtworkDetail() {
                       aria-label="Close viewer"
                     >
                       <svg
+                        style={{ cursor: "pointer" }}
                         xmlns="http://www.w3.org/2000/svg"
                         width="35"
                         height="35"
@@ -396,16 +533,15 @@ export default function ArtworkDetail() {
             ))}
         </ZoomModal>
       )}
-      <div style={{ textAlign: "left" }}>
-        <Link href="/collection-maps">
-          <p>back to map page</p>
-        </Link>
-      </div>
 
-      <div style={{ textAlign: "left" }}>
-        <Link href="/artworks">
-          <p>Explore more artworks!</p>
-        </Link>
+      <LinkToMap href="/collection-maps">
+        <MapIcon />
+        <div>
+          <strong>Back to map</strong>
+        </div>
+      </LinkToMap>
+      <div style={{ paddingBottom: "60px" }}>
+        <SignpostButton href="/artworks">Explore more artworks</SignpostButton>
       </div>
     </div>
   );

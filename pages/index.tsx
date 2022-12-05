@@ -7,10 +7,7 @@ import { useAuth } from "../context/AuthContext";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { useTranslation } from "next-i18next";
 import { FacebookShareButton } from "next-share";
-import fb from "../asset/fb.svg";
-import close from "../asset/cancel-white.png";
-import toggle from "../asset/menu.png";
-
+import { useRouter } from "next/router";
 import { Navigation, Pagination, Scrollbar, A11y } from "swiper";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
@@ -19,20 +16,41 @@ import "swiper/css/effect-fade";
 import "swiper/css/pagination";
 import "swiper/css/scrollbar";
 import museumOfMind from "../asset/museum-of-the-mind.jpeg";
-import happiness from "../asset/on-happiness.png";
+import happiness from "../asset/happiness.png";
 import benUri from "../asset/ben-uri.jpeg";
-const Menulist = styled.ul<{ $menuStyle: string }>`
+import colors from "../asset/pantone.png";
+import quiz from "../asset/ideas.png";
+import map from "../asset/journal.png";
+import post from "../asset/video-player.png";
+import ticket from "../asset/ticket.png";
+import arrow from "../asset/right-arrow.png";
+import github from "../asset/github.png";
+import fb from "../asset/fb.svg";
+import share from "../asset/share.png";
+import close from "../asset/cancel-white.png";
+import toggle from "../asset/menu.png";
+import language from "../asset/translate.png";
+
+const TranslationToggle = styled.div`
+  background-image: url(${language.src});
+  background-size: cover;
+  height: 30px;
+  width: 30px;
   position: absolute;
-  top: 0;
-  list-style: none;
-  width: 300px;
-  height: 100%;
-  background-color: #2c2b2c;
-  transform: ${(props) => props.$menuStyle};
-  transition: transform 300ms;
-  color: white;
-  font-size: 1.25rem;
-  padding: 30px;
+  top: 24px;
+  left: 64px;
+  cursor: pointer;
+`;
+
+const MenuToggle = styled.div`
+  background-image: url(${toggle.src});
+  background-size: cover;
+  height: 30px;
+  width: 30px;
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  cursor: pointer;
 `;
 
 const CloseMenuIcon = styled.div`
@@ -43,15 +61,21 @@ const CloseMenuIcon = styled.div`
   margin-left: auto;
 `;
 
-const MenuToggle = styled.div`
-  background-image: url(${toggle.src});
-  background-size: cover;
-  height: 30px;
-  width: 30px;
+const Menulist = styled.ul<{ $menuStyle: string }>`
+  z-index: 20;
   position: fixed;
-  top: 24px;
-  left: 24px;
-  cursor: pointer;
+  top: 0;
+  list-style: none;
+  width: 300px;
+  height: 100vh;
+  background-color: #2c2b2c;
+  transform: ${(props) => props.$menuStyle};
+  transition: transform 300ms;
+  color: white;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 `;
 
 const Page = styled.div`
@@ -66,47 +90,118 @@ const Page = styled.div`
   }
 `;
 const FBicon = styled.div`
-  background-image: url(${fb.src});
+  background-image: url(${share.src});
+  border: 2px solid #2c2b2c;
   width: 30px;
   height: 30px;
-  position: absolute;
-  bottom: 30px;
   background-size: cover;
+  &:hover {
+    width: 32px;
+    height: 32px;
+  }
+`;
+
+const MainVisual = styled.div`
+  background-image: url(${museumOfMind.src});
+  opacity: 0.8;
+  background-size: cover;
+  position: relative;
+  height: 450px;
+  width: 100vw;
+  background-position: center;
+`;
+
+const MuseumEntrance = styled.div`
+  position: absolute;
+  top: 50%;
+  width: 40vw;
+  margin: auto 30vw;
+  height: 50%;
+`;
+const EntranceIcon = styled.div`
+  width: 45px;
+  height: 45px;
+  background-size: cover;
+  background-image: url(${ticket.src});
+`;
+
+const ArrowIcon = styled.div`
+  width: 12px;
+  height: 12px;
+  background-size: cover;
+  background-image: url(${arrow.src});
+`;
+
+const IntroText = styled.div`
+  display: flex;
+  column-gap: 30px;
+  width: 80vw;
+  margin-bottom: 20px;
+  @media screen and (max-width: 600px) {
+    display: initial;
+  }
+`;
+
+const FeatureIconGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: 150px;
+  text-align: left;
+  justify-content: center;
+  padding: 0 5px;
+`;
+
+const FeatureIcon = styled.div`
+  width: 45px;
+  height: 45px;
+  background-size: cover;
+  margin: 0 auto 20px;
 `;
 
 const SwiperWrapper = styled.section`
-  margin: 0 70px;
-  width: 500px;
+  width: 80vw;
+  height: 450px;
 `;
 
 const bannerImages = [
   {
-    image: museumOfMind.src,
-    caption:
-      "The Bethlem Museum of the Mind in London, situated within the gounds of Bethlem Royal Hospital, holds an internationally renowned collection of archives, art and historic objects, which together offer an unparalleled resource to support the history of mental healthcare and treatment. ",
-    webpage: "https://museumofthemind.org.uk/",
-  },
-  {
     image: happiness.src,
-    caption: "Exhibiitons on wellbeing at the Wellcome Collection.",
+    caption: "index:caption1",
     webpage:
       "https://wellcomecollection.org/?gclid=Cj0KCQiAveebBhD_ARIsAFaAvrHyq9spdBGfJbkRv20ZALgIwL1m7W0kWCU0daQiTQ-wG9UMLKhnfwQaAoc1EALw_wcB",
   },
   {
     image: benUri.src,
-    caption: "Art therapy session in the Ben Uri Museum and Gallery.",
+    caption: "index:caption2",
     webpage: "https://benuri.org/artsandhealth/",
   },
 ];
 
 const menuLinks = [
   { link: "/registration", text: "index:home" },
+  { link: "/theme-color", text: "index:color" },
   { link: "/quiz", text: "index:quiz" },
   { link: "/collection-maps", text: "index:map" },
-  { link: "/artworks", text: "index:details" },
+  { link: "/artworks", text: "index:detail" },
   { link: "/artist-video", text: "index:artworks" },
-
+  { link: "/form", text: "index:form" },
   { link: "/visitor-posts", text: "index:posts" },
+];
+
+const websiteFeatures = [
+  {
+    icon: colors.src,
+    text: "index:selectColor",
+  },
+  { icon: quiz.src, text: "index:artQuiz" },
+  {
+    icon: map.src,
+    text: "index:audiovisual",
+  },
+  {
+    icon: post.src,
+    text: "index:postFeeling",
+  },
 ];
 export async function getStaticProps({ locale }) {
   return {
@@ -118,119 +213,195 @@ export async function getStaticProps({ locale }) {
 export default function Home(props) {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const router = useRouter();
+  const { locale } = router;
   const [showMenu, setShowMenu] = useState(false);
-
   return (
-    <div style={{ height: "100vh", display: "flex" }}>
-      <MenuToggle
-        role="button"
-        onClick={() => {
-          setShowMenu(true);
-        }}
-      ></MenuToggle>
+    <>
+      {locale == "en" ? (
+        <Link href="/" locale="zh">
+          <TranslationToggle role="button"></TranslationToggle>
+        </Link>
+      ) : (
+        <Link href="/" locale="en">
+          <TranslationToggle role="button"></TranslationToggle>
+        </Link>
+      )}
+      {user?.uid && (
+        <>
+          <MenuToggle
+            role="button"
+            onClick={() => {
+              setShowMenu(true);
+            }}
+          ></MenuToggle>
+          <Menulist $menuStyle={!showMenu ? "translateX(-100%)" : "none"}>
+            <div>
+              <CloseMenuIcon
+                role="button"
+                onClick={() => {
+                  setShowMenu(false);
+                }}
+              />
 
-      <Menulist $menuStyle={!showMenu ? "translateX(-100%)" : "none"}>
-        <CloseMenuIcon
-          role="button"
-          onClick={() => {
-            setShowMenu(false);
+              {menuLinks.map((menuLink, index) => (
+                <li key={index}>
+                  <Page
+                    onClick={() => {
+                      if (user?.uid) {
+                        router.push(menuLink.link);
+                      } else {
+                        router.push("/registration");
+                      }
+                    }}
+                  >
+                    {t(menuLink.text)}
+                  </Page>
+                </li>
+              ))}
+            </div>
+            <div>
+              <FacebookShareButton
+                url={"https://the-healing-museum-makoto357.vercel.app"}
+                quote={
+                  "The Healing Museum brings you closer to the world of modern art."
+                }
+                hashtag={
+                  "#modernart #artiststory #artquiz #audiovisualtour #interactive"
+                }
+              >
+                <FBicon />
+              </FacebookShareButton>
+            </div>
+          </Menulist>
+        </>
+      )}
+      <div style={{ display: "block", paddingTop: "14px" }}>
+        <MainVisual title={t("index:museumOfMind")}>
+          <Link href="/registration">
+            <MuseumEntrance />
+          </Link>
+        </MainVisual>
+
+        <div
+          style={{
+            borderTop: "1px solid black",
+            borderBottom: "1px solid black",
+            display: "flex",
+            justifyContent: "center",
+            paddingRight: "20px",
+            alignItems: "center",
+            height: "60px",
           }}
-        />
-        {menuLinks.map((menuLink, index) => (
-          <li key={index}>
-            <Link href={menuLink.link}>
-              <Page>{t(menuLink.text)}</Page>
-            </Link>
-          </li>
-        ))}
+        >
+          <EntranceIcon />
 
-        {user && (
-          <li>
-            <Link href="/user-profile">
-              <Page>{t("index:profile")}</Page>
-            </Link>
-          </li>
-        )}
-        <li>
-          <FacebookShareButton
-            url={"https://the-healing-museum-makoto357.vercel.app"}
-            quote={
-              "The Healing Museum brings you closer to the world of modern art."
-            }
-            hashtag={
-              "#modernart #artiststory #artquiz #audiovisualtour #interactive"
-            }
+          <div
+            style={{
+              cursor: "pointer",
+              margin: "auto 3px auto 10px",
+              fontSize: "1.25rem",
+              fontWeight: "600",
+            }}
+            onClick={() => {
+              if (user.uid) {
+                router.push("/theme-color");
+              } else if (!user.uid) {
+                router.push("/registration");
+              }
+            }}
           >
-            <FBicon />
-          </FacebookShareButton>
-        </li>
-      </Menulist>
-
-      <div
-        style={{
-          display: "flex",
-          padding: "104px 0",
-          margin: "auto",
-          alignItems: "center",
-        }}
-      >
-        <section style={{ width: "45vw", padding: "0 2rem" }}>
-          <h1 style={{ fontSize: "2rem" }}>The Healing Museum</h1>
-          <p>
-            The Healing Museum is an online experience inspired by two concepts:
-            “art as therapy” and “museum on prescription”. The former has its
-            root in the 19th century psychologists’ theories and their
-            perspective of “artistic expression as a window into the inner
-            workings of the mind”, while the latter considers museums as places
-            with potential to facilitate the healing process as well as serving
-            as social prescriptions to complement primary medical care.
-            <br />
-            Art as healing means to direct personal or traumatic experiences
-            towards creative expressions of who you are, how you feel and what
-            you identify with. By presenting the artworks of 3 female and 3 male
-            modern artists, who have shared their visions of realities and
-            transcended their adversities into ever-lasting arts, the Healing
-            Museum aims to explore the source of their strength and learn about
-            resilience.
-            <br />
-            We invite you to enter this Museum, and enjoy the colors and stories
-            of these artists through a series of interactive experiences.
-            Starting from choosing a color which echoes with your mood, and a
-            quiz of which the questions are based on anecdotes of the artists,
-            you will be going on a journey to the inner worlds and great minds
-            of the artists, accompanied by audio-visual materials. At the end of
-            your visits, we hope to bring you a bit of feelings and
-            inspirations.
-          </p>
+            {t("index:start")}
+          </div>
+          <ArrowIcon />
+        </div>
+        <h1
+          style={{
+            fontSize: "1.25rem",
+            textAlign: "center",
+            margin: "40px auto 20px",
+          }}
+        >
+          <strong> {t("index:experience")}</strong>
+        </h1>
+        <section
+          style={{
+            display: "flex",
+            height: "fit-content",
+            width: "80vw",
+            margin: "20px auto",
+            justifyContent: "space-between",
+            alignItems: "baseline",
+          }}
+        >
+          {websiteFeatures.map((websiteFeature) => (
+            <FeatureIconGroup key={websiteFeature.icon}>
+              <FeatureIcon
+                style={{ backgroundImage: `url(${websiteFeature.icon})` }}
+              />
+              <p>{t(websiteFeature.text)}</p>
+            </FeatureIconGroup>
+          ))}
         </section>
-        <SwiperWrapper>
-          <Swiper
-            modules={[Navigation, Pagination, Scrollbar, A11y]}
-            spaceBetween={50}
-            slidesPerView={1}
-            navigation
-            loop
-            onSwiper={(swiper) => console.log(swiper)}
-            onSlideChange={() => console.log("slide change")}
+
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            margin: "0 70px",
+            padding: "40px 0 0",
+            alignItems: "center",
+          }}
+        >
+          <h1
+            style={{
+              fontSize: "1.25rem",
+              marginBottom: "20px",
+            }}
           >
-            {bannerImages.map((bannerImage) => (
-              <SwiperSlide key={bannerImage.image}>
-                <div>
-                  <Image
-                    src={bannerImage.image}
-                    width={1280}
-                    height={720}
-                    alt={bannerImage.caption}
-                  />
-                  <h1 style={{ fontSize: "0.5rem" }}>
-                    <strong>{bannerImage.caption}</strong>
-                  </h1>
-                </div>
-              </SwiperSlide>
-            ))}
-          </Swiper>
-        </SwiperWrapper>
+            <strong> {t("index:museum")}</strong>
+          </h1>
+          <IntroText>
+            <p>{t("index:paragraph1")}</p>
+            <br />
+            <p>{t("index:paragraph2")}</p>
+          </IntroText>
+
+          <SwiperWrapper>
+            <Swiper
+              modules={[Navigation, Pagination, Scrollbar, A11y]}
+              spaceBetween={50}
+              slidesPerView={1}
+              navigation
+              loop
+              onSwiper={(swiper) => console.log(swiper)}
+              onSlideChange={() => console.log("slide change")}
+            >
+              {bannerImages.map((bannerImage) => (
+                <SwiperSlide
+                  key={bannerImage.image}
+                  style={{ cursor: "pointer" }}
+                >
+                  <div>
+                    <Link href={bannerImage.webpage}>
+                      <Image
+                        style={{ cursor: "pointer", margin: "0 auto" }}
+                        src={bannerImage.image}
+                        width={1280}
+                        height={720}
+                        alt={bannerImage.caption}
+                      />
+                    </Link>
+                    <h1 style={{ fontSize: "0.75rem" }}>
+                      <strong>{t(bannerImage.caption)}</strong>
+                    </h1>
+                  </div>
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          </SwiperWrapper>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
