@@ -1,10 +1,10 @@
 import styled from "@emotion/styled";
-import Link from "next/link";
 import React from "react";
 import SignpostButton from "../components/Button";
 import select from "../asset/selection-box.png";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+
 import {
   collection,
   doc,
@@ -18,19 +18,21 @@ import {
 } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
-import filledHeart from "../asset/black-heal.png";
-import unfilledHeart from "../asset/white-heal.png";
-import ArtworkModal from "../components/ArtworkModal";
-import close from "../asset/cancel.png";
-import artistStyle from "../public/visitorJourney.json";
-import upArrow from "../asset/arrow-up.png";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import ArtworkModal from "../components/ArtworkModal";
+import filledHeart from "../asset/black-heal.png";
+import unfilledHeart from "../asset/white-heal.png";
+import close from "../asset/cancel.png";
+import artistStyle from "../public/artist-info/visitorJourney.json";
+import upArrow from "../asset/arrow-up.png";
+
 interface Prop {
   $heart?: string;
 }
 const ArtworkGrid = styled.section`
-  margin: 0 auto 60px;
+  margin: 0 auto;
+  padding-bottom: 60px;
   width: 90vw;
   display: flex;
   flex-direction: column;
@@ -43,10 +45,16 @@ const CloseIcon = styled.div`
   width: 25px;
   height: 25px;
   position: fixed;
-  top: 1rem;
+  top: 4rem;
   right: 1.5rem;
-  @media screen and (max-width: 500px) {
+  @media screen and (max-width: 1050px) {
     right: 0.5rem;
+  }
+  @media screen and (max-width: 650px) {
+    top: 3px;
+    right: 3px;
+    width: 12px;
+    height: 12px;
   }
 `;
 
@@ -65,6 +73,9 @@ const Text = styled.div`
   display: flex;
   flex-direction: column;
   row-gap: 36px;
+  @media screen and (max-width: 600px) {
+    row-gap: 0px;
+  }
 `;
 
 const Figure = styled.figure`
@@ -72,6 +83,11 @@ const Figure = styled.figure`
   width: 100%;
   display: flex;
   max-height: calc(100vh - 12rem);
+  @media screen and (max-width: 600px) {
+    height: 80%;
+    width: 80%;
+    margin: auto;
+  }
 `;
 
 const FavoritesIcon = styled.div<{ $heart: string }>`
@@ -87,10 +103,13 @@ const ToTop = styled.div`
   right: 3vw;
   text-align: center;
   @media screen and (max-width: 800px) {
-    bottom: 60px;
+    bottom: 24px;
   }
 `;
+
 const BackToTop = styled.div`
+  cursor: pointer;
+
   background-image: url(${upArrow.src});
   width: 30px;
   height: 30px;
@@ -126,10 +145,18 @@ function ArtWork({
     <div onClick={onClick}>
       <Frame
         $highlightedBorder={
-          favorite?.includes(artworkInfo.id) ? "8px solid #bbb6ac" : "none"
+          favorite?.map((f) => f.id).includes(artworkInfo?.id)
+            ? "8px solid #bbb6ac"
+            : "none"
         }
       >
-        <img width={width} height={height} src={imgSrc} alt="" />
+        <img
+          style={{ cursor: "zoom-in" }}
+          width={width}
+          height={height}
+          src={imgSrc}
+          alt=""
+        />
       </Frame>
     </div>
   );
@@ -141,7 +168,17 @@ const ARTWORK_STYLE = {
   2: { width: "320", height: "427" },
 };
 
-export default function Masonry() {
+export const useDisableBodyScroll = (showModal) => {
+  useEffect(() => {
+    if (showModal) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+  }, [showModal]);
+};
+
+export default function Masonry(props) {
   const { user } = useAuth();
   const router = useRouter();
   const [artworks, setArtworks] = useState([]);
@@ -159,7 +196,6 @@ export default function Masonry() {
     image: undefined,
   });
   const [favorite, setFavorite] = useState([]);
-  console.log(favorite);
   interface IModalInfo {
     id: string | undefined;
     title: string | undefined;
@@ -177,18 +213,47 @@ export default function Masonry() {
     setShowModal(true);
     setModalInfo(artwork);
   };
+
+  //   useEffect(() => {
+  //     showModal && document.body.style.overflow = 'hidden';
+  //     !showModal && document.body.style.overflow = 'unset';
+  //  }, [showModal ]);
+
   useEffect(() => {
     const getArtist = async () => {
-      const q = query(collection(db, "users"), where("id", "==", user.uid));
+      const q = query(collection(db, "users"), where("id", "==", user?.uid));
       const querySnapshot = await getDocs(q);
       const docs = querySnapshot.docs.map((doc) => doc.data() as any);
-      setFavorite(docs[0].favoriteArtworksID);
-      getArtworks(
+      const recommendedArtist =
         docs[0].visitorJourney[docs[0].visitorJourney.length - 1]
-          .recommendedArtist
-      );
+          ?.recommendedArtist;
+      const favoriteArtworks = docs[0].favoriteArtworksId;
+      if (!recommendedArtist || !favoriteArtworks) {
+        toast(() => (
+          <div>
+            <p>Take the art quiz to get your artist recommendation!</p>
+            <div style={{ width: "100%" }}>
+              <button
+                style={{
+                  marginTop: "5px",
+                  padding: "3px 10px",
+                  background: "black",
+                  color: "white",
+                }}
+                onClick={() => router.push("/quiz")}
+              >
+                Take a quiz
+              </button>
+            </div>
+          </div>
+        ));
+
+        return;
+      } else {
+        getArtworks(recommendedArtist);
+        setFavorite(favoriteArtworks);
+      }
     };
-    getArtist();
 
     const getArtworks = async (artist) => {
       const q = query(
@@ -210,26 +275,74 @@ export default function Masonry() {
         return res;
       }
     };
-    getArtist();
-  }, [user.uid]);
+    if (user) {
+      getArtist();
+    }
+  }, [user, router]);
   const saveToFavorites = async (id) => {
-    console.log(modalInfo.id);
-    setFavorite((prev) => [...prev, modalInfo.id]);
+    console.log(id);
+    setFavorite((prev) => {
+      console.log([...prev]);
+      return [
+        ...prev,
+        {
+          id: id.id,
+          title: id.title,
+          year: id.completitionYear,
+          artistName: id.artistName,
+          image: id.image,
+        },
+      ];
+    });
     const requestRef = doc(db, "users", user?.uid);
     return await updateDoc(requestRef, {
-      favoriteArtworksID: arrayUnion(modalInfo.id),
+      favoriteArtworksId: arrayUnion({
+        id: modalInfo.id,
+        title: modalInfo.title,
+        year: modalInfo.completitionYear,
+        artistName: modalInfo.artistName,
+        image: modalInfo.image,
+      }),
     });
   };
 
   const deleteFromFavorites = async (id) => {
-    const index = favorite.indexOf(id);
-    favorite.splice(index, 1);
-    console.log(favorite);
+    const index = favorite?.indexOf(id);
+    favorite?.splice(index, 1);
     setFavorite([...favorite]);
     const requestRef = doc(db, "users", user?.uid);
     return await updateDoc(requestRef, {
-      favoriteArtworksID: arrayRemove(modalInfo.id),
+      favoriteArtworksId: arrayRemove({
+        id: id.id,
+        title: id.title,
+        year: id.completitionYear,
+        artistName: id.artistName,
+        image: id.image,
+      }),
     });
+  };
+
+  const notify = (message) =>
+    toast(message, {
+      position: "top-center",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "light",
+      icon: ({ theme, type }) => <img src={select.src} />,
+    });
+
+  const toNextPage = () => {
+    if (favorite.length == 0) {
+      notify(
+        "Please save at least 1 artwork to your favorites, before leaving this gallery."
+      );
+    } else {
+      router.push("/artist-video");
+    }
   };
   return (
     <>
@@ -242,9 +355,9 @@ export default function Masonry() {
       >
         <ToastContainer
           position="top-center"
-          // autoClose={3000}
-          hideProgressBar={false}
-          newestOnTop={false}
+          autoClose={false}
+          hideProgressBar={true}
+          newestOnTop={true}
           closeOnClick
           rtl={false}
           pauseOnFocusLoss
@@ -254,8 +367,8 @@ export default function Masonry() {
         />
         <h1>
           <strong>
-            Save your favorite artwork by clicking on the heart icon, before you
-            leave for the next gallery.
+            Save your favorite artworks by clicking on the images, before
+            leaving for the next gallery.
           </strong>
         </h1>
         <br />
@@ -266,44 +379,9 @@ export default function Masonry() {
             )[0]?.artistStyle}
         </p>
       </div>
-      <div className="container">
-        <ul>
-          <li>
-            <div
-              className="animated-arrow"
-              onClick={() => {
-                if (favorite.length == 0) {
-                  toast(
-                    "Please select your favorite artwork before you leave this gallery.",
-                    {
-                      position: "top-center",
-                      autoClose: 3000,
-                      hideProgressBar: false,
-                      closeOnClick: true,
-                      pauseOnHover: true,
-                      draggable: true,
-                      progress: undefined,
-                      theme: "light",
-                      icon: ({ theme, type }) => <img src={select.src} />,
-                    }
-                  );
-                } else {
-                  router.push("/artist-video");
-                }
-              }}
-            >
-              <span className="the-arrow -left">
-                <span className="shaft"></span>
-              </span>
-              <span className="main">
-                <span className="text">Hear about the artist</span>
-                <span className="the-arrow -right">
-                  <span className="shaft"></span>
-                </span>
-              </span>
-            </div>
-          </li>
-        </ul>
+
+      <div onClick={toNextPage}>
+        <SignpostButton href="">Hear about the artist</SignpostButton>
       </div>
 
       <ToTop
@@ -312,7 +390,7 @@ export default function Masonry() {
         }}
       >
         <BackToTop />
-        <div>
+        <div style={{ cursor: "pointer" }}>
           <strong>
             To
             <br /> Top
@@ -342,6 +420,9 @@ export default function Masonry() {
           </ul>
         ))}
       </ArtworkGrid>
+      <div onClick={toNextPage}>
+        <SignpostButton href="">Hear about the artist</SignpostButton>
+      </div>
       <div>
         {showModal && (
           <ArtworkModal>
@@ -358,16 +439,18 @@ export default function Masonry() {
                 </p>
                 <FavoritesIcon
                   $heart={
-                    favorite?.includes(modalInfo.id)
+                    favorite?.map((f) => f.id).includes(modalInfo.id)
                       ? `${filledHeart.src}`
                       : `${unfilledHeart.src}`
                   }
                   role="button"
                   onClick={() => {
-                    if (!favorite.includes(modalInfo.id))
-                      saveToFavorites(modalInfo.id);
-                    else if (favorite.includes(modalInfo.id)) {
-                      deleteFromFavorites(modalInfo.id);
+                    if (!favorite?.map((f) => f.id).includes(modalInfo.id))
+                      saveToFavorites(modalInfo);
+                    else if (
+                      favorite?.map((f) => f.id).includes(modalInfo.id)
+                    ) {
+                      deleteFromFavorites(modalInfo);
                     }
                   }}
                 ></FavoritesIcon>

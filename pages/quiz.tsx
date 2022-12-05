@@ -13,6 +13,7 @@ import vanGogh from "../asset/vangogh.jpeg";
 import gwen from "../asset/gwen.jpeg";
 import hopper from "../asset/edward-hopper.jpg";
 const QuizArea = styled.section`
+  max-width: 600px;
   width: 40vw;
   margin: 0 auto;
   padding: 40px 0 0;
@@ -28,17 +29,24 @@ const Question = styled.h1`
   font-size: 1.25rem;
 `;
 
-const QuestionButton = styled.div`
+const QuestionButton = styled.div<{
+  $bgColor: string;
+  $opacity: string;
+  $color: string;
+}>`
   text-align: left;
   width: 100%;
   margin-bottom: 20px;
   padding: 15px;
-  background: white;
-  &:hover {
+  background: ${(props) => props.$bgColor};
+  opacity: ${(props) => props.$opacity};
+  color: ${(props) => props.$color};
+
+  /* &:hover {
     background: #2c2b2c;
     opacity: 0.5;
     color: white;
-  }
+  } */
   &:active {
     background: white;
     border-left: 10px solid black;
@@ -88,11 +96,11 @@ const AudioOption = styled.div`
   margin: auto 20px auto 0px;
   padding: 15px;
   background: white;
-  &:hover {
+  /* &:hover {
     background: #2c2b2c;
     opacity: 0.5;
     color: white;
-  }
+  } */
   &:active {
     background: white;
     border-left: 10px solid black;
@@ -100,12 +108,21 @@ const AudioOption = styled.div`
   }
 `;
 
+const ArtistImage = styled.div<{ $imageUrl: string }>`
+  background-image: url(${(props) => props.$imageUrl});
+  width: 300px;
+  height: 300px;
+  max-width: 100%;
+  background-size: cover;
+  margin: 0 auto;
+`;
 export default function Quiz() {
   const router = useRouter();
   const [gameStarted, setGameStarted] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(1);
   const subtractToIndex = 1;
   const toNextQuestion = 1;
+  const [seletedOption, setSeletedOption] = useState(null);
   const [showAnswer, setShowAnswer] = useState(false);
   const [points, setPoints] = useState([]);
   const { user } = useAuth();
@@ -234,7 +251,7 @@ export default function Quiz() {
   //   };
   // }, []);
   return (
-    <div style={{}}>
+    <div>
       {!gameStarted && (
         <QuizArea>
           <Question>
@@ -312,6 +329,14 @@ export default function Quiz() {
                     </>
                   ) : (
                     <QuestionButton
+                      onMouseEnter={() => setSeletedOption(index)}
+                      onMouseLeave={() => setSeletedOption(null)}
+                      $bgColor={"white"}
+                      // seletedOption ? "white" : "#2c2b2c"
+                      $opacity={"1"}
+                      // seletedOption ? "1" : "0.5"
+                      $color={""}
+                      // seletedOption ? "black" : "white"
                       key={index}
                       onClick={() => handleQuizAnswers(answerOption)}
                     >
@@ -333,16 +358,7 @@ export default function Quiz() {
 
       {showAnswer && sortable[0][0] === quizResults[0].result && (
         <QuizArea>
-          <div
-            style={{
-              backgroundImage: `url(${quizResults[0].artistImage})`,
-              width: "300px",
-              height: "300px",
-              maxWidth: "100%",
-              backgroundSize: "cover",
-              margin: "0 auto",
-            }}
-          />
+          <ArtistImage $imageUrl={quizResults[0].artistImage} />
           <div style={{ margin: "20px 0" }}>
             <h1 style={{ marginBottom: "10px", fontSize: "1.25rem" }}>
               Your artist is <strong>{quizResults[0].artistName}.</strong>
@@ -350,7 +366,7 @@ export default function Quiz() {
             <p>{quizResults[0].artistIntro}</p>
           </div>
           <ButtonGroup>
-            <HalfButton
+            {/* <HalfButton
               onClick={() => {
                 setGameStarted(false);
                 setPoints([]);
@@ -359,28 +375,21 @@ export default function Quiz() {
               }}
             >
               Play again
-            </HalfButton>
-            <HalfButton
+            </HalfButton> */}
+            <Button
               onClick={() => {
                 handleTestResult(quizResults[0].artistUrl);
               }}
             >
               Learn about this artist!
-            </HalfButton>
+            </Button>
           </ButtonGroup>
         </QuizArea>
       )}
       {showAnswer && sortable[0][0] === quizResults[1].result && (
         <QuizArea>
-          <div
-            style={{
-              backgroundImage: `url(${quizResults[1].artistImage})`,
-              width: "300px",
-              height: "300px",
-              backgroundSize: "cover",
-              margin: "0 auto",
-            }}
-          />
+          <ArtistImage $imageUrl={quizResults[1].artistImage} />
+
           <div style={{ margin: "20px 0" }}>
             <h1 style={{ marginBottom: "10px", fontSize: "1.25rem" }}>
               Your artist is <strong>{quizResults[1].artistName}.</strong>
@@ -410,15 +419,8 @@ export default function Quiz() {
       )}
       {showAnswer && sortable[0][0] === quizResults[2].result && (
         <QuizArea>
-          <div
-            style={{
-              backgroundImage: `url(${quizResults[2].artistImage})`,
-              width: "300px",
-              height: "300px",
-              backgroundSize: "cover",
-              margin: "0 auto",
-            }}
-          />
+          <ArtistImage $imageUrl={quizResults[2].artistImage} />
+
           <div style={{ margin: "20px 0" }}>
             <h1 style={{ marginBottom: "10px", fontSize: "1.25rem" }}>
               Your artist is <strong>{quizResults[2].artistName}.</strong>
@@ -448,15 +450,8 @@ export default function Quiz() {
       )}
       {showAnswer && sortable[0][0] === quizResults[3].result && (
         <QuizArea>
-          <div
-            style={{
-              backgroundImage: `url(${quizResults[3].artistImage})`,
-              width: "300px",
-              height: "300px",
-              backgroundSize: "cover",
-              margin: "0 auto",
-            }}
-          />
+          <ArtistImage $imageUrl={quizResults[3].artistImage} />
+
           <div style={{ margin: "20px 0" }}>
             <h1 style={{ marginBottom: "10px", fontSize: "1.25rem" }}>
               Your artist is <strong>{quizResults[3].artistName}.</strong>
@@ -486,15 +481,8 @@ export default function Quiz() {
       )}
       {showAnswer && sortable[0][0] === quizResults[4].result && (
         <QuizArea>
-          <div
-            style={{
-              backgroundImage: `url(${quizResults[4].artistImage})`,
-              width: "300px",
-              height: "300px",
-              backgroundSize: "cover",
-              margin: "0 auto",
-            }}
-          />
+          <ArtistImage $imageUrl={quizResults[4].artistImage} />
+
           <div style={{ margin: "20px 0" }}>
             <h1 style={{ marginBottom: "10px", fontSize: "1.25rem" }}>
               Your artist is <strong>{quizResults[4].artistName}.</strong>
@@ -524,15 +512,7 @@ export default function Quiz() {
       )}
       {showAnswer && sortable[0][0] === quizResults[5].result && (
         <QuizArea>
-          <div
-            style={{
-              backgroundImage: `url(${quizResults[5].artistImage})`,
-              width: "300px",
-              height: "300px",
-              backgroundSize: "cover",
-              margin: "0 auto",
-            }}
-          />
+          <ArtistImage $imageUrl={quizResults[5].artistImage} />
           <div style={{ margin: "20px 0" }}>
             <h1 style={{ marginBottom: "10px", fontSize: "1.25rem" }}>
               Your artist is <strong>{quizResults[5].artistName}.</strong>

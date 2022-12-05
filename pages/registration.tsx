@@ -26,9 +26,8 @@ const Heading = styled.h1`
 `;
 
 const Form = styled.form`
-  width: 90vw;
-  max-width: 450px;
-  min-width: 320px;
+  max-width: 90vw;
+  width: 450px;
 `;
 
 const FormControl = styled.input`
@@ -53,6 +52,7 @@ const Button = styled.button`
 const ReminderText = styled.div`
   cursor: pointer;
   text-align: center;
+  margin-bottom: 40px;
 `;
 
 export default function LoginPage() {
@@ -189,7 +189,7 @@ export default function LoginPage() {
                 id="username"
                 placeholder="Please enter your name"
                 required
-                onChange={(e: any) =>
+                onChange={(e) =>
                   setSignupData({
                     ...signupData,
                     username: e.target.value,
@@ -206,7 +206,7 @@ export default function LoginPage() {
                 id="email"
                 placeholder="name@mail.com"
                 required
-                onChange={(e: any) =>
+                onChange={(e) =>
                   setSignupData({
                     ...signupData,
                     email: e.target.value,
@@ -223,7 +223,7 @@ export default function LoginPage() {
                 id="password"
                 placeholder="••••••••"
                 required
-                onChange={(e: any) =>
+                onChange={(e) =>
                   setSignupData({
                     ...signupData,
                     password: e.target.value,

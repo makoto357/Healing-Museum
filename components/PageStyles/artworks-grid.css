@@ -10,6 +10,10 @@
   margin: auto;
 }
 
+.grid div {
+  background: #bbb6ac;
+}
+
 .grid div:nth-child(9) {
   grid-column: 1 / -1;
   grid-row: span 2;

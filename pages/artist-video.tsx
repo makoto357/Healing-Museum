@@ -41,6 +41,8 @@ export default function ArtistVideo() {
   const [videos, setVideos] = useState([]);
   const { user } = useAuth();
   const [artist, setArtist] = useState("");
+  console.log(artist?.split("-").slice(1, 2));
+
   const [playing, setPlaying] = useState(false);
   interface IVideo {
     id: string | undefined;
@@ -93,15 +95,19 @@ export default function ArtistVideo() {
       const REQUEST_URL = `https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=PLx8RujK7Fijbp0NHNGNhW8uyVL_sC26Hx&key=AIzaSyBzzO-nkGKBcmL4IQsVRZHXS6Nr-axv8Sw&maxResults=50`;
       const response = await fetch(REQUEST_URL);
       const results = await response.json();
-      console.log(results);
+      console.log(results?.items.map((item) => item?.title));
       setVideos(
         results?.items.filter((item) =>
-          item?.snippet.title.toLowerCase().includes(artist.split("-").slice(1))
+          item?.snippet.title
+            .toLowerCase()
+            .includes(artist?.split("-").slice(1, 2))
         )
       );
       setCurrentVideo(
         results?.items.filter((item) =>
-          item?.snippet.title.toLowerCase().includes(artist.split("-").slice(1))
+          item?.snippet.title
+            .toLowerCase()
+            .includes(artist.split("-").slice(1, 2))
         )[0]
       );
     };
