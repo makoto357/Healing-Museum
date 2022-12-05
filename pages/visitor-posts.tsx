@@ -3,6 +3,7 @@ import Masonry from "react-masonry-css";
 import React from "react";
 import { useState, useEffect, useRef } from "react";
 import SignpostButton from "../components/Button";
+import upArrow from "../asset/arrow-up.png";
 
 import {
   collection,
@@ -102,6 +103,7 @@ const CollectionButton = styled.div<{ $heart: string }>`
   width: 20px;
   height: 20px;
   background-size: cover;
+  margin-left: 5px;
 `;
 
 const CommentButton = styled.div<{ $showComment: string }>`
@@ -134,6 +136,77 @@ const SubmitButton = styled.button`
   color: white;
 `;
 
+const SortButtonGroup = styled.div`
+  display: flex;
+  justify-content: space-between;
+  /* margin-right: 90px; */
+  max-width: 1200px;
+  width: 80vw;
+  margin: auto;
+  /* @media screen and (max-width: 600px) {
+    flex-direction: column;
+    width: 90vw;
+  } */
+  @media screen and (max-width: 800px) {
+    flex-direction: column;
+  }
+`;
+const SortButton = styled.button<{ $textColor: string; $bgColor: string }>`
+  height: fit-content;
+  font-size: 1.25rem;
+  padding: 10px 20px;
+  width: fit-content;
+  border: 1px solid black;
+  margin: 50px 0 26px 0;
+  cursor: pointer;
+  color: ${(props) => props.$textColor};
+  background-color: ${(props) => props.$bgColor};
+  &:hover {
+    color: white;
+    background-color: #2c2b2c;
+  }
+  @media screen and (max-width: 800px) {
+    margin: 20px 0;
+  }
+`;
+
+const SortButtonSmScreen = styled.div`
+  @media screen and (max-width: 800px) {
+    display: flex;
+    margin: auto;
+  }
+`;
+const AllPosts = styled.div`
+  height: fit-content;
+  font-size: 1.5rem;
+  padding: 0px 20px;
+  width: fit-content;
+  margin: 50px 0 26px 0;
+  color: black;
+  @media screen and (max-width: 800px) {
+    margin: 20px auto 0 auto;
+  }
+`;
+const ToTop = styled.div`
+  position: fixed;
+  bottom: 60px;
+  right: 3vw;
+  text-align: center;
+  @media screen and (max-width: 800px) {
+    bottom: 24px;
+  }
+`;
+
+const BackToTop = styled.div`
+  cursor: pointer;
+
+  background-image: url(${upArrow.src});
+  width: 30px;
+  height: 30px;
+  background-size: cover;
+  margin: auto;
+`;
+
 const breakpointColumnsObj = {
   default: 4,
   1400: 3,
@@ -156,6 +229,7 @@ interface IComment {
 export default function VisitorPosts() {
   const [posts, setPosts] = useState([]);
   const [showComment, setShowComment] = useState(false);
+  const [sortPost, setSortPost] = useState(true);
   const [postComments, setPostComments] = useState<IComment>({
     id: undefined,
     comments,
@@ -171,7 +245,7 @@ export default function VisitorPosts() {
       setFavorite(docs[0].favoritePostsId);
     };
     getArtist();
-
+    console.log("get posts again?");
     const colRef = collection(db, "user-posts");
     const unSubscribe = onSnapshot(colRef, (snapshot) => {
       let posts = [];
@@ -180,7 +254,7 @@ export default function VisitorPosts() {
           ...doc.data(),
         });
       });
-      setPosts(posts);
+      setPosts(posts.sort(sortByArtist));
     });
     return () => {
       unSubscribe();
@@ -198,8 +272,14 @@ export default function VisitorPosts() {
         id: post.id,
       },
     ]);
+
+    const postRef = doc(db, "user-posts", post?.id);
+    await updateDoc(postRef, {
+      numberOfLikes: arrayUnion(user?.uid),
+    });
+
     const requestRef = doc(db, "users", user?.uid);
-    return await updateDoc(requestRef, {
+    await updateDoc(requestRef, {
       favoritePostsId: arrayUnion({
         postTime: post.date,
         title: post.title,
@@ -215,7 +295,7 @@ export default function VisitorPosts() {
     favorite?.splice(index, 1);
     setFavorite([...favorite]);
     const requestRef = doc(db, "users", user?.uid);
-    return await updateDoc(requestRef, {
+    await updateDoc(requestRef, {
       favoritePostsId: arrayRemove({
         postTime: post.date,
         title: post.title,
@@ -223,6 +303,11 @@ export default function VisitorPosts() {
         postBy: post.postMadeBy,
         id: post.id,
       }),
+    });
+
+    const postRef = doc(db, "user-posts", post?.id);
+    await updateDoc(postRef, {
+      numberOfLikes: arrayRemove(user?.uid),
     });
   };
 
@@ -257,11 +342,71 @@ export default function VisitorPosts() {
 
     commentRef.current.value = "";
   };
+
+  function sortByArtist(a, b) {
+    if (a.artistForThisVisit < b.artistForThisVisit) {
+      return -1;
+    }
+    if (a.artistForThisVisit > b.artistForThisVisit) {
+      return 1;
+    }
+    return 0;
+  }
+
+  function sortByDate(a, b) {
+    if (a.date < b.date) {
+      return -1;
+    }
+    if (a.date > b.date) {
+      return 1;
+    }
+    return 0;
+  }
+
   return (
     <div style={{ paddingTop: "40px" }}>
       <SignpostButton href="/user-profile">
         A thank you note at the end
       </SignpostButton>
+      <SortButtonGroup>
+        <AllPosts>Everything ( {posts.length} )</AllPosts>
+
+        <SortButtonSmScreen>
+          <SortButton
+            $textColor={sortPost ? "white" : "black"}
+            $bgColor={sortPost ? "#2c2b2c" : "transparent"}
+            onClick={() => {
+              setSortPost(true);
+              setPosts((prev) => [...posts.sort(sortByArtist)]);
+            }}
+          >
+            By Artists
+          </SortButton>
+          <SortButton
+            $textColor={!sortPost ? "white" : "black"}
+            $bgColor={!sortPost ? "#2c2b2c" : "transparent"}
+            onClick={() => {
+              setSortPost(false);
+              setPosts((prev) => [...posts.sort(sortByDate)]);
+            }}
+          >
+            By Date
+          </SortButton>
+        </SortButtonSmScreen>
+      </SortButtonGroup>
+      <ToTop
+        onClick={() => {
+          window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+        }}
+      >
+        <BackToTop />
+        <div style={{ cursor: "pointer" }}>
+          <strong>
+            To
+            <br /> Top
+          </strong>
+        </div>
+      </ToTop>
 
       <Masonry
         breakpointCols={breakpointColumnsObj}
@@ -311,21 +456,27 @@ export default function VisitorPosts() {
                   role="button"
                   onClick={() => handleShowComments(post)}
                 ></CommentButton>
-                <CollectionButton
-                  $heart={
-                    favorite?.map((f) => f.id).includes(post.id)
-                      ? `${filledHeart.src}`
-                      : `${unfilledHeart.src}`
-                  }
-                  role="button"
-                  onClick={() => {
-                    if (!favorite?.map((f) => f.id).includes(post.id))
-                      saveToFavorites(post);
-                    else if (favorite?.map((f) => f.id).includes(post.id)) {
-                      deleteFromFavorites(post);
+                <div style={{ display: "flex" }}>
+                  <p style={{ marginBottom: "2px" }}>
+                    {post.numberOfLikes?.length}
+                  </p>
+
+                  <CollectionButton
+                    $heart={
+                      favorite?.map((f) => f.id).includes(post.id)
+                        ? `${filledHeart.src}`
+                        : `${unfilledHeart.src}`
                     }
-                  }}
-                ></CollectionButton>
+                    role="button"
+                    onClick={() => {
+                      if (!favorite?.map((f) => f.id).includes(post.id))
+                        saveToFavorites(post);
+                      else if (favorite?.map((f) => f.id).includes(post.id)) {
+                        deleteFromFavorites(post);
+                      }
+                    }}
+                  />
+                </div>
               </ButtonGroup>
             </Post>
             {showComment && postComments?.id === post?.id && (
@@ -339,7 +490,9 @@ export default function VisitorPosts() {
 
                 <SubmitButton
                   onClick={() => {
-                    handleComment(post);
+                    if (commentRef.current.value.trim() !== "") {
+                      handleComment(post);
+                    }
                   }}
                 >
                   Submit
