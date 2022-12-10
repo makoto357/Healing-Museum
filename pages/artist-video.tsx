@@ -1,22 +1,21 @@
 import styled from "@emotion/styled";
 import { useState, useEffect } from "react";
-import SignpostButton from "../components/Button";
-import { YoutubeVideoPlayer } from "../components/youtubePlayer";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "../config/firebase";
-import { useAuth } from "../context/AuthContext";
 import { Navigation, Pagination, Scrollbar, A11y } from "swiper";
 import { Swiper, SwiperSlide } from "swiper/react";
-import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/effect-fade";
-import "swiper/css/pagination";
-import "swiper/css/scrollbar";
 
 import { ToastContainer, toast } from "react-toastify";
+import { useAuth } from "../context/AuthContext";
+import { db } from "../config/firebase";
+import { YoutubeVideoPlayer } from "../components/YoutubePlayer";
+import SignpostButton from "../components/Button";
 import "react-toastify/dist/ReactToastify.css";
+const Wrapper = styled.div`
+  height: 85%;
+  padding-top: 10px;
+`;
 
 const YoutubeVideoWrapper = styled.div`
   width: 50vw;
@@ -35,7 +34,10 @@ const SwiperWrapper = styled.section`
     margin: 0 auto;
   }
 `;
-
+const SildeImage = styled.div`
+  cursor: pointer;
+  font-size: 0.5rem;
+`;
 export default function ArtistVideo() {
   const router = useRouter();
   const [videos, setVideos] = useState([]);
@@ -121,7 +123,7 @@ export default function ArtistVideo() {
   }, [user, artist, router]);
 
   return (
-    <section style={{ height: "85%", paddingTop: "10px" }}>
+    <Wrapper>
       <ToastContainer
         position="top-center"
         autoClose={false}
@@ -133,6 +135,7 @@ export default function ArtistVideo() {
         draggable
         pauseOnHover
         theme="light"
+        limit={1}
       />
 
       <YoutubeVideoWrapper>
@@ -176,7 +179,7 @@ export default function ArtistVideo() {
           {videos &&
             videos.map((video) => (
               <SwiperSlide key={video.id}>
-                <div
+                <SildeImage
                   role="button"
                   onClick={() => {
                     setCurrentVideo(video);
@@ -184,7 +187,6 @@ export default function ArtistVideo() {
                   }}
                 >
                   <Image
-                    style={{ cursor: "pointer" }}
                     src={
                       video.snippet.thumbnails.maxres?.url ||
                       video.snippet.thumbnails.medium?.url
@@ -193,15 +195,16 @@ export default function ArtistVideo() {
                     height={720}
                     alt={video.snippet.title}
                   />
-                  <h1 style={{ fontSize: "0.5rem" }}>
+
+                  <h1>
                     <strong>{video.snippet.title}</strong>
                   </h1>
-                </div>
+                </SildeImage>
               </SwiperSlide>
             ))}
         </Swiper>
       </SwiperWrapper>
       <SignpostButton href="/form">Express your feelings</SignpostButton>
-    </section>
+    </Wrapper>
   );
 }

@@ -1,11 +1,26 @@
 import ReactPlayer from "react-player";
-import { Box } from "@chakra-ui/react";
+import styled from "@emotion/styled";
 
+const Wrapper = styled.div`
+  .player-wrapper {
+    width: auto;
+    height: auto;
+  }
+  .react-player {
+    padding-top: 56.25%;
+    position: relative;
+  }
+
+  .react-player > div {
+    position: absolute;
+    top: 24px;
+  }
+`;
 export function YoutubeVideoPlayer(props) {
   const { id, playing } = props;
   const url = `https://www.youtube.com/watch?v=${id}`;
   return (
-    <Box className="player-wrapper">
+    <Wrapper className="player-wrapper">
       <ReactPlayer
         className="react-player"
         url={url}
@@ -19,6 +34,6 @@ export function YoutubeVideoPlayer(props) {
         }}
         controls={true}
       />
-    </Box>
+    </Wrapper>
   );
 }

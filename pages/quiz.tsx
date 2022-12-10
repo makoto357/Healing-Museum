@@ -1,9 +1,8 @@
 import styled from "@emotion/styled";
 import { useRouter } from "next/router";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Timestamp, doc, updateDoc, arrayUnion } from "firebase/firestore";
 import { db } from "../config/firebase";
-import { getStorage, ref, getDownloadURL, listAll } from "firebase/storage";
 import { useAuth } from "../context/AuthContext";
 import quiz from "../public/artist-info/quiz.json";
 import frida from "../asset/frida.jpg";
@@ -17,6 +16,7 @@ const QuizArea = styled.section`
   width: 40vw;
   margin: 0 auto;
   padding: 40px 0 0;
+
   @media screen and (max-width: 800px) {
     width: 80vw;
   }
@@ -42,11 +42,6 @@ const QuestionButton = styled.div<{
   opacity: ${(props) => props.$opacity};
   color: ${(props) => props.$color};
 
-  /* &:hover {
-    background: #2c2b2c;
-    opacity: 0.5;
-    color: white;
-  } */
   &:active {
     background: white;
     border-left: 10px solid black;
@@ -80,7 +75,7 @@ const HalfButton = styled.button`
   height: fit-content;
   font-size: 1.25rem;
   padding: 15px;
-  width: 48%;
+  width: 100%;
   color: white;
   background-color: #2c2b2c;
   cursor: pointer;
@@ -96,11 +91,6 @@ const AudioOption = styled.div`
   margin: auto 20px auto 0px;
   padding: 15px;
   background: white;
-  /* &:hover {
-    background: #2c2b2c;
-    opacity: 0.5;
-    color: white;
-  } */
   &:active {
     background: white;
     border-left: 10px solid black;
@@ -122,12 +112,9 @@ export default function Quiz() {
   const [currentQuestion, setCurrentQuestion] = useState(1);
   const subtractToIndex = 1;
   const toNextQuestion = 1;
-  const [seletedOption, setSeletedOption] = useState(null);
   const [showAnswer, setShowAnswer] = useState(false);
   const [points, setPoints] = useState([]);
   const { user } = useAuth();
-  // const [audios, setAudios] = useState([]);
-  // const audioInput = useRef(null);
 
   const count = {};
 
@@ -140,8 +127,8 @@ export default function Quiz() {
   });
 
   let sortable = [];
-  for (var vehicle in count) {
-    sortable.push([vehicle, count[vehicle]]);
+  for (var artist in count) {
+    sortable.push([artist, count[artist]]);
   }
 
   sortable.sort(function (a, b) {
@@ -201,7 +188,7 @@ export default function Quiz() {
   ];
   const handleTestResult = async (artist) => {
     const getRecommendation = (artist) => {
-      return new Promise((resolve) => {
+      return new Promise(() => {
         const requestRef = doc(db, "users", user?.uid);
         updateDoc(requestRef, {
           visitorJourney: arrayUnion({
@@ -224,32 +211,6 @@ export default function Quiz() {
     setPoints(points.concat(answerOption.points));
   };
 
-  // result = getResult(sortable)
-  // <QuizReult result={result} />
-  // useEffect(() => {
-  //   const storage = getStorage();
-  //   const listRef = ref(storage, "quiz-sound-files");
-  //   const paths = [];
-  //   listAll(listRef)
-  //     .then((res) => {
-  //       res.items.forEach((itemRef) => {
-  //         paths.push(itemRef.fullPath);
-  //       });
-  //       getUrls(paths);
-  //     })
-  //     .catch((error) => {});
-  //   const getUrls = async (paths) => {
-  //     const audioUrls = [];
-  //     paths.map((path) => {
-  //       getDownloadURL(ref(storage, path))
-  //         .then((url) => {
-  //           audioUrls.push(url);
-  //           setAudios(audioUrls);
-  //         })
-  //         .catch((error) => {});
-  //     });
-  //   };
-  // }, []);
   return (
     <div>
       {!gameStarted && (
@@ -257,7 +218,7 @@ export default function Quiz() {
           <Question>
             <strong>Take a test to see which artist you might like!</strong>
           </Question>
-          <ul>
+          <ul style={{ listStyle: "none" }}>
             <li style={{ marginBottom: "10px" }}>
               Welcome! How are you feeling?
             </li>
@@ -319,28 +280,15 @@ export default function Quiz() {
                           controls
                         />
                       </div>
-
-                      {/* <button onClick={() => audioInput.current.play()}>
-                        play
-                      </button>
-                      <button onClick={() => audioInput.current.pause()}>
-                        pause
-                      </button> */}
                     </>
                   ) : (
                     <QuestionButton
-                      onMouseEnter={() => setSeletedOption(index)}
-                      onMouseLeave={() => setSeletedOption(null)}
                       $bgColor={"white"}
-                      // seletedOption ? "white" : "#2c2b2c"
                       $opacity={"1"}
-                      // seletedOption ? "1" : "0.5"
                       $color={""}
-                      // seletedOption ? "black" : "white"
                       key={index}
                       onClick={() => handleQuizAnswers(answerOption)}
                     >
-                      {/* <img src={answerOption.answerImage} /> */}
                       <p>
                         <strong>{answerOption.answerText}</strong>
                       </p>
@@ -366,16 +314,6 @@ export default function Quiz() {
             <p>{quizResults[0].artistIntro}</p>
           </div>
           <ButtonGroup>
-            {/* <HalfButton
-              onClick={() => {
-                setGameStarted(false);
-                setPoints([]);
-                setShowAnswer(false);
-                setCurrentQuestion(1);
-              }}
-            >
-              Play again
-            </HalfButton> */}
             <Button
               onClick={() => {
                 handleTestResult(quizResults[0].artistUrl);
@@ -430,16 +368,6 @@ export default function Quiz() {
           <ButtonGroup>
             <HalfButton
               onClick={() => {
-                setGameStarted(false);
-                setPoints([]);
-                setShowAnswer(false);
-                setCurrentQuestion(1);
-              }}
-            >
-              Play again
-            </HalfButton>
-            <HalfButton
-              onClick={() => {
                 handleTestResult(quizResults[2].artistUrl);
               }}
             >
@@ -459,16 +387,6 @@ export default function Quiz() {
             <p>{quizResults[3].artistIntro}</p>
           </div>
           <ButtonGroup>
-            <HalfButton
-              onClick={() => {
-                setGameStarted(false);
-                setPoints([]);
-                setShowAnswer(false);
-                setCurrentQuestion(1);
-              }}
-            >
-              Play again
-            </HalfButton>
             <HalfButton
               onClick={() => {
                 handleTestResult(quizResults[3].artistUrl);
@@ -492,16 +410,6 @@ export default function Quiz() {
           <ButtonGroup>
             <HalfButton
               onClick={() => {
-                setGameStarted(false);
-                setPoints([]);
-                setShowAnswer(false);
-                setCurrentQuestion(1);
-              }}
-            >
-              Play again
-            </HalfButton>
-            <HalfButton
-              onClick={() => {
                 handleTestResult(quizResults[4].artistUrl);
               }}
             >
@@ -520,16 +428,6 @@ export default function Quiz() {
             <p>{quizResults[5].artistIntro}</p>
           </div>
           <ButtonGroup>
-            <HalfButton
-              onClick={() => {
-                setGameStarted(false);
-                setPoints([]);
-                setShowAnswer(false);
-                setCurrentQuestion(1);
-              }}
-            >
-              Play again
-            </HalfButton>
             <HalfButton
               onClick={() => {
                 handleTestResult(quizResults[5].artistUrl);

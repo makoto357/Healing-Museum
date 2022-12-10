@@ -1,7 +1,6 @@
 import styled from "@emotion/styled";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { Box, Flex, Input, SkeletonText } from "@chakra-ui/react";
 import {
   useJsApiLoader,
   GoogleMap,
@@ -9,14 +8,15 @@ import {
   InfoWindow,
   MarkerClusterer,
 } from "@react-google-maps/api";
-import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
-import { db } from "../config/firebase";
-import { useState, useMemo, useEffect, useCallback, useRef } from "react";
-import { useAuth } from "../context/AuthContext";
 
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import selectImage from "../asset/hand.png";
+
+import { db } from "../config/firebase";
+import { useAuth } from "../context/AuthContext";
 import image from "../asset/image.png";
 import museumMarker from "../asset/new-marker.png";
 import wheel from "../asset/purple-circle.png";
@@ -26,7 +26,7 @@ const MapWrapper = styled.div`
   display: flex;
   height: 100%;
   width: 100%;
-  @media screen and (max-width: 650px) {
+  @media screen and (max-width: 800px) {
     flex-direction: column;
   }
 `;
@@ -36,27 +36,45 @@ const CardWrapper = styled.div`
   height: 70vh;
   text-align: left;
   overflow-y: scroll;
-  @media screen and (max-width: 650px) {
+  @media screen and (max-width: 800px) {
     display: none;
   }
 `;
 
-const InstructionText = styled.div`
-  padding: 15px;
+const InstructionTextWrapper = styled.div`
+  padding: 20px;
   border: solid 1px #a3a3a3;
   background: white;
   color: black;
   height: fit-content;
   font-weight: 500;
-  @media screen and (max-width: 650px) {
+  @media screen and (max-width: 800px) {
     display: initial;
   }
 `;
 
-const InstructionTextSmallScreen = styled.div`
-  display: none;
+const InstructionTextHeading = styled.h1``;
+const ClustererIconWrapper = styled.div`
+  display: flex;
+  width: 85%;
+  font-size: 0.75rem;
+`;
+const ClustererIcon = styled.div`
+  height: 30px;
+  width: 30px;
+  background-image: url(${wheel.src});
+  background-size: cover;
+`;
+const ClustererIconCaption = styled.div`
+  width: 85%;
+  margin-left: 5px;
+`;
 
-  @media screen and (max-width: 650px) {
+const InstructionTextSmallScreenWrapper = styled.div`
+  display: none;
+  .p {
+  }
+  @media screen and (max-width: 800px) {
     padding: 5px 15px 15px 15px;
     border: solid 1px #a3a3a3;
     background: white;
@@ -87,7 +105,24 @@ const ImageIcon = styled.div`
   background-size: cover;
 `;
 
-const ArtworkWrapper = styled.div<{
+const InstructionTextContent = styled.p`
+  width: 85%;
+  margin-left: 5px;
+`;
+
+const AlertMessageWrapper = styled.div``;
+const AlertMessage = styled.p``;
+const AlertButtonWrapper = styled.div`
+  width: 100%;
+`;
+const AlertButton = styled.button`
+  margin-top: 5px;
+  padding: 3px 10px;
+  background: black;
+  color: white;
+`;
+
+const ArtworkCardWrapper = styled.div<{
   $cardBackground: string;
   $cardHeight: string;
 }>`
@@ -96,7 +131,7 @@ const ArtworkWrapper = styled.div<{
   height: ${(props) => props.$cardHeight};
   border: solid 1px white;
   border-top: none;
-  padding: 10px 15px;
+  padding: 10px 20px;
   overflow-y: hidden;
   &:hover {
     background: white;
@@ -104,7 +139,7 @@ const ArtworkWrapper = styled.div<{
   }
 `;
 
-const ArtworkInfo = styled.div`
+const ArtworkInfoWrapper = styled.div`
   display: flex;
   min-height: 100px;
 `;
@@ -112,67 +147,147 @@ const ArtworkInfo = styled.div`
 const ArtworkTitle = styled.p`
   padding: 12px 0;
 `;
-const ClustererIcon = styled.div`
-  height: 30px;
-  width: 30px;
-  background-image: url(${wheel.src});
-  background-size: cover;
+const ArtistLocationsIntro = styled.p`
+  width: 96vw;
+  margin: auto;
+  text-align: left;
+  padding-bottom: 20px;
+`;
+const ArtworkPrimaryInfo = styled.div`
+  display: flex;
+`;
+const ArtworkImage = styled.img`
+  height: 100px;
+  margin: 20px 0 10px;
 `;
 
-function InstructionTextContent() {
+const CollectionLocation = styled.p`
+  font-size: 0.75rem;
+  padding-top: 5px;
+`;
+const MarkerIcon = styled.div`
+  width: 40px;
+  height: 40px;
+  background-image: url(${museumMarker.src});
+  background-size: cover;
+  margin-right: 10px;
+`;
+const ArtworkCardTitle = styled.div`
+  width: 165px;
+`;
+
+const ArtworkLink = styled.div`
+  cursor: pointer;
+  color: #275fcf;
+  padding-top: 10px;
+`;
+
+const MapContentWrapper = styled.div`
+  position: relative;
+  flex-direction: column;
+  margin: auto;
+  height: 70vh;
+  width: 100%;
+  .gm-style .gm-style-iw-c {
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+    height: auto !important;
+    min-height: 100px !important;
+    width: 350px !important;
+    min-width: 350px !important;
+    box-sizing: border-box;
+    top: 5px;
+    left: 0;
+    background-color: white;
+    border-radius: 0px;
+    box-shadow: 0 2px 7px 1px rgba(0, 0, 0, 0.3);
+  }
+
+  .gm-style-iw-d {
+    overflow: hidden !important;
+  }
+`;
+
+const MapContent = styled.div`
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 100%;
+`;
+
+const InfoWindowImage = styled.div<{ $bgImage: string }>`
+  background-image: url(${(props) => props.$bgImage});
+  width: 100px;
+  background-size: cover;
+  height: 100%;
+`;
+const ArtworkInfo = styled.div`
+  margin: 0 12px 5px;
+`;
+const InputWrapper = styled.div`
+  display: none;
+`;
+const ArtworkLocation = styled.div`
+  text-align: left;
+`;
+
+function InstructionText() {
   return (
-    <InstructionText>
-      <h1>
+    <InstructionTextWrapper>
+      <InstructionTextHeading>
         <strong>
           Hover and tap on the boxes below, or markers on the map{" "}
         </strong>
         to explore details about highlighted artworks.
-      </h1>
+      </InstructionTextHeading>
       <br />
 
-      <div style={{ display: "flex", width: "85%", fontSize: "0.75rem" }}>
+      <ClustererIconWrapper>
         <ClustererIcon />
-        <p style={{ width: "85%", marginLeft: "5px" }}>
+        <ClustererIconCaption>
           <strong>
             The purple circle means the area has multiple artworks to be
             explored.
           </strong>
-        </p>
-      </div>
-    </InstructionText>
+        </ClustererIconCaption>
+      </ClustererIconWrapper>
+    </InstructionTextWrapper>
   );
 }
 
-function InstructionTextContentSmallScreen() {
+function InstructionTextSmallScreen() {
   return (
-    <InstructionTextSmallScreen>
+    <InstructionTextSmallScreenWrapper>
       <IconWrapper>
         <SelectIcon />
 
-        <p style={{ width: "85%", marginLeft: "5px" }}>
+        <InstructionTextContent>
           <strong>Step 1: Click on map markers </strong>
           to explore details about highlighted artworks.
-        </p>
+        </InstructionTextContent>
       </IconWrapper>
 
       <IconWrapper>
         <ImageIcon />
-
-        <p style={{ width: "85%", marginLeft: "5px" }}>
+        <InstructionTextContent>
           <strong>Step 2: Click on artwork images </strong>to go to the next
           gallery.
-        </p>
+        </InstructionTextContent>
       </IconWrapper>
       <IconWrapper>
         <ClustererIcon />
-        <p style={{ width: "85%", marginLeft: "5px" }}>
+        <InstructionTextContent>
           The purple circle means the area has multiple artworks to be explored.
-        </p>
+        </InstructionTextContent>
       </IconWrapper>
-    </InstructionTextSmallScreen>
+    </InstructionTextSmallScreenWrapper>
   );
 }
 
+// eslint-disable-next-line no-unused-vars
 const google = window.google;
 const Libraries: (
   | "places"
@@ -200,6 +315,7 @@ export default function GoogleMaps() {
     geometry: null,
     id: undefined,
   });
+  console.log("image", selectedMarker.image);
   const [galleries, setGalleries] = useState([]) as any[];
   const [artist, setArtist] = useState("");
   const ref = useRef(null);
@@ -213,7 +329,7 @@ export default function GoogleMaps() {
   });
   const center = useMemo(
     () =>
-      artist == "frida-kahlo" || "dorothea-tanning || "
+      artist == "frida-kahlo" || "dorothea-tanning || edward-hopper "
         ? { lat: 30.2845084110191, lng: -97.74119954552144 }
         : { lat: 52.35836306220029, lng: 4.881396717020184 },
     [artist]
@@ -237,23 +353,17 @@ export default function GoogleMaps() {
         docs[0].visitorJourney?.[docs[0]?.visitorJourney?.length - 1]
           ?.recommendedArtist;
       if (!ArtistIndex) {
-        toast(({ closeToast, toastProps }) => (
-          <div>
-            <p>Take the art quiz to get your artist recommendation!</p>
-            <div style={{ width: "100%" }}>
-              <button
-                style={{
-                  marginTop: "5px",
-                  padding: "3px 10px",
-                  background: "black",
-                  color: "white",
-                }}
-                onClick={() => router.push("/quiz")}
-              >
+        toast(() => (
+          <AlertMessageWrapper>
+            <AlertMessage>
+              Take the art quiz to get your artist recommendation!
+            </AlertMessage>
+            <AlertButtonWrapper>
+              <AlertButton onClick={() => router.push("/quiz")}>
                 Take a quiz
-              </button>
-            </div>
-          </div>
+              </AlertButton>
+            </AlertButtonWrapper>
+          </AlertMessageWrapper>
         ));
 
         return;
@@ -264,7 +374,7 @@ export default function GoogleMaps() {
     if (user) {
       getArtist();
     }
-  }, [selectedMarker, user]);
+  }, [user]);
 
   const getArtworks = async (artist) => {
     const q = query(
@@ -280,10 +390,11 @@ export default function GoogleMaps() {
   const getGallery = (gallery) => {
     destiantionRef.current.value = gallery;
     setSelectedMarker(gallery);
+    console.log("gallery", gallery);
   };
 
   if (!isLoaded) {
-    return <SkeletonText />;
+    return;
   }
 
   return (
@@ -299,28 +410,22 @@ export default function GoogleMaps() {
         draggable
         pauseOnHover
         theme="light"
+        limit={1}
       />
 
-      <p
-        style={{
-          width: "96vw",
-          margin: "auto",
-          textAlign: "left",
-          paddingBottom: "20px",
-        }}
-      >
+      <ArtistLocationsIntro>
         {
           artistLocation?.filter(
             (location) => location?.artistUrl === artist
           )[0]?.artistLocation
         }
-      </p>
+      </ArtistLocationsIntro>
       <MapWrapper>
-        <InstructionTextContentSmallScreen />
+        <InstructionTextSmallScreen />
         <CardWrapper>
-          <InstructionTextContent />
+          <InstructionText />
           {galleries.map((gallery) => (
-            <ArtworkWrapper
+            <ArtworkCardWrapper
               key={gallery.id}
               ref={ref}
               $cardBackground={
@@ -333,30 +438,17 @@ export default function GoogleMaps() {
                 getGallery(gallery);
               }}
             >
-              <div style={{ display: "flex" }}>
-                <div
-                  style={{
-                    width: "40px",
-                    height: "40px",
-                    backgroundImage: `url(${museumMarker.src})`,
-                    backgroundSize: "cover",
-                    marginRight: "10px",
-                  }}
-                />
-                <p style={{ width: "165px" }}>
+              <ArtworkPrimaryInfo>
+                <MarkerIcon />
+                <ArtworkCardTitle>
                   <strong>
                     <i>{gallery.title},</i>{" "}
                   </strong>
                   {gallery.completitionYear}
-                </p>
-              </div>
-              <img
-                style={{
-                  height: "100px",
-                  margin: "20px 0 10px",
-                }}
-                src={`${gallery.image}`}
-              />
+                </ArtworkCardTitle>
+              </ArtworkPrimaryInfo>
+
+              <ArtworkImage src={`${gallery.image}`} />
               <p>
                 {gallery?.media?.map((medium, index) => (
                   <span key={index}>{medium} </span>
@@ -365,31 +457,21 @@ export default function GoogleMaps() {
               <p>
                 {gallery.sizeX} X {gallery.sizeY} cm
               </p>
-              <p
-                style={{
-                  fontSize: "0.75rem",
-                  paddingTop: "5px",
-                }}
-              >
+
+              <CollectionLocation>
                 Collection of the {gallery.galleries}
-              </p>
-              <div
-                style={{ cursor: "pointer", color: "blue", paddingTop: "10px" }}
+              </CollectionLocation>
+              <ArtworkLink
                 onClick={() => router.push(`/collection-maps/${gallery.id}`)}
               >
                 See artwork details
-              </div>
-            </ArtworkWrapper>
+              </ArtworkLink>
+            </ArtworkCardWrapper>
           ))}
         </CardWrapper>
-        <Flex
-          position="relative"
-          flexDirection="column"
-          margin="auto"
-          h="70vh"
-          w="100%"
-        >
-          <Box position="absolute" left={0} top={0} h="100%" w="100%">
+
+        <MapContentWrapper>
+          <MapContent>
             <GoogleMap
               center={center}
               zoom={4}
@@ -420,7 +502,6 @@ export default function GoogleMaps() {
                       icon={{
                         url: `${museumMarker.src}`,
                       }}
-                      cursor="pointer"
                       clusterer={clusterer}
                     />
                   ))
@@ -445,39 +526,32 @@ export default function GoogleMaps() {
                   }}
                   position={selectedMarker.geometry}
                 >
-                  <ArtworkInfo>
+                  <ArtworkInfoWrapper>
                     <Link href={`/collection-maps/${selectedMarker.id}`}>
-                      <div
-                        style={{
-                          backgroundImage: `url(${selectedMarker.image})`,
-                          width: "100px",
-                          backgroundSize: "cover",
-                          height: "100%",
-                        }}
-                      ></div>
+                      <InfoWindowImage $bgImage={selectedMarker.image} />
                     </Link>
                     <Link href={`/collection-maps/${selectedMarker.id}`}>
-                      <div style={{ margin: "0 12px 5px" }}>
+                      <ArtworkInfo>
                         <ArtworkTitle>
                           <strong>
                             <i>{selectedMarker.title}, </i>
                           </strong>
                           {selectedMarker.completitionYear}
                         </ArtworkTitle>
-                        <p style={{ textAlign: "left" }}>
+                        <ArtworkLocation>
                           {selectedMarker.galleries}
-                        </p>
-                      </div>
+                        </ArtworkLocation>
+                      </ArtworkInfo>
                     </Link>
-                  </ArtworkInfo>
+                  </ArtworkInfoWrapper>
                 </InfoWindow>
               )}
             </GoogleMap>
-          </Box>
-          <div style={{ display: "none" }}>
-            <Input type="text" ref={destiantionRef} />
-          </div>
-        </Flex>
+          </MapContent>
+          <InputWrapper>
+            <input type="text" ref={destiantionRef} />
+          </InputWrapper>
+        </MapContentWrapper>
       </MapWrapper>
     </>
   );

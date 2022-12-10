@@ -89,7 +89,7 @@ export default function ThemeColor() {
           ></ColorOption>
         ))}
       </ColorPicker>
-      <SignpostButton href="/quiz">Go with this color</SignpostButton>
+      <SignpostButton href="/drawing-board">Go with this color</SignpostButton>
     </Wrapper>
   );
 }

@@ -1,17 +1,17 @@
+/* eslint-disable import/no-unresolved */
 import { Global, css } from "@emotion/react";
 import { ChakraProvider } from "@chakra-ui/react";
-import type { AppProps } from "next/app";
 import Head from "next/head";
+import { appWithTranslation } from "next-i18next";
 import Layout from "../components/Layout";
 import { AuthContextProvider } from "../context/AuthContext";
 import { ThemeColorContextProvider } from "../context/ColorContext";
-import { appWithTranslation } from "next-i18next";
-import "../components/PageStyles/visitor-posts.css";
-import "../components/PageStyles/signpost-arrow.css";
-import "../components/PageStyles/artworks-grid.css";
-import "../components/PageStyles/collection-maps.css";
-import "../components/PageStyles/artist-video.css";
-import "../components/PageStyles/miscellany.css";
+import type { AppProps } from "next/app";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/effect-fade";
+import "swiper/css/pagination";
+import "swiper/css/scrollbar";
 
 const GlobalStyles = css`
   * {
@@ -30,7 +30,7 @@ const GlobalStyles = css`
     font-size: 1rem;
     background-color: #eeece5;
     color: #000000;
-    font-weight: 400;
+    font-weight: 500;
     text-align: justify;
   }
   a {
@@ -58,6 +58,22 @@ const GlobalStyles = css`
   ::selection {
     color: white;
     background: black;
+  }
+
+  /* Toastify Style */
+  .Toastify__toast {
+    border-radius: 0 !important;
+    font-family: "Source Sans Pro", sans-serif !important;
+    color: black !important;
+  }
+  .Toastify__progress-bar {
+    background: rgba(0, 0, 0, 0.3) !important;
+  }
+
+  /* Swiper.js Button Style */
+  .swiper-button-next,
+  .swiper-button-prev {
+    color: #bbb6ac !important;
   }
 `;
 

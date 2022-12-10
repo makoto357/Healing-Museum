@@ -7,6 +7,23 @@ const CollectionWrapper = styled.div`
     flex-direction: column;
   }
 `;
+
+const DroppableWrapper = styled.div`
+  border: 1px solid black;
+  height: 180px;
+  padding: 13px;
+  width: 80vw;
+  margin-left: 5vw;
+`;
+
+const TextWrapper = styled.div`
+  height: 150px;
+  width: 150px;
+  overflow: hidden;
+  display: flex;
+  position: relative;
+`;
+
 const TextScreen = styled.div<{ $displayText: string }>`
   background: black;
   height: 100%;
@@ -19,7 +36,15 @@ const TextScreen = styled.div<{ $displayText: string }>`
   display: ${(props) => props.$displayText};
   z-index: 10;
   overflow-y: scroll;
+  overflow-x: hidden;
   white-space: normal;
+`;
+
+const ArtworkImage = styled.img`
+  height: auto;
+  min-height: 150px;
+  min-width: 150px;
+  z-index: -1;
 `;
 const PostWrapper = styled.div`
   padding: 5px 10px;
@@ -57,6 +82,13 @@ const DragButton = styled.div`
     margin-right: 10px;
   }
 `;
+
+const TextScreenContent = styled.p`
+  margin-top: auto;
+`;
+const InstructionText = styled.div`
+  text-align: left;
+`;
 const getListStyle = (isDraggingOver) => ({
   whiteSpace: "nowrap",
   overflow: "scroll",
@@ -69,7 +101,6 @@ const getItemStyle = (isDragging, draggableStyle) => ({
   display: "inline-block",
   overflow: "scroll",
   margin: `0 20px 0 0`,
-
   ...draggableStyle,
 });
 
@@ -82,23 +113,13 @@ export default function CollectionColumn({
 }) {
   return (
     <CollectionWrapper>
-      <div
-        style={{
-          border: "1px solid black",
-          height: "180px",
-
-          padding: "13px",
-          width: "80vw",
-          marginLeft: "5vw",
-        }}
-      >
+      <DroppableWrapper>
         <Droppable direction="horizontal" droppableId="drop-id">
           {(droppableProvided, droppableSnapshot) => (
             <div
               {...droppableProvided.droppableProps}
               ref={droppableProvided.innerRef}
               style={getListStyle(droppableSnapshot.isDraggingOver)}
-              //flex here
             >
               {showFavoriteArtworks &&
                 artwork.map((artwork, index) => {
@@ -108,10 +129,7 @@ export default function CollectionColumn({
                       index={index}
                       key={artwork.id}
                     >
-                      {(
-                        provided,
-                        snapshot ///change var names
-                      ) => (
+                      {(provided, snapshot) => (
                         <div
                           ref={provided.innerRef}
                           {...provided.draggableProps}
@@ -121,44 +139,28 @@ export default function CollectionColumn({
                             provided.draggableProps.style
                           )}
                         >
-                          {/* independent div */}
-                          <div
+                          <TextWrapper
                             onMouseEnter={() => setShowText(artwork.id)}
                             onMouseLeave={() => setShowText(null)}
-                            style={{
-                              height: "150px",
-                              width: "150px",
-                              overflow: "hidden",
-                              display: "flex",
-                              position: "relative",
-                            }}
                           >
                             <TextScreen
                               $displayText={
                                 showText == artwork.id ? "initial" : "none"
                               }
                             >
-                              <p style={{ marginTop: "auto" }}>
+                              <TextScreenContent>
                                 {artwork.artistName}
                                 <br />
                                 <i>
                                   <strong>{artwork.title},</strong>
                                 </i>{" "}
                                 {artwork.year}
-                              </p>
+                              </TextScreenContent>
                             </TextScreen>
                             <div>
-                              <img
-                                style={{
-                                  height: "auto",
-                                  minHeight: "150px",
-                                  minWidth: "150px",
-                                  zIndex: "-1",
-                                }}
-                                src={artwork.image}
-                              />
+                              <ArtworkImage src={artwork.image} />
                             </div>
-                          </div>
+                          </TextWrapper>
                         </div>
                       )}
                     </Draggable>
@@ -209,14 +211,15 @@ export default function CollectionColumn({
             </div>
           )}
         </Droppable>
-      </div>
+      </DroppableWrapper>
       <DragInstruction>
         <DragButton />
-        <div style={{ textAlign: "left" }}>
+
+        <InstructionText>
           <strong>1. Scroll to see collections</strong>
           <br />
           <strong>2. Drag to adjust order</strong>
-        </div>
+        </InstructionText>
       </DragInstruction>
     </CollectionWrapper>
   );

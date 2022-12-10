@@ -9,18 +9,23 @@ import {
   doc,
   updateDoc,
 } from "firebase/firestore";
+import { ToastContainer, toast } from "react-toastify";
+import { useRouter } from "next/router";
+import { DragDropContext } from "react-beautiful-dnd";
 import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
 import visitorJourney from "../public/artist-info/visitorJourney.json";
-import { useRouter } from "next/router";
-import { DragDropContext } from "react-beautiful-dnd";
 import CollectionColumn from "../components/DragNDrop";
-import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+const Wrapper = styled.div`
+  padding-top: 15px;
+`;
 const Opening = styled.h1`
   font-size: 1.25rem;
   text-align: left;
+`;
+const FavoriteButton = styled.div`
+  display: flex;
 `;
 
 const TextWrapper = styled.div`
@@ -47,11 +52,13 @@ const ArtworkWrapper = styled.div`
   }
 `;
 
-const ArtworkImage = styled.div`
+const ArtworkImage = styled.div<{ $bgImage: string }>`
   width: 50vw;
   background-size: cover;
   background-position: center;
   border-right: 1px solid black;
+  background-image: url(${(props) => props.$bgImage});
+
   @media screen and (max-width: 950px) {
     height: 50vh;
     width: 100vw;
@@ -149,16 +156,7 @@ export default function UserProfile() {
       Math.floor(Math.random() * visitorJourney[0].quotes?.length)
     ]
   );
-  console.log(artwork);
-  console.log(favoritePosts);
   useEffect(() => {
-    const exitingFunction = () => {
-      console.log(favoritePosts);
-      console.log(artwork);
-      console.log("exiting...");
-    };
-    router.events.on("routeChangeStart", exitingFunction);
-
     const getProfile = async () => {
       const q = query(collection(db, "users"), where("id", "==", user?.uid));
       const querySnapshot = await getDocs(q);
@@ -185,11 +183,6 @@ export default function UserProfile() {
     };
 
     getProfile();
-
-    return () => {
-      console.log("unmounting component...");
-      router.events.off("routeChangeStart", exitingFunction);
-    };
   }, [user?.uid]);
 
   const reorderArtworks = (destination, source) => {
@@ -224,6 +217,7 @@ export default function UserProfile() {
   };
 
   const updateOrder = async () => {
+    if (favoritePosts.length === 0 && artwork.length === 0) return;
     notify("Successfully saved the current progress!");
     const requestRef = doc(db, "users", user?.uid);
     return await updateDoc(requestRef, {
@@ -257,14 +251,11 @@ export default function UserProfile() {
         draggable
         pauseOnHover
         theme="light"
+        limit={1}
       />
-      <div style={{ paddingTop: "15px" }}>
+      <Wrapper>
         <ArtworkWrapper>
-          <ArtworkImage
-            style={{
-              backgroundImage: `url(${artwork[artwork.length - 1]?.image}`,
-            }}
-          />
+          <ArtworkImage $bgImage={artwork[artwork.length - 1]?.image} />
           <TextWrapper>
             <Opening>
               <strong>
@@ -301,7 +292,7 @@ export default function UserProfile() {
           </TextWrapper>
         </ArtworkWrapper>
         <ButtonGroup>
-          <div style={{ display: "flex" }}>
+          <FavoriteButton>
             <HalfButton
               onClick={() => setShowFavoriteArtworks(true)}
               $textColor={showFavoriteArtworks ? "white" : "black"}
@@ -317,7 +308,7 @@ export default function UserProfile() {
               Favorite Posts
             </HalfButton>
             <SaveUpdates onClick={updateOrder}>Save this order</SaveUpdates>
-          </div>
+          </FavoriteButton>
 
           <HalfButton
             $textColor="white"
@@ -334,7 +325,7 @@ export default function UserProfile() {
           showText={showText}
           favoritePosts={favoritePosts}
         />
-      </div>
+      </Wrapper>
     </DragDropContext>
   );
 }

@@ -1,8 +1,8 @@
 import styled from "@emotion/styled";
+import Image from "next/image";
 import { useRouter } from "next/router";
-import React from "react";
-import { useState, useRef, useEffect } from "react";
-import { useAuth } from "../context/AuthContext";
+import React, { useState, useRef, useEffect } from "react";
+
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import {
@@ -14,8 +14,10 @@ import {
   where,
   getDocs,
 } from "firebase/firestore";
-import { db, storage } from "../config/firebase";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { db, storage } from "../config/firebase";
+import { useAuth } from "../context/AuthContext";
+
 import SignpostButton from "../components/Button";
 import imageupload from "../asset/imageupload.svg";
 import backToPrevious from "../asset/back-to-previous.svg";
@@ -28,6 +30,11 @@ import togetherFilled from "../asset/together-filled.png";
 import togetherUnfilled from "../asset/together-unfilled.png";
 import hopeUnfilled from "../asset/hopeful-unfilled.png";
 import hopeFilled from "../asset/hopeful-filled.png";
+
+const Wrapper = styled.div`
+  padding-top: 40px;
+  margin: auto;
+`;
 const MainForm = styled.form`
   width: 90vw;
   max-width: 700px;
@@ -41,9 +48,15 @@ const EmojiInput = styled.div`
   width: 40px;
 `;
 
-const Emoticon = styled.div`
-  width: 100%;
-  height: 100%;
+const Emoticon = styled.div<{ $bgImage: string; $bgImageHover: string }>`
+  width: 40px;
+  height: 40px;
+  background-image: url(${(props) => props.$bgImage});
+  background-size: cover;
+  cursor: pointer;
+  &:hover {
+    background-image: url(${(props) => props.$bgImageHover});
+  }
 `;
 
 const RadioInput = styled.input`
@@ -86,6 +99,7 @@ const FileUpload = styled.div`
   border: 2px dashed #c2c2c2;
   border-radius: 2px;
   text-align: center;
+  height: 280px;
 `;
 
 const UploadedImage = styled.div<{
@@ -101,7 +115,7 @@ const TextArea = styled.textarea`
   resize: none;
   border-bottom: 1.75px solid #c2c2c2;
   padding: 5px;
-  height: 60px;
+  height: 100px;
   &:focus {
     outline: none;
     border-bottom: 1.75px solid black;
@@ -122,6 +136,13 @@ const FormWrapper = styled.div`
   @media screen and (max-width: 600px) {
     padding: 25px 45px 65px;
   }
+`;
+const FormHeader = styled.div`
+  height: 70px;
+  padding: 22px 45px;
+  font-size: 1.25rem;
+  text-align: center;
+  border-bottom: 1px solid #c2c2c2;
 `;
 
 const BackToPrevious = styled.span<{ $hideOption: string }>`
@@ -147,6 +168,7 @@ const EmojiLabel = styled.div<{ $showLabel: string }>`
   margin-top: 10px;
   display: ${(props) => props.$showLabel};
 `;
+
 const EmojiWrapper = styled.div`
   display: flex;
   margin: 25px auto 0px;
@@ -160,6 +182,17 @@ const EmojiWrapper = styled.div`
     column-gap: 3vw;
   }
 `;
+const FileImage = styled.img`
+  margin: auto;
+`;
+const InstructionText = styled.div`
+  max-width: 250px;
+  margin: 0 auto;
+`;
+
+const FileInput = styled.div`
+  display: none;
+`;
 interface ILabel {
   value: string | undefined;
   filled: string | undefined;
@@ -169,6 +202,7 @@ export default function Form() {
   const router = useRouter();
   const { user } = useAuth();
   const [file, setFile] = useState(null);
+  console.log(file);
   const [artist, setArtist] = useState("");
   const [username, setUsername] = useState("");
   const timeStamp = new Date();
@@ -183,7 +217,7 @@ export default function Form() {
     setFile(URL.createObjectURL(e.target.files[0]));
     setUploadedImage(e.target.files[0]);
   };
-  const handleClick = (event) => {
+  const handleClick = () => {
     hiddenFileInput.current.click();
   };
 
@@ -211,6 +245,7 @@ export default function Form() {
   ];
 
   const [uploadedImage, setUploadedImage] = useState(null);
+  console.log(uploadedImage);
   const [formData, setFormData] = useState({
     emoji: "",
     title: "",
@@ -231,6 +266,7 @@ export default function Form() {
         .join(" ");
       setArtist(artistRecommendation);
       setUsername(docs[0].name);
+      setFile(docs[0].drawings?.at(-1));
     };
     if (user) {
       getUserJourney();
@@ -239,18 +275,31 @@ export default function Form() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    uploadImage();
-    setUploadedImage(null);
-    setFile(null);
-    setFormData({
-      emoji: "",
-      title: "",
-      content: "",
-      date: "",
-    });
+    if (uploadedImage === null) {
+      console.log("herrrree?");
+      sendForm(file);
+      setFormData({
+        emoji: "",
+        title: "",
+        content: "",
+        date: "",
+      });
+      setFile(null);
+    } else if (uploadedImage !== null) {
+      uploadImage();
+      setUploadedImage(null);
+      setFile(null);
+      setFormData({
+        emoji: "",
+        title: "",
+        content: "",
+        date: "",
+      });
+    }
   };
 
   const sendForm = (url) => {
+    console.log(url);
     async function sendData() {
       const docRef = await addDoc(collection(db, "user-posts"), {
         emoji: formData.emoji,
@@ -260,6 +309,7 @@ export default function Form() {
         postTime: timeStamp,
         userId: user?.uid,
         comments: [],
+        numberOfLikes: [],
       });
       const IDRef = doc(db, "user-posts", docRef.id);
       await updateDoc(IDRef, {
@@ -276,7 +326,7 @@ export default function Form() {
     if (uploadedImage === null) return;
     const sendImage = () => {
       return new Promise((resolve) => {
-        const imageRef = ref(storage, `${user?.uid}/${uploadedImage.name}`);
+        const imageRef = ref(storage, `${user?.uid}/${uploadedImage}`);
         const uploadTask = uploadBytesResumable(imageRef, uploadedImage);
 
         uploadTask.on(
@@ -295,34 +345,27 @@ export default function Form() {
   };
 
   return (
-    <div style={{ paddingTop: "30px", margin: "auto" }}>
+    <Wrapper>
       <ToastContainer
         position="top-center"
-        hideProgressBar={false}
         newestOnTop={false}
         closeOnClick
         rtl={false}
+        hideProgressBar={false}
         pauseOnFocusLoss
         draggable
         pauseOnHover
         theme="light"
+        limit={1}
       />
       <MainForm onSubmit={handleSubmit}>
-        <div
-          style={{
-            height: "70px",
-            padding: "22px 45px",
-            fontSize: "1.25rem",
-            textAlign: "center",
-            borderBottom: "1px solid #c2c2c2",
-          }}
-        >
+        <FormHeader>
           <BackToPrevious
             $hideOption={nextPage ? "initial" : "none"}
             onClick={() => setNextPage(false)}
           ></BackToPrevious>
           <strong>Share your story</strong>
-        </div>
+        </FormHeader>
         {!nextPage && (
           <FormWrapper>
             <FormFieldset>
@@ -333,7 +376,7 @@ export default function Form() {
                 </strong>
               </FormLable>
               <EmojiWrapper>
-                {emojis.map((emoji, index) => (
+                {emojis.map((emoji) => (
                   <EmojiInput
                     key={emoji.value}
                     onMouseEnter={() => {
@@ -353,22 +396,21 @@ export default function Form() {
                       value="emoji.value"
                       required
                       checked={formData.emoji === emoji.value}
-                      onChange={(e) => {
+                      onChange={() => {
                         setFormData({ ...formData, emoji: emoji.value });
                       }}
                     />
                     <div>
-                      <Emoticon>
-                        <img
-                          alt={emoji.value}
-                          src={
-                            formData.emoji == emoji.value
-                              ? emoji.filled
-                              : emoji.unfilled
-                          }
-                          style={{ width: "40px", height: "40px" }}
-                        />
-                      </Emoticon>
+                      <Emoticon
+                        $bgImage={
+                          formData.emoji == emoji.value
+                            ? emoji.filled
+                            : emoji.unfilled
+                        }
+                        $bgImageHover={
+                          showLabel.value == emoji.value && emoji.filled
+                        }
+                      />
                       <EmojiLabel
                         $showLabel={
                           showLabel.value == emoji.value ? "inherit" : "none"
@@ -383,28 +425,58 @@ export default function Form() {
             </FormFieldset>
 
             <FormFieldset>
-              <FormLable htmlFor="resonance">
-                <strong>
-                  It would be great to hear about your experiences or a painting
-                  you thought of, while going through this experience.
-                </strong>
+              <FormLable htmlFor="title">
+                {file && (
+                  <strong>
+                    Share this drawing you made during your most recent visit,
+                    or click to upload another image:
+                  </strong>
+                )}
               </FormLable>
-              <TextArea
-                id="resonance"
-                name="resonance"
-                placeholder="Tell us about your story..."
-                value={formData.content}
-                required
-                onChange={(e) => {
-                  setFormData({ ...formData, content: e.target.value.trim() });
-                }}
-              ></TextArea>
+              <UploadedImage $uploadedImage={file ? file : ""}>
+                <FileUpload onClick={handleClick}>
+                  {!file && (
+                    <>
+                      <FileImage alt="uploaded image" src={imageupload.src} />
+
+                      <InstructionText>
+                        <strong>
+                          Click here to attach a photo of your beloved artwork,
+                          or anything related to your experience!
+                        </strong>
+                      </InstructionText>
+                      <p>(max 50MB)</p>
+                    </>
+                  )}
+
+                  <FileInput
+                    type="file"
+                    ref={hiddenFileInput}
+                    onChange={handleChange}
+                    required
+                  />
+                </FileUpload>
+              </UploadedImage>
             </FormFieldset>
+
             <SubmitButton
               onClick={() => {
-                if (!formData.emoji || !formData.content) {
+                if (!formData.emoji) return;
+                else if (!file) {
+                  toast("Please upload an image related to your experience.", {
+                    position: "top-center",
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "light",
+                    icon: () => <img src={image.src} />,
+                  });
                   return;
                 }
+
                 setNextPage(true);
               }}
             >
@@ -438,8 +510,8 @@ export default function Form() {
                 type="date"
                 lang="en"
                 name="date"
-                min="1900-01-01"
-                max="3000-01-01"
+                min="1950-01-01"
+                max="2120-01-01"
                 placeholder="Select date..."
                 value={formData.date}
                 required
@@ -448,56 +520,31 @@ export default function Form() {
                 }}
               ></FormInput>
             </FormFieldset>
-
             <FormFieldset>
-              <UploadedImage $uploadedImage={file ? file : ""}>
-                <FileUpload onClick={handleClick}>
-                  <img
-                    alt="uploaded image"
-                    style={{ margin: "auto" }}
-                    src={imageupload.src}
-                  />
-                  <div style={{ maxWidth: "250px", margin: "0 auto" }}>
-                    <strong>
-                      Click here to attach a photo of your beloved artwork, or
-                      anything related to your experience!
-                    </strong>
-                  </div>
-                  <p>(max 50MB)</p>
-                  <input
-                    type="file"
-                    ref={hiddenFileInput}
-                    onChange={handleChange}
-                    style={{ display: "none" }}
-                    required
-                  />
-                </FileUpload>
-              </UploadedImage>
-              <ul style={{ margin: "10px 0" }}>
-                <li>
-                  <strong>Please use only your own original materials.</strong>
-                </li>
-              </ul>
+              <FormLable htmlFor="resonance">
+                <strong>
+                  It would be great to hear about your experiences or a painting
+                  you thought of, while going through this experience.
+                </strong>
+              </FormLable>
+              <TextArea
+                id="resonance"
+                name="resonance"
+                placeholder="Tell us about your story..."
+                value={formData.content}
+                required
+                onChange={(e) => {
+                  setFormData({ ...formData, content: e.target.value });
+                }}
+              ></TextArea>
             </FormFieldset>
+
             <SubmitButton
               onClick={() => {
-                if (!formData.date || !formData.title) {
-                  return;
-                } else if (!uploadedImage) {
-                  toast("Please upload an image related to your experience.", {
-                    position: "top-center",
-                    autoClose: 3000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    progress: undefined,
-                    theme: "light",
-                    icon: ({ theme, type }) => <img src={image.src} />,
-                  });
+                if (!formData.date || !formData.title || !formData.content) {
                   return;
                 }
-                router.push("/user-profile");
+                router.push("/visitor-posts");
               }}
             >
               Submit
@@ -506,6 +553,6 @@ export default function Form() {
         )}
       </MainForm>
       <SignpostButton href="/visitor-posts">Skip this step...</SignpostButton>
-    </div>
+    </Wrapper>
   );
 }

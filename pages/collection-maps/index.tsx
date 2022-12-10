@@ -7,7 +7,7 @@ const GoogleMaps = dynamic(() => import("../../components/Map"), {
 
 export default function CollectionMap() {
   return (
-    <div style={{ height: "100%", paddingTop: "44px" }}>
+    <div style={{ height: "100%", paddingTop: "40px" }}>
       <GoogleMaps />
     </div>
   );
