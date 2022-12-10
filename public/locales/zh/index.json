@@ -8,16 +8,18 @@
   "color": "療癒色彩",
   "form": "心情日記本",
 
-  "museumOfMind": "The Bethlem Museum of the Mind in London, situated within the gounds of Bethlem Royal Hospital, holds an internationally renowned collection of archives, art and historic objects, which together offer an unparalleled resource to support the history of mental healthcare and treatment.",
+  "museumOfMind": "貝特勒姆心靈博物館位於倫敦的貝特勒姆皇家醫院內，國際知名的館藏包含了文獻、藝術品和歷史文物，為精神保健和治療等方面的歷史，提供了獨一無二的史料來源。",
   "start": "開啟旅程",
   "experience": "參觀焦點",
-  "selectColor": "選擇最能代表你/妳今天心情的顏色。",
+  "selectColor": "選擇體驗主題色，並在畫布上表達最近的心情！",
   "artQuiz": "進行心理測驗獲得藝術家推薦。",
   "audiovisual": "從Google地圖和Youtube影片，認識藝術家和他們的作品。",
   "postFeeling": "留下這段旅程的回憶，並閱讀其他參觀者的心情。",
   "museum": "館所宗旨",
-  "paragraph1": "TheHealing Museum is an online experience inspired by two concepts: art as therapy” and “museum on prescription”. The former has its root in the 19th century psychologists’ theories and their perspective of “artistic expression as a window into the inner workings of the mind”, while the latter considers museums as places with potential to facilitate the healing process as well as serving as social prescriptions to complement primary medical care.",
-  "paragraph2": "Art as healing means to direct personal or traumatic experiences towards creative expressions of who you are, how you feel and what you identify with. By presenting the artworks of 3 female and 3 male modern artists, who have shared their visions of realities and transcended their adversities into ever-lasting arts, the Healing Museum aims to explore the source of their strength and learn about resilience.",
-  "caption1": "Exhibition on wellbeing at the Wellcome Collection, London.",
-  "caption2": "Art therapy session at the Ben Uri Gallery and Museum, London."
+  "paragraph1": "療癒美術館是一個線上互動體驗，其靈感來自於兩個概念：「藝術作為一種療法」和「博物館處方籤」。前者根植於19世紀心理學家們的理論，和他們「從藝術表達中，可觀察到心靈內部運作方式」之觀點；而後者則認為博物館有潛力促進治療效果，同時也可作為輔助基本療法的社會處方籤。",
+
+  "paragraph2": "「藝術作為一種治療」意味著將個人經歷或創傷經驗，導向創造性地表達你是誰、你的感受和你的認同。館內精選了3位女性和3位男性現代藝術家的作品，從中可觀察到他們對生命現實的看法，以及如何將逆境轉化成永恆的藝術。療癒美術館旨在探索這些藝術家們生命力以及韌性的泉源。",
+
+  "caption1": "關於身心健康的展覽，於倫敦惠康收藏館舉辦。",
+  "caption2": "藝術治療工作坊，於倫敦班猶利藝廊及美術館舉辦。"
 }
