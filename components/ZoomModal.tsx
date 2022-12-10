@@ -8,6 +8,9 @@ const ModalBackdrop = styled.div`
   width: 100%;
   height: 100%;
   background-color: black;
+  .transform-component-module_wrapper__7HFJe {
+    margin: 0 auto !important;
+  }
 `;
 
 const ModalContentBackdrop = styled.div`
@@ -30,7 +33,7 @@ function ZoomModal({ children }) {
         <ModalContent>{children}</ModalContent>
       </ModalContentBackdrop>
     </ModalBackdrop>,
-    document.body
+    document.getElementById("modal-root")
   );
 }
 

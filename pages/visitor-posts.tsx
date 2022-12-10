@@ -1,9 +1,6 @@
 import styled from "@emotion/styled";
 import Masonry from "react-masonry-css";
-import React from "react";
-import { useState, useEffect, useRef } from "react";
-import SignpostButton from "../components/Button";
-import upArrow from "../asset/arrow-up.png";
+import React, { useState, useEffect, useRef } from "react";
 
 import {
   collection,
@@ -17,6 +14,9 @@ import {
   getDocs,
   arrayRemove,
 } from "firebase/firestore";
+import SignpostButton from "../components/Button";
+import upArrow from "../asset/arrow-up.png";
+
 import { db } from "../config/firebase";
 import commentFilled from "../asset/comments-filled.png";
 import commentUnfilled from "../asset/comments-unfilled.png";
@@ -24,7 +24,22 @@ import filledHeart from "../asset/black-heal.png";
 import unfilledHeart from "../asset/white-heal.png";
 
 import { useAuth } from "../context/AuthContext";
+const Wrapper = styled.div`
+  padding-top: 40px;
 
+  .my-masonry-grid {
+    display: flex;
+    max-width: 1200px;
+    width: 80vw;
+    margin: auto;
+    @media screen and (max-width: 500px) {
+      margin: 0 auto;
+    }
+  }
+  .my-masonry-grid_column > div {
+    background: grey;
+  }
+`;
 const CommentContainer = styled.section`
   width: 270px;
   height: fit-content;
@@ -82,7 +97,7 @@ const CommentContainer = styled.section`
 const Post = styled.section`
   margin: 20px 20px 0px;
 `;
-const MainImage = styled.div`
+const MainImageWrapper = styled.div`
   width: 270px;
   min-height: 70px;
 `;
@@ -93,7 +108,7 @@ const Text = styled.div`
   row-gap: 15px;
 `;
 
-const ButtonGroup = styled.div`
+const ButtonGroupWrapper = styled.div`
   display: flex;
   justify-content: space-between;
   padding-top: 20px;
@@ -139,14 +154,9 @@ const SubmitButton = styled.button`
 const SortButtonGroup = styled.div`
   display: flex;
   justify-content: space-between;
-  /* margin-right: 90px; */
   max-width: 1200px;
   width: 80vw;
   margin: auto;
-  /* @media screen and (max-width: 600px) {
-    flex-direction: column;
-    width: 90vw;
-  } */
   @media screen and (max-width: 800px) {
     flex-direction: column;
   }
@@ -157,7 +167,7 @@ const SortButton = styled.button<{ $textColor: string; $bgColor: string }>`
   padding: 10px 20px;
   width: fit-content;
   border: 1px solid black;
-  margin: 50px 0 26px 0;
+  margin: 20px 0 26px 0;
   cursor: pointer;
   color: ${(props) => props.$textColor};
   background-color: ${(props) => props.$bgColor};
@@ -187,7 +197,7 @@ const AllPosts = styled.div`
     margin: 20px auto 0 auto;
   }
 `;
-const ToTop = styled.div`
+const ToTopIconWrapper = styled.div`
   position: fixed;
   bottom: 60px;
   right: 3vw;
@@ -197,7 +207,7 @@ const ToTop = styled.div`
   }
 `;
 
-const BackToTop = styled.div`
+const ToTopIcon = styled.div`
   cursor: pointer;
 
   background-image: url(${upArrow.src});
@@ -205,6 +215,19 @@ const BackToTop = styled.div`
   height: 30px;
   background-size: cover;
   margin: auto;
+`;
+
+const ToTopText = styled.div`
+  cursor: pointer;
+`;
+const MainImage = styled.img`
+  width: 100%;
+`;
+const ButtonGroup = styled.div`
+  display: flex;
+`;
+const LikeNumber = styled.p`
+  margin-bottom: 2px;
 `;
 
 const breakpointColumnsObj = {
@@ -364,7 +387,7 @@ export default function VisitorPosts() {
   }
 
   return (
-    <div style={{ paddingTop: "40px" }}>
+    <Wrapper>
       <SignpostButton href="/user-profile">
         A thank you note at the end
       </SignpostButton>
@@ -377,7 +400,7 @@ export default function VisitorPosts() {
             $bgColor={sortPost ? "#2c2b2c" : "transparent"}
             onClick={() => {
               setSortPost(true);
-              setPosts((prev) => [...posts.sort(sortByArtist)]);
+              setPosts(() => [...posts.sort(sortByArtist)]);
             }}
           >
             By Artists
@@ -387,26 +410,27 @@ export default function VisitorPosts() {
             $bgColor={!sortPost ? "#2c2b2c" : "transparent"}
             onClick={() => {
               setSortPost(false);
-              setPosts((prev) => [...posts.sort(sortByDate)]);
+              setPosts(() => [...posts.sort(sortByDate)]);
             }}
           >
             By Date
           </SortButton>
         </SortButtonSmScreen>
       </SortButtonGroup>
-      <ToTop
+      <ToTopIconWrapper
         onClick={() => {
           window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
         }}
       >
-        <BackToTop />
-        <div style={{ cursor: "pointer" }}>
+        <ToTopIcon />
+
+        <ToTopText>
           <strong>
             To
             <br /> Top
           </strong>
-        </div>
-      </ToTop>
+        </ToTopText>
+      </ToTopIconWrapper>
 
       <Masonry
         breakpointCols={breakpointColumnsObj}
@@ -419,13 +443,9 @@ export default function VisitorPosts() {
             key={post.id}
             onMouseEnter={() => handleShowComments(post)}
           >
-            <MainImage>
-              <img
-                alt={post.title}
-                src={post.uploadedImage}
-                style={{ width: "100%" }}
-              />
-            </MainImage>
+            <MainImageWrapper>
+              <MainImage alt={post.title} src={post.uploadedImage} />
+            </MainImageWrapper>
             <Post>
               <Text>
                 <div>
@@ -446,7 +466,7 @@ export default function VisitorPosts() {
                   </p>
                 </div>
               </Text>
-              <ButtonGroup>
+              <ButtonGroupWrapper>
                 <CommentButton
                   $showComment={
                     showComment && postComments?.id === post?.id
@@ -456,10 +476,12 @@ export default function VisitorPosts() {
                   role="button"
                   onClick={() => handleShowComments(post)}
                 ></CommentButton>
-                <div style={{ display: "flex" }}>
-                  <p style={{ marginBottom: "2px" }}>
-                    {post.numberOfLikes?.length}
-                  </p>
+
+                <ButtonGroup>
+                  <LikeNumber>
+                    {post.numberOfLikes?.length > 0 &&
+                      post.numberOfLikes?.length}
+                  </LikeNumber>
 
                   <CollectionButton
                     $heart={
@@ -476,8 +498,8 @@ export default function VisitorPosts() {
                       }
                     }}
                   />
-                </div>
-              </ButtonGroup>
+                </ButtonGroup>
+              </ButtonGroupWrapper>
             </Post>
             {showComment && postComments?.id === post?.id && (
               <Post>
@@ -518,6 +540,6 @@ export default function VisitorPosts() {
           </CommentContainer>
         ))}
       </Masonry>
-    </div>
+    </Wrapper>
   );
 }

@@ -1,11 +1,11 @@
 import styled from "@emotion/styled";
 import Link from "next/link";
-import { useContext, useEffect, useState } from "react";
-import { ThemeColorContext } from "../context/ColorContext";
-import { useAuth } from "../context/AuthContext";
+import React, { useContext, useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { motion, Variants } from "framer-motion";
 import { FacebookShareButton } from "next-share";
+import { useAuth } from "../context/AuthContext";
+import { ThemeColorContext } from "../context/ColorContext";
 import logo from "../asset/healing-museum-low-resolution-logo-black-on-transparent-background.png";
 import profile from "../asset/profile.png";
 import logout from "../asset/log-out.png";
@@ -13,6 +13,13 @@ import close from "../asset/cancel-white.png";
 import toggle from "../asset/menu.png";
 import share from "../asset/share.png";
 
+const Main = styled.main<{ $bgImage: string }>`
+  background: ${(props) => props.$bgImage};
+
+  min-height: 100vh;
+  transition: background 1.5s ease;
+  box-sizing: border-box;
+`;
 const Cursor = styled(motion.div)`
   background-color: black;
   height: 20px;
@@ -104,6 +111,10 @@ const Menulist = styled.ul<{ $menuStyle: string }>`
   justify-content: space-between;
 `;
 
+const MenuButtonGroup = styled.div`
+  display: flex;
+  column-gap: 10px;
+`;
 const MenuButton = styled.div`
   display: none;
   border: 1px solid white;
@@ -128,6 +139,7 @@ const Page = styled.div`
   width: fit-content;
   margin-bottom: 20px;
   z-index: 1000;
+  cursor: pointer;
   &:hover {
     background-size: 100% 100%;
   }
@@ -147,14 +159,14 @@ const ProgressBarWrapper = styled.div`
   display: flex;
   align-items: center;
   height: 50px;
-  width: 25vw;
+  width: 24.5vw;
   justify-content: space-between;
   position: absolute;
   top: 15px;
   left: 64px;
   @media screen and (max-width: 700px) {
     width: 77.5vw;
-    top: 52.5px;
+    top: 40px;
     left: 10vw;
   }
 `;
@@ -167,10 +179,8 @@ const ProgressBarColor = styled.div`
 
 const Indicator = styled.div<{
   $bgcolor: string;
-  $colorBarlength: string;
   $height: string;
   $width: string;
-  $top: string;
 }>`
   width: ${(props) => props.$width};
   height: ${(props) => props.$height};
@@ -192,8 +202,9 @@ export default function Layout(props: LayoutProps) {
   const [cursorVariant, setCursorVariant] = useState("default");
 
   const menuLinks = [
-    { page: "Enter the Museum", link: "/registration" },
+    // { page: "Enter the Museum", link: "/registration" },
     { page: "A Color for Yourself", link: "/theme-color" },
+    { page: "Draw Your Inner World", link: "/drawing-board" },
     { page: "Quiz: How Are You Feeling?", link: "/quiz" },
     { page: "Explore the Art Map", link: "/collection-maps" },
     { page: "Emotional Gallery", link: "/artworks" },
@@ -204,6 +215,7 @@ export default function Layout(props: LayoutProps) {
 
   const progressBarItems = [
     "/theme-color",
+    "/drawing-board",
     "/quiz",
     "/collection-maps",
     "/collection-maps/[collectionID]",
@@ -247,37 +259,21 @@ export default function Layout(props: LayoutProps) {
       {router.pathname !== "/" && router.pathname !== "/registration" && (
         <ProgressBarWrapper>
           <ProgressBarColor></ProgressBarColor>
-          {progressBarItems.map((progressBarItem, index) => (
+          {progressBarItems.map((progressBarItem) => (
             <Indicator
               key={progressBarItem}
               $bgcolor="black"
-              $colorBarlength={
-                progressBarItem == router.pathname
-                  ? `${0 + index * 12.25}%`
-                  : `${0 + index * 12.5}%`
-              }
               $height={progressBarItem == router.pathname ? "12px" : "6px"}
               $width={progressBarItem == router.pathname ? "12px" : "6px"}
-              $top={progressBarItem == router.pathname ? "-5.5px" : "-2.5px"}
             />
           ))}
         </ProgressBarWrapper>
       )}
       <Cursor variants={variants} animate={cursorVariant} />
-      <main
-        style={{
-          background: themeColor?.secondary,
-          minHeight: "100vh",
-          transition: "background 1.5s ease",
-          boxSizing: "border-box",
-        }}
-      >
+
+      <Main $bgImage={themeColor?.secondary}>
         <div>
-          <Logo
-            onMouseEnter={textEnter}
-            onMouseLeave={textLeave}
-            title="Quit the experience (Return to Homepage)"
-          >
+          <Logo onMouseEnter={textEnter} onMouseLeave={textLeave}>
             <Link href="/">
               <img src={logo.src} />
             </Link>
@@ -285,33 +281,30 @@ export default function Layout(props: LayoutProps) {
         </div>
 
         <div>
+          <div
+            onClick={() => {
+              if (user) {
+                router.push("/user-profile");
+              } else if (!user) {
+                router.push("/registration");
+              }
+            }}
+          >
+            <ProfileIcon />
+          </div>
           {user && (
-            <>
-              <div
-                onClick={() => {
-                  if (user) {
-                    router.push("/user-profile");
-                  } else if (!user) {
-                    router.push("/registration");
-                  }
-                }}
-              >
-                <ProfileIcon />
-              </div>
-
-              <div
-                onClick={() => {
-                  logout();
-                  router.push("/");
-                }}
-              >
-                <LogoutIcon />
-              </div>
-            </>
+            <div
+              onClick={() => {
+                logout();
+                router.push("/");
+              }}
+            >
+              <LogoutIcon />
+            </div>
           )}
         </div>
 
-        {router.pathname !== "/" && (
+        {user?.uid && (
           <>
             <MenuToggle
               role="button"
@@ -343,7 +336,8 @@ export default function Layout(props: LayoutProps) {
                     </Page>
                   </li>
                 ))}
-                <div style={{ display: "flex", columnGap: "10px" }}>
+
+                <MenuButtonGroup>
                   {user && router.pathname !== "/" && (
                     <>
                       <MenuButton
@@ -368,11 +362,11 @@ export default function Layout(props: LayoutProps) {
                       </MenuButton>
                     </>
                   )}
-                </div>
+                </MenuButtonGroup>
               </div>
               <div>
                 <FacebookShareButton
-                  url={"https://the-healing-museum-makoto357.vercel.app"}
+                  url={"https://the-healing-museum-makoto357.vercel.app/en"}
                   quote={
                     "The Healing Museum brings you closer to the world of modern art."
                   }
@@ -387,7 +381,7 @@ export default function Layout(props: LayoutProps) {
           </>
         )}
         {children}
-      </main>
+      </Main>
     </>
   );
 }

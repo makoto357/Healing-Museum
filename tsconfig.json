@@ -4,7 +4,7 @@
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
-    "strict": false,
+    "strict": true,
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "esModuleInterop": true,
@@ -15,6 +15,7 @@
     "jsx": "preserve",
     "incremental": true
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "pages/integrated-drawing-board.js"],
-  "exclude": ["node_modules"]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "pages/integrated-drawing-board.js", "pages/testdrawingok.js", "pages/testdrawingok.js", "pages/testdrawingok.js", "pages/testdrawingok.js", "pages/testdrawingok.js", "pages/testdrawingok.js"],
+  "exclude": ["node_modules"],
+  
 }

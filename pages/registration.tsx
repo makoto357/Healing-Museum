@@ -1,13 +1,12 @@
 import styled from "@emotion/styled";
 
-import React from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/router";
-import { useState } from "react";
-import { useAuth } from "../context/AuthContext";
 import { doc, setDoc, Timestamp } from "firebase/firestore";
-import { db } from "../config/firebase";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useAuth } from "../context/AuthContext";
+import { db } from "../config/firebase";
 import brandIcon from "../asset/healing-museum-website-icon.png";
 import SignpostButton from "../components/Button";
 
@@ -60,8 +59,8 @@ export default function LoginPage() {
   const [isSignedUp, setIsSignedUp] = useState(true);
   const router = useRouter();
   const [loginData, setLoginData] = useState({
-    email: "",
-    password: "",
+    email: "makoto357@gmail.com",
+    password: "123456",
   });
   const notify = (message) =>
     toast(message, {
@@ -93,6 +92,7 @@ export default function LoginPage() {
       favoriteArtworksId: [],
       visitorJourney: [],
       favoritePostsId: [],
+      drawings: [],
     });
     router.push("/theme-color");
   };
@@ -119,6 +119,7 @@ export default function LoginPage() {
         draggable
         pauseOnHover
         theme="light"
+        limit={1}
       />
       {isSignedUp ? (
         <>

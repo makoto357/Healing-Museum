@@ -12,16 +12,16 @@ import {
   getDocs,
   arrayRemove,
 } from "firebase/firestore";
-import { db } from "../../config/firebase";
 import { useState, useEffect } from "react";
-import { useAuth } from "../../context/AuthContext";
-import ZoomModal from "../../components/ZoomModal";
-import magnifyingGlass from "../../asset/magnifying-glass.png";
 import {
   TransformComponent,
   TransformWrapper,
 } from "@pronestor/react-zoom-pan-pinch";
 import { ToastContainer, toast } from "react-toastify";
+import { db } from "../../config/firebase";
+import { useAuth } from "../../context/AuthContext";
+import ZoomModal from "../../components/ZoomModal";
+import magnifyingGlass from "../../asset/magnifying-glass.png";
 import "react-toastify/dist/ReactToastify.css";
 import SignpostButton from "../../components/Button";
 import map from "../../asset/world.png";
@@ -54,8 +54,8 @@ const SizeController = styled.div`
 `;
 const TextWrapper = styled.section`
   margin: 35px auto 0;
-  width: 50vw;
-  max-width: 60vw;
+  width: 60vw;
+  /* max-width: 60vw; */
   @media screen and (max-width: 800px) {
     width: 80vw;
     max-width: 80vw;
@@ -323,6 +323,7 @@ export default function ArtworkDetail() {
         draggable
         pauseOnHover
         theme="light"
+        limit={1}
       />
 
       {artwork &&
@@ -459,7 +460,7 @@ export default function ArtworkDetail() {
                 initialScale={1}
                 key={`${index} + ${artwork.id}`}
               >
-                {({ zoomIn, zoomOut, ...rest }) => (
+                {({ zoomIn, zoomOut }) => (
                   <div
                     style={{
                       display: "flex",

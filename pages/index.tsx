@@ -1,20 +1,13 @@
+/* eslint-disable import/no-unresolved */
 import styled from "@emotion/styled";
 import Link from "next/link";
 import Image from "next/image";
-import React from "react";
-import { useState } from "react";
-import { useAuth } from "../context/AuthContext";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { useTranslation } from "next-i18next";
-import { FacebookShareButton } from "next-share";
 import { useRouter } from "next/router";
 import { Navigation, Pagination, Scrollbar, A11y } from "swiper";
 import { Swiper, SwiperSlide } from "swiper/react";
-import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/effect-fade";
-import "swiper/css/pagination";
-import "swiper/css/scrollbar";
+import { useAuth } from "../context/AuthContext";
 import museumOfMind from "../asset/museum-of-the-mind.jpeg";
 import happiness from "../asset/happiness.png";
 import benUri from "../asset/ben-uri.jpeg";
@@ -24,11 +17,7 @@ import map from "../asset/journal.png";
 import post from "../asset/video-player.png";
 import ticket from "../asset/ticket.png";
 import arrow from "../asset/right-arrow.png";
-import github from "../asset/github.png";
-import fb from "../asset/fb.svg";
-import share from "../asset/share.png";
-import close from "../asset/cancel-white.png";
-import toggle from "../asset/menu.png";
+// import github from "../asset/github.png";
 import language from "../asset/translate.png";
 
 const TranslationToggle = styled.div`
@@ -42,63 +31,24 @@ const TranslationToggle = styled.div`
   cursor: pointer;
 `;
 
-const MenuToggle = styled.div`
-  background-image: url(${toggle.src});
-  background-size: cover;
-  height: 30px;
-  width: 30px;
-  position: absolute;
-  top: 24px;
-  left: 24px;
-  cursor: pointer;
+const Wrapper = styled.div`
+  display: block;
+  padding-top: 14px;
 `;
-
-const CloseMenuIcon = styled.div`
-  background-image: url(${close.src});
-  width: 20px;
-  height: 20px;
-  background-size: cover;
-  margin-left: auto;
-`;
-
-const Menulist = styled.ul<{ $menuStyle: string }>`
-  z-index: 20;
-  position: fixed;
-  top: 0;
-  list-style: none;
-  width: 300px;
-  height: 100vh;
-  background-color: #2c2b2c;
-  transform: ${(props) => props.$menuStyle};
-  transition: transform 300ms;
-  color: white;
-  padding: 30px;
+const EntranceWrapper = styled.div`
+  border-top: 1px solid black;
+  border-bottom: 1px solid black;
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  justify-content: center;
+  padding-right: 20px;
+  align-items: center;
+  height: 60px;
 `;
-
-const Page = styled.div`
-  background-image: linear-gradient(180deg, transparent 95%, white 0);
-  background-repeat: no-repeat;
-  background-size: 0 100%;
-  transition: background-size 0.4s ease;
-  width: fit-content;
-  margin-bottom: 20px;
-  &:hover {
-    background-size: 100% 100%;
-  }
-`;
-const FBicon = styled.div`
-  background-image: url(${share.src});
-  border: 2px solid #2c2b2c;
-  width: 30px;
-  height: 30px;
-  background-size: cover;
-  &:hover {
-    width: 32px;
-    height: 32px;
-  }
+const HiddenEntrance = styled.div`
+  cursor: pointer;
+  margin: auto 3px auto 10px;
+  font-size: 1.25rem;
+  font-weight: 600;
 `;
 
 const MainVisual = styled.div`
@@ -123,6 +73,21 @@ const EntranceIcon = styled.div`
   height: 45px;
   background-size: cover;
   background-image: url(${ticket.src});
+`;
+
+const FeatureTitle = styled.h1`
+  font-size: 1.25rem;
+  text-align: center;
+  margin: 40px auto 20px;
+`;
+
+const FeatureWrapper = styled.div`
+  display: flex;
+  height: fit-content;
+  width: 80vw;
+  margin: 20px auto;
+  justify-content: space-between;
+  align-items: baseline;
 `;
 
 const ArrowIcon = styled.div`
@@ -151,16 +116,37 @@ const FeatureIconGroup = styled.div`
   padding: 0 5px;
 `;
 
-const FeatureIcon = styled.div`
+const FeatureIcon = styled.div<{ $bgImage: string }>`
   width: 45px;
   height: 45px;
   background-size: cover;
   margin: 0 auto 20px;
+  background-image: url(${(props) => props.$bgImage});
+`;
+
+const MuseumIntroWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  margin: 0 70px;
+  padding: 40px 0 0;
+  align-items: center;
+`;
+const MuseumIntroTitle = styled.h1`
+  font-size: 1.25rem;
+  margin-bottom: 20px;
 `;
 
 const SwiperWrapper = styled.section`
   width: 80vw;
   height: 450px;
+  cursor: pointer;
+`;
+const SlideImage = styled(Image)`
+  cursor: pointer;
+  margin: 0 auto;
+`;
+const SlideCaption = styled.div`
+  font-size: 0.75rem;
 `;
 
 const bannerImages = [
@@ -175,17 +161,6 @@ const bannerImages = [
     caption: "index:caption2",
     webpage: "https://benuri.org/artsandhealth/",
   },
-];
-
-const menuLinks = [
-  { link: "/registration", text: "index:home" },
-  { link: "/theme-color", text: "index:color" },
-  { link: "/quiz", text: "index:quiz" },
-  { link: "/collection-maps", text: "index:map" },
-  { link: "/artworks", text: "index:detail" },
-  { link: "/artist-video", text: "index:artworks" },
-  { link: "/form", text: "index:form" },
-  { link: "/visitor-posts", text: "index:posts" },
 ];
 
 const websiteFeatures = [
@@ -210,12 +185,11 @@ export async function getStaticProps({ locale }) {
     },
   };
 }
-export default function Home(props) {
+export default function Home() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const router = useRouter();
   const { locale } = router;
-  const [showMenu, setShowMenu] = useState(false);
   return (
     <>
       {locale == "en" ? (
@@ -227,140 +201,48 @@ export default function Home(props) {
           <TranslationToggle role="button"></TranslationToggle>
         </Link>
       )}
-      {user?.uid && (
-        <>
-          <MenuToggle
-            role="button"
-            onClick={() => {
-              setShowMenu(true);
-            }}
-          ></MenuToggle>
-          <Menulist $menuStyle={!showMenu ? "translateX(-100%)" : "none"}>
-            <div>
-              <CloseMenuIcon
-                role="button"
-                onClick={() => {
-                  setShowMenu(false);
-                }}
-              />
 
-              {menuLinks.map((menuLink, index) => (
-                <li key={index}>
-                  <Page
-                    onClick={() => {
-                      if (user?.uid) {
-                        router.push(menuLink.link);
-                      } else {
-                        router.push("/registration");
-                      }
-                    }}
-                  >
-                    {t(menuLink.text)}
-                  </Page>
-                </li>
-              ))}
-            </div>
-            <div>
-              <FacebookShareButton
-                url={"https://the-healing-museum-makoto357.vercel.app"}
-                quote={
-                  "The Healing Museum brings you closer to the world of modern art."
-                }
-                hashtag={
-                  "#modernart #artiststory #artquiz #audiovisualtour #interactive"
-                }
-              >
-                <FBicon />
-              </FacebookShareButton>
-            </div>
-          </Menulist>
-        </>
-      )}
-      <div style={{ display: "block", paddingTop: "14px" }}>
+      <Wrapper>
         <MainVisual title={t("index:museumOfMind")}>
           <Link href="/registration">
             <MuseumEntrance />
           </Link>
         </MainVisual>
 
-        <div
-          style={{
-            borderTop: "1px solid black",
-            borderBottom: "1px solid black",
-            display: "flex",
-            justifyContent: "center",
-            paddingRight: "20px",
-            alignItems: "center",
-            height: "60px",
-          }}
-        >
+        <EntranceWrapper>
           <EntranceIcon />
 
-          <div
-            style={{
-              cursor: "pointer",
-              margin: "auto 3px auto 10px",
-              fontSize: "1.25rem",
-              fontWeight: "600",
-            }}
+          <HiddenEntrance
             onClick={() => {
-              if (user.uid) {
+              if (user?.uid) {
                 router.push("/theme-color");
-              } else if (!user.uid) {
+              } else if (!user?.uid) {
                 router.push("/registration");
               }
             }}
           >
             {t("index:start")}
-          </div>
+          </HiddenEntrance>
           <ArrowIcon />
-        </div>
-        <h1
-          style={{
-            fontSize: "1.25rem",
-            textAlign: "center",
-            margin: "40px auto 20px",
-          }}
-        >
+        </EntranceWrapper>
+
+        <FeatureTitle>
           <strong> {t("index:experience")}</strong>
-        </h1>
-        <section
-          style={{
-            display: "flex",
-            height: "fit-content",
-            width: "80vw",
-            margin: "20px auto",
-            justifyContent: "space-between",
-            alignItems: "baseline",
-          }}
-        >
+        </FeatureTitle>
+
+        <FeatureWrapper>
           {websiteFeatures.map((websiteFeature) => (
             <FeatureIconGroup key={websiteFeature.icon}>
-              <FeatureIcon
-                style={{ backgroundImage: `url(${websiteFeature.icon})` }}
-              />
+              <FeatureIcon $bgImage={websiteFeature.icon} />
               <p>{t(websiteFeature.text)}</p>
             </FeatureIconGroup>
           ))}
-        </section>
+        </FeatureWrapper>
 
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            margin: "0 70px",
-            padding: "40px 0 0",
-            alignItems: "center",
-          }}
-        >
-          <h1
-            style={{
-              fontSize: "1.25rem",
-              marginBottom: "20px",
-            }}
-          >
+        <MuseumIntroWrapper>
+          <MuseumIntroTitle>
             <strong> {t("index:museum")}</strong>
-          </h1>
+          </MuseumIntroTitle>
           <IntroText>
             <p>{t("index:paragraph1")}</p>
             <br />
@@ -378,30 +260,27 @@ export default function Home(props) {
               onSlideChange={() => console.log("slide change")}
             >
               {bannerImages.map((bannerImage) => (
-                <SwiperSlide
-                  key={bannerImage.image}
-                  style={{ cursor: "pointer" }}
-                >
+                <SwiperSlide key={bannerImage.image}>
                   <div>
                     <Link href={bannerImage.webpage}>
-                      <Image
-                        style={{ cursor: "pointer", margin: "0 auto" }}
+                      <SlideImage
                         src={bannerImage.image}
                         width={1280}
                         height={720}
                         alt={bannerImage.caption}
                       />
                     </Link>
-                    <h1 style={{ fontSize: "0.75rem" }}>
+
+                    <SlideCaption>
                       <strong>{t(bannerImage.caption)}</strong>
-                    </h1>
+                    </SlideCaption>
                   </div>
                 </SwiperSlide>
               ))}
             </Swiper>
           </SwiperWrapper>
-        </div>
-      </div>
+        </MuseumIntroWrapper>
+      </Wrapper>
     </>
   );
 }

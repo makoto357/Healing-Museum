@@ -1,10 +1,7 @@
 import styled from "@emotion/styled";
-import React from "react";
-import SignpostButton from "../components/Button";
-import select from "../asset/selection-box.png";
-import { useEffect, useState } from "react";
+import Image from "next/image";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-
 import {
   collection,
   doc,
@@ -16,9 +13,12 @@ import {
   arrayUnion,
   arrayRemove,
 } from "firebase/firestore";
+import { ToastContainer, toast } from "react-toastify";
+import SignpostButton from "../components/Button";
+import select from "../asset/selection-box.png";
+
 import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
-import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ArtworkModal from "../components/ArtworkModal";
 import filledHeart from "../asset/black-heal.png";
@@ -26,10 +26,10 @@ import unfilledHeart from "../asset/white-heal.png";
 import close from "../asset/cancel.png";
 import artistStyle from "../public/artist-info/visitorJourney.json";
 import upArrow from "../asset/arrow-up.png";
+const ArtworkImage = styled.img`
+  cursor: zoom-in;
+`;
 
-interface Prop {
-  $heart?: string;
-}
 const ArtworkGrid = styled.section`
   margin: 0 auto;
   padding-bottom: 60px;
@@ -37,6 +37,101 @@ const ArtworkGrid = styled.section`
   display: flex;
   flex-direction: column;
   row-gap: 20px;
+  .grid {
+    display: grid;
+    grid-gap: 8px;
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: 30vw;
+    list-style: none;
+    width: 80vw;
+    margin: auto;
+  }
+
+  .grid div {
+    background: #bbb6ac;
+  }
+
+  .grid div:nth-child(9) {
+    grid-column: 1 / -1;
+    grid-row: span 2;
+  }
+
+  .grid img {
+    width: 100%;
+    height: 100%;
+    transition: 0.5s;
+  }
+
+  .grid img:hover {
+    transform: scale(1.1);
+  }
+
+  .grid img {
+    object-fit: cover;
+  }
+
+  @media (min-width: 850px) {
+    .grid {
+      grid-gap: 24px;
+      grid-template-columns: repeat(5, 1fr);
+      grid-auto-rows: 12vw;
+    }
+
+    .grid div:nth-child(1) {
+      grid-column: 1;
+      grid-row: 1 / span 2;
+    }
+
+    .grid div:nth-child(2) {
+      grid-column: 2 / span 2;
+      grid-row: 1 / span 2;
+    }
+
+    .grid div:nth-child(3) {
+      grid-column: 4;
+      grid-row: 1;
+    }
+
+    .grid div:nth-child(4) {
+      grid-column: 5;
+      grid-row: 1;
+    }
+
+    .grid div:nth-child(5) {
+      grid-column: 4;
+      grid-row: 2;
+    }
+
+    .grid div:nth-child(6) {
+      grid-column: 5;
+      grid-row: 2 / span 2;
+    }
+
+    .grid div:nth-child(7) {
+      grid-column: 2;
+      grid-row: 3;
+    }
+
+    .grid div:nth-child(8) {
+      grid-column: 1;
+      grid-row: 3;
+    }
+
+    .grid div:nth-child(9) {
+      grid-column: 3 / span 2;
+      grid-row: 3 / span 2;
+    }
+
+    .grid div:nth-child(10) {
+      grid-column: 1 / span 2;
+      grid-row: 4;
+    }
+
+    .grid div:nth-child(11) {
+      grid-column: 5;
+      grid-row: 4;
+    }
+  }
 `;
 
 const CloseIcon = styled.div`
@@ -107,6 +202,16 @@ const ToTop = styled.div`
   }
 `;
 
+const InstructionText = styled.div`
+  width: 80vw;
+  margin: 0 auto;
+  padding: 40px 0 0px;
+`;
+
+const ToTopText = styled.div`
+  cursor: pointer;
+`;
+
 const BackToTop = styled.div`
   cursor: pointer;
 
@@ -117,7 +222,7 @@ const BackToTop = styled.div`
   margin: auto;
 `;
 
-const ArtworkImage = styled.img`
+const ModalImage = styled.img`
   display: block;
   width: 100%;
   max-height: inherit;
@@ -150,13 +255,7 @@ function ArtWork({
             : "none"
         }
       >
-        <img
-          style={{ cursor: "zoom-in" }}
-          width={width}
-          height={height}
-          src={imgSrc}
-          alt=""
-        />
+        <ArtworkImage width={width} height={height} src={imgSrc} alt="" />
       </Frame>
     </div>
   );
@@ -168,17 +267,7 @@ const ARTWORK_STYLE = {
   2: { width: "320", height: "427" },
 };
 
-export const useDisableBodyScroll = (showModal) => {
-  useEffect(() => {
-    if (showModal) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
-  }, [showModal]);
-};
-
-export default function Masonry(props) {
+export default function Masonry() {
   const { user } = useAuth();
   const router = useRouter();
   const [artworks, setArtworks] = useState([]);
@@ -213,11 +302,6 @@ export default function Masonry(props) {
     setShowModal(true);
     setModalInfo(artwork);
   };
-
-  //   useEffect(() => {
-  //     showModal && document.body.style.overflow = 'hidden';
-  //     !showModal && document.body.style.overflow = 'unset';
-  //  }, [showModal ]);
 
   useEffect(() => {
     const getArtist = async () => {
@@ -332,7 +416,7 @@ export default function Masonry(props) {
       draggable: true,
       progress: undefined,
       theme: "light",
-      icon: ({ theme, type }) => <img src={select.src} />,
+      icon: () => <img src={select.src} />,
     });
 
   const toNextPage = () => {
@@ -346,13 +430,7 @@ export default function Masonry(props) {
   };
   return (
     <>
-      <div
-        style={{
-          width: "80vw",
-          margin: "0 auto",
-          padding: "40px 0 0px",
-        }}
-      >
+      <InstructionText>
         <ToastContainer
           position="top-center"
           autoClose={false}
@@ -364,6 +442,7 @@ export default function Masonry(props) {
           draggable
           pauseOnHover
           theme="light"
+          limit={1}
         />
         <h1>
           <strong>
@@ -378,26 +457,23 @@ export default function Masonry(props) {
               (location) => location?.artistUrl === artworks[0]?.[0].artistUrl
             )[0]?.artistStyle}
         </p>
-      </div>
-
+      </InstructionText>
       <div onClick={toNextPage}>
         <SignpostButton href="">Hear about the artist</SignpostButton>
       </div>
-
       <ToTop
         onClick={() => {
           window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
         }}
       >
         <BackToTop />
-        <div style={{ cursor: "pointer" }}>
+        <ToTopText>
           <strong>
             To
             <br /> Top
           </strong>
-        </div>
+        </ToTopText>
       </ToTop>
-
       <ArtworkGrid>
         {artworks?.map((setOfartwork, i) => (
           <ul key={i} className="grid">
@@ -457,7 +533,7 @@ export default function Masonry(props) {
               </Text>
 
               <Figure>
-                <ArtworkImage alt={modalInfo.title} src={modalInfo.image} />
+                <ModalImage alt={modalInfo.title} src={modalInfo.image} />
               </Figure>
             </Content>
           </ArtworkModal>
