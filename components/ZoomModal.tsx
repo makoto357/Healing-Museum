@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import { createPortal } from "react-dom";
-
+import React from "react";
 const ModalBackdrop = styled.div`
   position: fixed;
   top: 0;
@@ -8,6 +8,8 @@ const ModalBackdrop = styled.div`
   width: 100%;
   height: 100%;
   background-color: black;
+  cursor: pointer;
+
   .transform-component-module_wrapper__7HFJe {
     margin: 0 auto !important;
   }
@@ -26,14 +28,14 @@ const ModalContent = styled.div`
   height: 94vh;
 `;
 
-function ZoomModal({ children }) {
+function ZoomModal({ children }: { children: React.ReactNode }) {
   return createPortal(
     <ModalBackdrop>
       <ModalContentBackdrop>
         <ModalContent>{children}</ModalContent>
       </ModalContentBackdrop>
     </ModalBackdrop>,
-    document.getElementById("modal-root")
+    document.getElementById("modal-root")!
   );
 }
 

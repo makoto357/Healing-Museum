@@ -29,7 +29,7 @@ export default function Document() {
       <body>
         <Main />
         <NextScript />
-        <div style={{ height: "0" }} id="modal-root"></div>
+        <div id="modal-root"></div>
       </body>
     </Html>
   );

@@ -49,6 +49,21 @@ const QuestionButton = styled.div<{
   }
 `;
 
+const TestResult = styled.div`
+  margin: 20px 0;
+  hi {
+    margin-bottom: 10px;
+    font-size: 1.25rem;
+  }
+`;
+
+const AudioPlayer = styled.div`
+  margin-bottom: 20px;
+  display: flex;
+  audio {
+    margin: auto 0;
+  }
+`;
 const Button = styled.button`
   font-size: 1.25rem;
   padding: 15px;
@@ -68,20 +83,6 @@ const ButtonGroup = styled.div`
   padding-bottom: 20px;
   @media screen and (max-width: 800px) {
     flex-direction: column;
-  }
-`;
-
-const HalfButton = styled.button`
-  height: fit-content;
-  font-size: 1.25rem;
-  padding: 15px;
-  width: 100%;
-  color: white;
-  background-color: #2c2b2c;
-  cursor: pointer;
-  @media screen and (max-width: 800px) {
-    margin-top: 20px;
-    width: 100%;
   }
 `;
 
@@ -106,34 +107,51 @@ const ArtistImage = styled.div<{ $imageUrl: string }>`
   background-size: cover;
   margin: 0 auto;
 `;
+const IntroText = styled.ul`
+  list-style: none;
+  li {
+    margin-bottom: 10px;
+  }
+`;
+type quizResult = {
+  result: string;
+  artistName: string;
+  artistUrl: string;
+  artistIntro: string;
+  artistImage: string;
+};
+type answerOption = {
+  audio?: string;
+  answerText?: string;
+  points?: string[];
+};
 export default function Quiz() {
   const router = useRouter();
-  const [gameStarted, setGameStarted] = useState(false);
-  const [currentQuestion, setCurrentQuestion] = useState(1);
-  const subtractToIndex = 1;
-  const toNextQuestion = 1;
-  const [showAnswer, setShowAnswer] = useState(false);
-  const [points, setPoints] = useState([]);
+  const [gameStarted, setGameStarted] = useState<boolean>(false);
+  const [currentQuestion, setCurrentQuestion] = useState<number>(1);
+  const [showAnswer, setShowAnswer] = useState<boolean>(false);
+  const [points, setPoints] = useState<string[]>([]);
   const { user } = useAuth();
+  function getResult() {
+    const count: any = {};
 
-  const count = {};
+    points.map((point) => {
+      if (count[point]) {
+        count[point] += 1;
+      } else {
+        count[point] = 1;
+      }
+    });
 
-  points.map((point) => {
-    if (count[point]) {
-      count[point] += 1;
-    } else {
-      count[point] = 1;
+    let sortable: [string, number][] = [];
+    for (let artist in count) {
+      sortable.push([artist, count[artist]]);
     }
-  });
-
-  let sortable = [];
-  for (var artist in count) {
-    sortable.push([artist, count[artist]]);
+    sortable.sort(function (a: [string, number], b: [string, number]) {
+      return b[1] - a[1];
+    });
+    return sortable[0][0];
   }
-
-  sortable.sort(function (a, b) {
-    return b[1] - a[1];
-  });
 
   const quizResults = [
     {
@@ -176,7 +194,6 @@ export default function Quiz() {
         "Van Gogh is the mirror that reflects the face of the universe, and he is credited for portraying unique representations through his art. Not only did he display what was in front of him, but he also brought out a sense of feeling and connectivity through his paintings.",
       artistImage: vanGogh.src,
     },
-
     {
       result: "G",
       artistName: "Gwen John",
@@ -186,10 +203,14 @@ export default function Quiz() {
       artistImage: gwen.src,
     },
   ];
-  const handleTestResult = async (artist) => {
-    const getRecommendation = (artist) => {
+  const handleTestResult = async (artist: string) => {
+    const getRecommendation = (artist: string) => {
       return new Promise(() => {
-        const requestRef = doc(db, "users", user?.uid);
+        const requestRef = doc(
+          db,
+          "users",
+          user?.uid !== undefined ? user?.uid : ""
+        );
         updateDoc(requestRef, {
           visitorJourney: arrayUnion({
             recommendedArtist: artist,
@@ -203,84 +224,103 @@ export default function Quiz() {
     router.push("/collection-maps");
   };
 
-  const handleQuizAnswers = (answerOption) => {
+  const handleQuizAnswers = (answerOption: answerOption) => {
     if (currentQuestion == quiz.length) {
       setShowAnswer(true);
     }
-    setCurrentQuestion(currentQuestion + toNextQuestion);
-    setPoints(points.concat(answerOption.points));
+    setCurrentQuestion(currentQuestion + 1);
+    setPoints(
+      points.concat(
+        answerOption.points !== undefined ? answerOption.points : []
+      )
+    );
   };
 
-  return (
-    <div>
-      {!gameStarted && (
-        <QuizArea>
-          <Question>
-            <strong>Take a test to see which artist you might like!</strong>
-          </Question>
-          <ul style={{ listStyle: "none" }}>
-            <li style={{ marginBottom: "10px" }}>
-              Welcome! How are you feeling?
-            </li>
-            <li style={{ marginBottom: "10px" }}>
-              Artist Georges Braque once said{" "}
-              <strong>“Art is a wound turned into light.”</strong> It is in
-              today&apos;s busy modern world, we could be greatly benefited from
-              looking and feeling arts and its healing properties.
-            </li>
-            <li style={{ marginBottom: "10px" }}>
-              <strong>
-                Take this quiz to reflect on your present well-being and find
-                out which artist has viewpoints and attitudes towards life
-                resembling your own.
-              </strong>{" "}
-              You’ll be asked to imagine yourself in different situations.
-            </li>
+  const renderQuestions = (quizResults: quizResult) => {
+    return (
+      <QuizArea>
+        <ArtistImage $imageUrl={quizResults.artistImage} />
 
-            <li style={{ marginBottom: "10px" }}>
-              This is not a diagnostic tool. If you are seeking therapeutic
-              treatments or wish to talk with someone about your mental health,
-              seek advice from a local therapist.
-            </li>
-          </ul>
+        <TestResult>
+          <h1>
+            Your artist is <strong>{quizResults.artistName}.</strong>
+          </h1>
+          <p>{quizResults.artistIntro}</p>
+        </TestResult>
+        <ButtonGroup>
           <Button
             onClick={() => {
-              setGameStarted(true);
+              handleTestResult(quizResults.artistUrl);
             }}
           >
-            Start
+            Learn about this artist!
           </Button>
-        </QuizArea>
-      )}
+        </ButtonGroup>
+      </QuizArea>
+    );
+  };
+
+  const renderQuizArea = () => {
+    return (
+      <QuizArea>
+        <Question>
+          <strong>Take a test to see which artist you might like!</strong>
+        </Question>
+
+        <IntroText>
+          <li>Welcome! How are you feeling?</li>
+          <li>
+            Artist Georges Braque once said&nbsp;
+            <strong>“Art is a wound turned into light.”</strong> It is in
+            today&apos;s busy modern world, we could be greatly benefited from
+            looking and feeling arts and its healing properties.
+          </li>
+          <li>
+            <strong>
+              Take this quiz to reflect on your present well-being and find out
+              which artist has viewpoints and attitudes towards life resembling
+              your own.
+            </strong>
+            &nbsp; You’ll be asked to imagine yourself in different situations.
+          </li>
+
+          <li>
+            This is not a diagnostic tool. If you are seeking therapeutic
+            treatments or wish to talk with someone about your mental health,
+            seek advice from a local therapist.
+          </li>
+        </IntroText>
+        <Button
+          onClick={() => {
+            setGameStarted(true);
+          }}
+        >
+          Start
+        </Button>
+      </QuizArea>
+    );
+  };
+  return (
+    <div>
+      {!gameStarted && renderQuizArea()}
       {gameStarted && !showAnswer && (
         <QuizArea>
-          <Question>
-            {quiz[currentQuestion - subtractToIndex]?.questionText}
-          </Question>
+          <Question>{quiz[currentQuestion - 1]?.questionText}</Question>
           <div>
-            {quiz[currentQuestion - subtractToIndex]?.answerOptions.map(
-              (answerOption, index) => (
+            {quiz[currentQuestion - 1]?.answerOptions.map(
+              (answerOption: answerOption, index) => (
                 <>
                   {answerOption.audio ? (
-                    <>
-                      <div
-                        style={{
-                          marginBottom: "20px",
-                          display: "flex",
+                    <AudioPlayer>
+                      <AudioOption
+                        onClick={() => {
+                          handleQuizAnswers(answerOption);
                         }}
                       >
-                        <AudioOption
-                          onClick={() => handleQuizAnswers(answerOption)}
-                        >
-                          {index + 1}
-                        </AudioOption>
-                        <audio
-                          style={{ margin: "auto 0" }}
-                          src={answerOption.audio}
-                          controls
-                        />
-                      </div>
-                    </>
+                        {index + 1}
+                      </AudioOption>
+                      <audio src={answerOption.audio} controls />
+                    </AudioPlayer>
                   ) : (
                     <QuestionButton
                       $bgColor={"white"}
@@ -304,140 +344,13 @@ export default function Quiz() {
         </QuizArea>
       )}
 
-      {showAnswer && sortable[0][0] === quizResults[0].result && (
-        <QuizArea>
-          <ArtistImage $imageUrl={quizResults[0].artistImage} />
-          <div style={{ margin: "20px 0" }}>
-            <h1 style={{ marginBottom: "10px", fontSize: "1.25rem" }}>
-              Your artist is <strong>{quizResults[0].artistName}.</strong>
-            </h1>
-            <p>{quizResults[0].artistIntro}</p>
-          </div>
-          <ButtonGroup>
-            <Button
-              onClick={() => {
-                handleTestResult(quizResults[0].artistUrl);
-              }}
-            >
-              Learn about this artist!
-            </Button>
-          </ButtonGroup>
-        </QuizArea>
-      )}
-      {showAnswer && sortable[0][0] === quizResults[1].result && (
-        <QuizArea>
-          <ArtistImage $imageUrl={quizResults[1].artistImage} />
-
-          <div style={{ margin: "20px 0" }}>
-            <h1 style={{ marginBottom: "10px", fontSize: "1.25rem" }}>
-              Your artist is <strong>{quizResults[1].artistName}.</strong>
-            </h1>
-            <p>{quizResults[1].artistIntro}</p>
-          </div>
-          <ButtonGroup>
-            <HalfButton
-              onClick={() => {
-                setGameStarted(false);
-                setPoints([]);
-                setShowAnswer(false);
-                setCurrentQuestion(1);
-              }}
-            >
-              Play again
-            </HalfButton>
-            <HalfButton
-              onClick={() => {
-                handleTestResult(quizResults[1].artistUrl);
-              }}
-            >
-              Learn about this artist!
-            </HalfButton>
-          </ButtonGroup>
-        </QuizArea>
-      )}
-      {showAnswer && sortable[0][0] === quizResults[2].result && (
-        <QuizArea>
-          <ArtistImage $imageUrl={quizResults[2].artistImage} />
-
-          <div style={{ margin: "20px 0" }}>
-            <h1 style={{ marginBottom: "10px", fontSize: "1.25rem" }}>
-              Your artist is <strong>{quizResults[2].artistName}.</strong>
-            </h1>
-            <p>{quizResults[2].artistIntro}</p>
-          </div>
-          <ButtonGroup>
-            <HalfButton
-              onClick={() => {
-                handleTestResult(quizResults[2].artistUrl);
-              }}
-            >
-              Learn about this artist!
-            </HalfButton>
-          </ButtonGroup>
-        </QuizArea>
-      )}
-      {showAnswer && sortable[0][0] === quizResults[3].result && (
-        <QuizArea>
-          <ArtistImage $imageUrl={quizResults[3].artistImage} />
-
-          <div style={{ margin: "20px 0" }}>
-            <h1 style={{ marginBottom: "10px", fontSize: "1.25rem" }}>
-              Your artist is <strong>{quizResults[3].artistName}.</strong>
-            </h1>
-            <p>{quizResults[3].artistIntro}</p>
-          </div>
-          <ButtonGroup>
-            <HalfButton
-              onClick={() => {
-                handleTestResult(quizResults[3].artistUrl);
-              }}
-            >
-              Learn about this artist!
-            </HalfButton>
-          </ButtonGroup>
-        </QuizArea>
-      )}
-      {showAnswer && sortable[0][0] === quizResults[4].result && (
-        <QuizArea>
-          <ArtistImage $imageUrl={quizResults[4].artistImage} />
-
-          <div style={{ margin: "20px 0" }}>
-            <h1 style={{ marginBottom: "10px", fontSize: "1.25rem" }}>
-              Your artist is <strong>{quizResults[4].artistName}.</strong>
-            </h1>
-            <p>{quizResults[4].artistIntro}</p>
-          </div>
-          <ButtonGroup>
-            <HalfButton
-              onClick={() => {
-                handleTestResult(quizResults[4].artistUrl);
-              }}
-            >
-              Learn about this artist!
-            </HalfButton>
-          </ButtonGroup>
-        </QuizArea>
-      )}
-      {showAnswer && sortable[0][0] === quizResults[5].result && (
-        <QuizArea>
-          <ArtistImage $imageUrl={quizResults[5].artistImage} />
-          <div style={{ margin: "20px 0" }}>
-            <h1 style={{ marginBottom: "10px", fontSize: "1.25rem" }}>
-              Your artist is <strong>{quizResults[5].artistName}.</strong>
-            </h1>
-            <p>{quizResults[5].artistIntro}</p>
-          </div>
-          <ButtonGroup>
-            <HalfButton
-              onClick={() => {
-                handleTestResult(quizResults[5].artistUrl);
-              }}
-            >
-              Learn about this artist!
-            </HalfButton>
-          </ButtonGroup>
-        </QuizArea>
-      )}
+      {showAnswer &&
+        quizResults.filter((quizResult) => quizResult.result == getResult()) &&
+        renderQuestions(
+          quizResults.filter(
+            (quizResult) => quizResult.result == getResult()
+          )[0]
+        )}
     </div>
   );
 }

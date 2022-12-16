@@ -1,22 +1,21 @@
 import styled from "@emotion/styled";
 import { useState, useEffect } from "react";
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  Timestamp,
-  doc,
-  updateDoc,
-} from "firebase/firestore";
-import { ToastContainer, toast } from "react-toastify";
+import { doc, updateDoc } from "firebase/firestore";
+import { toast } from "react-toastify";
 import { useRouter } from "next/router";
-import { DragDropContext } from "react-beautiful-dnd";
+// eslint-disable-next-line import/named
+import { DragDropContext, DropResult } from "react-beautiful-dnd";
+import {
+  getUserInfo,
+  IUser,
+  IArtwork,
+  IFavoritePost,
+  IFavoriteArtwork,
+} from "../utils/firebaseFuncs";
 import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
 import visitorJourney from "../public/artist-info/visitorJourney.json";
 import CollectionColumn from "../components/DragNDrop";
-import "react-toastify/dist/ReactToastify.css";
 const Wrapper = styled.div`
   padding-top: 15px;
 `;
@@ -52,13 +51,12 @@ const ArtworkWrapper = styled.div`
   }
 `;
 
-const ArtworkImage = styled.div<{ $bgImage: string }>`
+const ArtworkImage = styled.div<{ $bgImage: string | undefined }>`
   width: 50vw;
   background-size: cover;
   background-position: center;
   border-right: 1px solid black;
   background-image: url(${(props) => props.$bgImage});
-
   @media screen and (max-width: 950px) {
     height: 50vh;
     width: 100vw;
@@ -107,102 +105,70 @@ const SaveUpdates = styled.div`
   cursor: pointer;
 `;
 
-interface IUser {
-  email: string | undefined;
-  favoriteArtworksId: string[] | undefined;
-  favoritePostsId: string[] | undefined;
-  id: string | undefined;
-  last_changed: Timestamp | undefined;
-  name: string | undefined;
-  visitorJourney: EnumJourneyItems | undefined;
-}
-
-interface EnumJourneyItem {
-  recommendedArtist: string;
-  quizPoints: number;
-  quizDate: Timestamp;
-}
-
-interface IArtwork {
-  artistName: string | undefined;
-  year: number | undefined;
-  title: string | undefined;
-  id: string | undefined;
-  image: string | undefined;
-}
-interface IArtworks extends Array<IArtwork> {}
-interface EnumJourneyItems extends Array<EnumJourneyItem> {}
-
 export default function UserProfile() {
-  const [favoritePosts, setFavoritePosts] = useState([]);
-  const [showText, setShowText] = useState(null);
+  const [favoritePosts, setFavoritePosts] = useState<IFavoritePost[]>([]);
+  const [showText, setShowText] = useState<string | undefined>();
   const router = useRouter();
-  const [showFavoriteArtworks, setShowFavoriteArtworks] = useState(true);
+  const [showFavoriteArtworks, setShowFavoriteArtworks] =
+    useState<boolean>(true);
   const { user } = useAuth();
-
-  const [profile, setProfile] = useState<IUser>({
-    email: undefined,
-    favoriteArtworksId: undefined,
-    favoritePostsId: undefined,
-    id: undefined,
-    last_changed: undefined,
-    name: undefined,
-    visitorJourney: undefined,
-  });
-
-  const [artwork, setArtwork] = useState<IArtworks>([]);
-  const [quote, setQuote] = useState(
-    visitorJourney[0].quotes[
-      Math.floor(Math.random() * visitorJourney[0].quotes?.length)
-    ]
-  );
+  const [profile, setProfile] = useState<IUser>({});
+  const [artwork, setArtwork] = useState<IFavoriteArtwork[]>([]);
+  const [quote, setQuote] = useState<string>();
   useEffect(() => {
-    const getProfile = async () => {
-      const q = query(collection(db, "users"), where("id", "==", user?.uid));
-      const querySnapshot = await getDocs(q);
-      querySnapshot.forEach((doc) => {
-        const IUser = doc.data() as IUser;
-        setProfile(IUser);
-        const artworkID = IUser.favoriteArtworksId;
-        setFavoritePosts(IUser?.favoritePostsId);
-        if (artworkID) {
-          getFavoriteArtwork(artworkID);
+    if (user) {
+      getUserInfo(user.uid).then(
+        ({ userProfile, favoriteArtworks, favoritePosts }) => {
+          setProfile(userProfile);
+          if (favoritePosts) {
+            setFavoritePosts(favoritePosts);
+          }
+          if (favoriteArtworks) {
+            setArtwork(favoriteArtworks);
+            getFavoriteArtwork(favoriteArtworks.at(-1));
+          }
         }
-      });
-    };
-    const getFavoriteArtwork = async (id) => {
-      setArtwork(id);
+      );
+    }
+
+    const getFavoriteArtwork = async (artwork: IArtwork) => {
       const artistQuotes = visitorJourney?.filter(
-        (j) => j?.artistName == id[id?.length - 1]?.artistName
+        (j) => j?.artistName == artwork?.artistName
       )[0]?.quotes;
-      if (artistQuotes) {
-        setQuote(
-          artistQuotes[Math.floor(Math.random() * artistQuotes?.length)]
-        );
-      }
+      setQuote(
+        artistQuotes?.[Math.floor(Math.random() * artistQuotes?.length)]
+      );
     };
+  }, [user]);
 
-    getProfile();
-  }, [user?.uid]);
+  type DraggingTrajectory = {
+    droppableId: string;
+    index: number;
+  };
 
-  const reorderArtworks = (destination, source) => {
+  const reorderArtworks = (
+    destination: DraggingTrajectory,
+    source: DraggingTrajectory
+  ) => {
     const newArtworkOrder = [...artwork];
     const [remove] = newArtworkOrder.splice(source.index, 1);
     newArtworkOrder.splice(destination.index, 0, remove);
     setArtwork(newArtworkOrder);
   };
 
-  const reorderPosts = (destination, source) => {
+  const reorderPosts = (
+    destination: DraggingTrajectory,
+    source: DraggingTrajectory
+  ) => {
     const newPostOrder = [...favoritePosts];
     const [remove] = newPostOrder.splice(source.index, 1);
     newPostOrder.splice(destination.index, 0, remove);
     setFavoritePosts(newPostOrder);
   };
 
-  const onDragEnd = (result) => {
+  const onDragEnd = (result: DropResult) => {
     const { destination, source } = result;
     if (!destination) return;
-
     if (
       destination.droppableId === source.droppableId &&
       destination.index === source.index
@@ -226,36 +192,16 @@ export default function UserProfile() {
     });
   };
 
-  const notify = (message) =>
+  const notify = (message: string) =>
     toast(message, {
-      position: "top-center",
-      autoClose: 3000,
       hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-      theme: "light",
+      autoClose: 3000,
     });
   return (
     <DragDropContext onDragEnd={(e) => onDragEnd(e)}>
-      {/* add event listener */}
-      <ToastContainer
-        position="top-center"
-        autoClose={false}
-        hideProgressBar={true}
-        newestOnTop={true}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-        limit={1}
-      />
       <Wrapper>
         <ArtworkWrapper>
-          <ArtworkImage $bgImage={artwork[artwork.length - 1]?.image} />
+          <ArtworkImage $bgImage={artwork[artwork?.length - 1]?.image} />
           <TextWrapper>
             <Opening>
               <strong>
@@ -274,9 +220,10 @@ export default function UserProfile() {
                 <p>
                   <strong>
                     <i>{artwork[artwork.length - 1]?.title}</i>
-                  </strong>{" "}
-                  by {artwork[artwork.length - 1]?.artistName} is the last
-                  painting you saved as favorite during your journey. <br />
+                  </strong>
+                  &nbsp; by {artwork[artwork.length - 1]?.artistName} is the
+                  last painting you saved as favorite during your journey.{" "}
+                  <br />
                   We hope this painting gives you strength, for knowing there is
                   someone who shares your feelings.
                 </p>

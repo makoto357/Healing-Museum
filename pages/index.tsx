@@ -178,7 +178,7 @@ const websiteFeatures = [
     text: "index:postFeeling",
   },
 ];
-export async function getStaticProps({ locale }) {
+export async function getStaticProps({ locale }: { locale: string }) {
   return {
     props: {
       ...(await serverSideTranslations(locale, ["index"])),
@@ -190,17 +190,18 @@ export default function Home() {
   const { user } = useAuth();
   const router = useRouter();
   const { locale } = router;
+  const toRegistrationPage = () => {
+    if (user?.uid) {
+      router.push("/theme-color");
+    } else if (!user?.uid) {
+      router.push("/registration");
+    }
+  };
   return (
     <>
-      {locale == "en" ? (
-        <Link href="/" locale="zh">
-          <TranslationToggle role="button"></TranslationToggle>
-        </Link>
-      ) : (
-        <Link href="/" locale="en">
-          <TranslationToggle role="button"></TranslationToggle>
-        </Link>
-      )}
+      <Link href="/" locale={locale == "en" ? "zh" : "en"}>
+        <TranslationToggle role="button"></TranslationToggle>
+      </Link>
 
       <Wrapper>
         <MainVisual title={t("index:museumOfMind")}>
@@ -212,15 +213,7 @@ export default function Home() {
         <EntranceWrapper>
           <EntranceIcon />
 
-          <HiddenEntrance
-            onClick={() => {
-              if (user?.uid) {
-                router.push("/theme-color");
-              } else if (!user?.uid) {
-                router.push("/registration");
-              }
-            }}
-          >
+          <HiddenEntrance onClick={toRegistrationPage}>
             {t("index:start")}
           </HiddenEntrance>
           <ArrowIcon />

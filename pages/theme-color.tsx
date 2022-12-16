@@ -67,7 +67,8 @@ export default function ThemeColor() {
     { primary: "#595775", secondary: "#ABa6bf" },
   ];
 
-  const [themeColor, setThemeColor] = useContext(ThemeColorContext);
+  // eslint-disable-next-line no-unused-vars
+  const { setThemeColor } = useContext(ThemeColorContext);
 
   return (
     <Wrapper>

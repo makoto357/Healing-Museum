@@ -29,17 +29,14 @@
       },
       {
         "answerText": "Your familiar Interior surroundings and people whose company you enjoy.",
-
         "points": ["G", "E"]
       },
       {
         "answerText": "Abstract concepts reflecting the subconsciousness of your mind.",
-
         "points": ["D"]
       },
       {
         "answerText": "The luxurious lives of flamboyant people which make you feel the joy of good material life.",
-
         "points": ["K"]
       }
     ]
@@ -49,22 +46,18 @@
     "answerOptions": [
       {
         "answerText": "Reading in your room with some nice music.",
-
         "points": ["G"]
       },
       {
         "answerText": "Taking a walk on the streets and immerse yourself with people viewing.",
-
         "points": ["E", "F"]
       },
       {
         "answerText": "Hanging out with friends to talk about your day.",
-
         "points": ["D"]
       },
       {
         "answerText": "Going into nature and enjoying beautiful sceneries.",
-
         "points": ["V", "K"]
       }
     ]
@@ -74,22 +67,18 @@
     "answerOptions": [
       {
         "answerText": "Having an argument with your best friend.",
-
         "points": ["V"]
       },
       {
         "answerText": "Learning that your partner is dating another person you also know.",
-
         "points": ["F"]
       },
       {
         "answerText": "Going bankrupt due to business failure.",
-
         "points": ["K", "E"]
       },
       {
         "answerText": "Assigned to the same project with a colleague you don’t get along well.",
-
         "points": ["D", "G"]
       }
     ]
