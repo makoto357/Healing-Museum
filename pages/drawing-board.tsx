@@ -1,20 +1,13 @@
-//draw circle, change color, text...etc
-import React, {
-  useEffect,
-  useContext,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+/* eslint-disable no-case-declarations */
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { doc, updateDoc, arrayUnion } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import getStroke from "perfect-freehand";
+import { getStroke } from "perfect-freehand";
 import styled from "@emotion/styled";
 import { useRouter } from "next/router";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
 import { db, storage } from "../config/firebase";
-import { ThemeColorContext } from "../context/ColorContext";
 import SignpostButton from "../components/Button";
 import undoDrawing from "../asset/undo.png";
 import redoDrawing from "../asset/redo.png";
@@ -24,7 +17,6 @@ import pencilTool from "../asset/sketching.png";
 import selectionTool from "../asset/selection.png";
 import drawLine from "../asset/diagonal-line.png";
 import downloadImage from "../asset/download.png";
-// import editAvatar from "../asset/user-avatar-blue.png";
 import undoDrawingBlue from "../asset/undo-blue.png";
 import redoDrawingBlue from "../asset/redo-blue.png";
 
@@ -33,12 +25,20 @@ import pencilToolBlue from "../asset/sketching-blue.png";
 import selectionToolBlue from "../asset/selection-blue.png";
 import drawLineBlue from "../asset/diagonal-line-blue.png";
 import downloadImageBlue from "../asset/download-blue.png";
-// import editAvatarBlue from "../asset/user-avatar-blue.png";
 import bin from "../asset/bin.png";
 import binBlue from "../asset/bin-blue.png";
 
-import "react-toastify/dist/ReactToastify.css";
-
+const AlertMessageWrapper = styled.div``;
+const AlertMessage = styled.p``;
+const AlertButtonWrapper = styled.div`
+  width: 100%;
+`;
+const AlertButton = styled.button`
+  margin: 5px 10px 0 0;
+  padding: 3px 10px;
+  background: black;
+  color: white;
+`;
 const Wrapper = styled.div`
   position: relative;
 `;
@@ -58,7 +58,6 @@ const ToolBar = styled.div`
   align-items: center;
   @media screen and (max-width: 600px) {
     margin-top: 10px;
-
     left: 5px;
   }
 `;
@@ -114,9 +113,43 @@ const ColorPicker = styled.div`
   }
 `;
 const rough = require("roughjs/bundled/rough.cjs");
-const generator = rough.generator(); //rough js api
+const generator = rough.generator();
+const PreloadBackgroundImg = styled.div`
+  display: none;
+`;
+const Img = styled.img``;
+export function PreloadImages() {
+  return (
+    <PreloadBackgroundImg>
+      <Img src={selectionToolBlue.src} />
+      <Img src={selectionTool.src} />
+      <Img src={drawLineBlue.src} />
+      <Img src={drawLine.src} />
+      <Img src={drawRectangleBlue.src} />
+      <Img src={drawRectangle.src} />
+      <Img src={pencilToolBlue.src} />
+      <Img src={pencilTool.src} />
+      <Img src={downloadImageBlue.src} />
+      <Img src={downloadImage.src} />
+      <Img src={undoDrawingBlue.src} />
+      <Img src={undoDrawing.src} />
+      <Img src={redoDrawingBlue.src} />
+      <Img src={redoDrawing.src} />
+      <Img src={binBlue.src} />
+      <Img src={bin.src} />
+    </PreloadBackgroundImg>
+  );
+}
 
-const createElement = (id, x1, y1, x2, y2, type, color) => {
+const createElement = (
+  id: number,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+  type: string,
+  color: string
+) => {
   switch (type) {
     case "line":
     case "rectangle":
@@ -127,7 +160,7 @@ const createElement = (id, x1, y1, x2, y2, type, color) => {
             })
           : generator.rectangle(x1, y1, x2 - x1, y2 - y1, {
               fill: color,
-            }); // generate the rectangle according to spec
+            });
       return { id, x1, y1, x2, y2, type, roughElement, color };
     case "pencil":
       return { id, type, points: [{ x: x1, y: y1 }] };
@@ -137,11 +170,25 @@ const createElement = (id, x1, y1, x2, y2, type, color) => {
   }
 };
 
-const nearPoint = (x, y, x1, y1, name) => {
+const nearPoint = (
+  x: number,
+  y: number,
+  x1: number,
+  y1: number,
+  name: string
+) => {
   return Math.abs(x - x1) < 5 && Math.abs(y - y1) < 5 ? name : null;
 };
 
-const onLine = (x1, y1, x2, y2, x, y, maxDistance = 1) => {
+const onLine = (
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+  x: number,
+  y: number,
+  maxDistance = 1
+) => {
   const a = { x: x1, y: y1 };
   const b = { x: x2, y: y2 };
   const c = { x, y };
@@ -149,7 +196,7 @@ const onLine = (x1, y1, x2, y2, x, y, maxDistance = 1) => {
   return Math.abs(offset) < maxDistance ? "inside" : null;
 };
 
-const positionWithinElement = (x, y, element) => {
+const positionWithinElement = (x: number, y: number, element: any) => {
   const { type, x1, x2, y1, y2 } = element;
   switch (type) {
     case "line":
@@ -165,45 +212,41 @@ const positionWithinElement = (x, y, element) => {
       const inside = x >= x1 && x <= x2 && y >= y1 && y <= y2 ? "inside" : null;
       return topLeft || topRight || bottomLeft || bottomRight || inside;
     case "pencil":
-      const betweenAnyPoint = element.points.some((point, index) => {
-        const nextPoint = element.points[index + 1];
-        if (!nextPoint) return false;
-        return (
-          onLine(point.x, point.y, nextPoint.x, nextPoint.y, x, y, 1) != null
-        );
-      });
+      const betweenAnyPoint = element.points.some(
+        (point: any, index: number) => {
+          const nextPoint = element.points[index + 1];
+          if (!nextPoint) return false;
+          return (
+            onLine(point.x, point.y, nextPoint.x, nextPoint.y, x, y, 1) != null
+          );
+        }
+      );
       return betweenAnyPoint ? "inside" : null;
-
     default:
       throw new Error(`Type not recognised: ${type}`);
   }
 };
 
-const distance = (a, b) =>
+const distance = (a: any, b: any) =>
   Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
 
-const getElementAtPosition = (x, y, elements) => {
-  //check through each element to see if mouse is within it
-  return (
-    elements
-      .map((element) => ({
-        ...element,
-        position: positionWithinElement(x, y, element),
-        //return position of the element
-      }))
-      //return position within the element
-      .find((element) => element.position !== null)
-  );
+const getElementAtPosition = (x: number, y: number, elements: any) => {
+  return elements
+    .map((element: any) => ({
+      ...element,
+      position: positionWithinElement(x, y, element),
+    }))
+    .find((element: any) => element.position !== null);
 };
 
-const adjustElementCoordinates = (element) => {
+const adjustElementCoordinates = (element: any) => {
   const { type, x1, y1, x2, y2 } = element;
   if (type === "rectangle") {
     const minX = Math.min(x1, x2);
     const maxX = Math.max(x1, x2);
     const minY = Math.min(y1, y2);
     const maxY = Math.max(y1, y2);
-    //regardless of which direction i draw the element, update x1, x2, y1, y2 accoridng to the current shape
+    //regardless of which direction the element is drawn, update x1, x2, y1, y2 according to the current shape
     return { x1: minX, y1: minY, x2: maxX, y2: maxY };
   } else {
     if (x1 < x2 || (x1 === x2 && y1 < y2)) {
@@ -214,7 +257,7 @@ const adjustElementCoordinates = (element) => {
   }
 };
 
-const cursorForPosition = (position) => {
+const cursorForPosition = (position: string) => {
   switch (position) {
     case "tl":
     case "br":
@@ -229,7 +272,13 @@ const cursorForPosition = (position) => {
   }
 };
 
-const resizedCoordinates = (pageX, pageY, position, color, coordinates) => {
+const resizedCoordinates = (
+  pageX: number,
+  pageY: number,
+  position: string,
+  color: string,
+  coordinates: { x1: number; y1: number; x2: number; y2: number }
+) => {
   const { x1, y1, x2, y2 } = coordinates;
   switch (position) {
     case "tl":
@@ -243,15 +292,15 @@ const resizedCoordinates = (pageX, pageY, position, color, coordinates) => {
     case "end":
       return { x1, y1, x2: pageX, y2: pageY };
     default:
-      return null; //should not really get here...
+      return { x1, y1, x2, y2 };
   }
 };
 
-const useHistory = (initialState) => {
+const useHistory = (initialState: any) => {
   const [index, setIndex] = useState(0);
   const [history, setHistory] = useState([initialState]);
 
-  const setState = (action, overwrite = false) => {
+  const setState = (action: any, overwrite = false) => {
     const newState =
       typeof action === "function" ? action(history[index]) : action;
     if (overwrite) {
@@ -272,11 +321,11 @@ const useHistory = (initialState) => {
   return [history[index], setState, undo, redo];
 };
 
-const getSvgPathFromStroke = (stroke) => {
+const getSvgPathFromStroke = (stroke: any) => {
   if (!stroke.length) return "";
 
   const d = stroke.reduce(
-    (acc, [x0, y0], i, arr) => {
+    (acc: any, [x0, y0]: [x0: number, y0: number], i: number, arr: any) => {
       const [x1, y1] = arr[(i + 1) % arr.length];
       acc.push(x0, y0, (x0 + x1) / 2, (y0 + y1) / 2);
       return acc;
@@ -288,7 +337,7 @@ const getSvgPathFromStroke = (stroke) => {
   return d.join(" ");
 };
 
-const drawElement = (roughCanvas, context, element) => {
+const drawElement = (roughCanvas: any, context: any, element: any) => {
   switch (element.type) {
     case "line":
     case "rectangle":
@@ -321,7 +370,8 @@ const drawElement = (roughCanvas, context, element) => {
   }
 };
 
-const adjustmentRequired = (type) => ["line", "rectangle"].includes(type);
+const adjustmentRequired = (type: string) =>
+  ["line", "rectangle"].includes(type);
 
 const colors = [
   "#a13b34",
@@ -365,16 +415,13 @@ const toolbarButtons = [
   },
 ];
 
-const Drawing = () => {
+export default function Drawing() {
   const [elements, setElements, undo, redo] = useHistory([]);
-
-  const [action, setAction] = useState("none");
-  const [tool, setTool] = useState("rectangle");
+  const [action, setAction] = useState<string>("none");
+  const [tool, setTool] = useState<string>("rectangle");
   const { user } = useAuth();
-  const [selectedElement, setSelectedElement] = useState(null);
-  const textAreaRef = useRef(null);
-  const canvasRef = useRef(null);
-  const [themeColor] = useContext(ThemeColorContext);
+  const [selectedElement, setSelectedElement] = useState<any>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [selectedColor, setSelectedColor] = useState(colors[0]);
   const [showLabel, setShowLabel] = useState({
     label: " ",
@@ -390,23 +437,26 @@ const Drawing = () => {
   });
   const router = useRouter();
   useLayoutEffect(() => {
-    ///for manipulating dom element, want it to be ready before you do anything
     const canvas = document.getElementById(
       "canvas"
     ) as HTMLCanvasElement | null;
     const context = canvas?.getContext("2d");
-    context?.clearRect(0, 0, canvas.width, canvas.height);
+    context?.clearRect(
+      0,
+      0,
+      canvas !== null ? canvas.width : 0,
+      canvas !== null ? canvas.height : 0
+    );
 
     const roughCanvas = rough?.canvas(canvas);
-
-    elements.forEach((element) => {
+    elements.forEach((element: any) => {
       if (action === "writing" && selectedElement.id === element.id) return;
       drawElement(roughCanvas, context, element);
     });
   }, [elements, action, selectedElement]);
 
   useEffect(() => {
-    const undoRedoFunction = (event) => {
+    const undoRedoFunction = (event: any) => {
       if ((event.metaKey || event.ctrlKey) && event.key === "z") {
         if (event.shiftKey) {
           redo();
@@ -422,15 +472,16 @@ const Drawing = () => {
     };
   }, [undo, redo]);
 
-  useEffect(() => {
-    const textArea = textAreaRef.current;
-    if (textArea && action === "writing") {
-      textArea.focus();
-      textArea.value = selectedElement.text;
-    }
-  }, [action, selectedElement]);
-
-  const updateElement = (id, x1, y1, x2, y2, type, options, color) => {
+  const updateElement = (
+    id: number,
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number,
+    type: string,
+    options: any,
+    color: string
+  ) => {
     const elementsCopy = [...elements];
 
     switch (type) {
@@ -448,11 +499,10 @@ const Drawing = () => {
       default:
         throw new Error(`Type not recognised: ${type}`);
     }
-
     setElements(elementsCopy, true);
   };
 
-  function getMousePos(canvas, evt) {
+  function getMousePos(canvas: any, evt: any) {
     var rect = canvas.getBoundingClientRect();
     return {
       x: evt.clientX - rect.left,
@@ -460,25 +510,23 @@ const Drawing = () => {
     };
   }
 
-  const handleMouseDown = (event) => {
+  const handleMouseDown = (event: any) => {
     if (action === "writing") return;
     var canvas = document.getElementById("canvas") as HTMLCanvasElement | null;
     var pos = getMousePos(canvas, event);
-
     if (tool === "selection") {
       const element = getElementAtPosition(pos.x, pos.y, elements);
       if (element) {
         if (element.type === "pencil") {
-          const xOffsets = element.points.map((point) => pos.x - point.x);
-          const yOffsets = element.points.map((point) => pos.y - point.y);
+          const xOffsets = element.points.map((point: any) => pos.x - point.x);
+          const yOffsets = element.points.map((point: any) => pos.y - point.y);
           setSelectedElement({ ...element, xOffsets, yOffsets });
         } else {
           const offsetX = pos.x - element.x1;
           const offsetY = pos.y - element.y1;
           setSelectedElement({ ...element, offsetX, offsetY });
         }
-        setElements((prevState) => prevState);
-
+        setElements((prevState: any) => prevState);
         if (element.position === "inside") {
           setAction("moving");
         } else {
@@ -496,19 +544,17 @@ const Drawing = () => {
         tool,
         selectedColor
       );
-      setElements((prevState) => [...prevState, element]);
+      setElements((prevState: any) => [...prevState, element]);
       setSelectedElement(element);
-
       setAction(tool === "text" ? "writing" : "drawing");
     }
   };
 
-  const handleMouseMove = (event) => {
+  const handleMouseMove = (event: any) => {
     var canvas = document.getElementById("canvas") as HTMLCanvasElement | null;
     var pos = getMousePos(canvas, event);
-
     if (tool === "selection") {
-      const element = getElementAtPosition(pos.x, pos.y, elements); //getElementAtPosition()??
+      const element = getElementAtPosition(pos.x, pos.y, elements);
       event.target.style.cursor = element
         ? cursorForPosition(element.position)
         : "default";
@@ -516,11 +562,11 @@ const Drawing = () => {
 
     if (action === "drawing") {
       const index = elements.length - 1;
-      const { x1, y1 } = elements[index]; //get x and y from the last element
+      const { x1, y1 } = elements[index];
       updateElement(index, x1, y1, pos.x, pos.y, tool, Option, selectedColor);
     } else if (action === "moving") {
-      if (selectedElement.type === "pencil") {
-        const newPoints = selectedElement.points.map((_, index) => ({
+      if (selectedElement?.type === "pencil") {
+        const newPoints = selectedElement.points.map((_: any, index: any) => ({
           x: pos.x - selectedElement.xOffsets[index],
           y: pos.y - selectedElement.yOffsets[index],
         }));
@@ -538,7 +584,7 @@ const Drawing = () => {
         const newX1 = pos.x - offsetX;
         const newY1 = pos.y - offsetY;
         const newColor = color;
-        const options = type === "text" ? { text: selectedElement.text } : {};
+        const options = type === "text" ? { text: selectedElement?.text } : {};
         updateElement(
           id,
           newX1,
@@ -563,13 +609,12 @@ const Drawing = () => {
     }
   };
 
-  const handleMouseUp = (event) => {
+  const handleMouseUp = () => {
     if (selectedElement) {
       const index = selectedElement.id;
       const { id, type, color } = elements[index];
       if (
         (action === "drawing" || action === "resizing") &&
-        //both needs to update coordinates after actions.
         adjustmentRequired(type)
       ) {
         const { x1, y1, x2, y2 } = adjustElementCoordinates(elements[index]);
@@ -583,60 +628,45 @@ const Drawing = () => {
     setSelectedElement(null);
   };
 
-  const handleBlur = (event) => {
-    const { id, x1, y1, type, color } = selectedElement;
-    setAction("none");
-    setSelectedElement(null);
-    updateElement(
-      id,
-      x1,
-      y1,
-      null,
-      null,
-      type,
-      { text: event.target.value },
-      color
-    );
-  };
-
   const download = async () => {
-    const image = canvasRef.current.toDataURL("image/png");
-    const blob = await (await fetch(image)).blob();
-    const blobURL = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = blobURL;
-    console.log(blobURL);
-    link.download = "healing-museum-drawing-board.png";
-    link.click();
+    if (canvasRef.current !== null) {
+      const image = canvasRef.current.toDataURL("image/png");
+      const blob = await (await fetch(image)).blob();
+      const blobURL = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobURL;
+      link.download = "healing-museum-drawing-board.png";
+      link.click();
+    }
   };
 
   const upload = async () => {
     const sendImage = async () => {
-      const image = canvasRef.current.toDataURL("image/png");
-      const blob = await (await fetch(image)).blob();
-      return new Promise((resolve) => {
-        const imageRef = ref(storage, `${user?.uid}`);
+      if (canvasRef.current !== null) {
+        const image = canvasRef.current.toDataURL("image/png");
+        const blob = await (await fetch(image)).blob();
+        return new Promise((resolve) => {
+          const imageRef = ref(storage, `${user?.uid}`);
 
-        const uploadTask = uploadBytesResumable(imageRef, blob);
+          const uploadTask = uploadBytesResumable(imageRef, blob);
 
-        uploadTask.on(
-          "state_changed",
-          () => {},
-          () => {},
-          async () => {
-            const res = await getDownloadURL(uploadTask.snapshot.ref);
-            resolve(res);
-            console.log(res);
-            console.log("Uploaded a blob or file!");
-          }
-        );
-      });
+          uploadTask.on(
+            "state_changed",
+            () => {},
+            () => {},
+            async () => {
+              const res = await getDownloadURL(uploadTask.snapshot.ref);
+              resolve(res);
+            }
+          );
+        });
+      }
     };
     const newRes = await sendImage();
     sendDrawing(newRes);
   };
 
-  const sendDrawing = (url) => {
+  const sendDrawing = (url: any) => {
     async function sendData() {
       const IDRef = doc(db, "users", user?.uid);
       await updateDoc(IDRef, {
@@ -650,14 +680,12 @@ const Drawing = () => {
     const canvas = document.getElementById(
       "canvas"
     ) as HTMLCanvasElement | null;
-    const context = canvas.getContext("2d");
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    setElements([]);
+    const context = canvas?.getContext("2d");
+    if (canvas !== null) {
+      context?.clearRect(0, 0, canvas.width, canvas.height);
+      setElements([]);
+    }
   };
-
-  {
-    /* <FunctionButton $bgImage={`${editAvatar.src}`} onClick={upload} /> */
-  }
 
   const functionBarButtons = [
     {
@@ -688,37 +716,20 @@ const Drawing = () => {
   const toNextPage = () => {
     if (elements.length === 0) {
       toast(() => (
-        <div>
-          <p>
+        <AlertMessageWrapper>
+          <AlertMessage>
             Your canvas is still blank, are you sure you want to skip this
             experience?
-          </p>
-          <div style={{ width: "100%" }}>
+          </AlertMessage>
+          <AlertButtonWrapper>
             <div>
-              <button
-                style={{
-                  margin: "5px 10px 0 0",
-                  padding: "3px 10px",
-                  background: "black",
-                  color: "white",
-                }}
-                onClick={() => router.push("/quiz")}
-              >
+              <AlertButton onClick={() => router.push("/quiz")}>
                 Yes
-              </button>
-              <button
-                style={{
-                  margin: "5px 10px 0 0",
-                  padding: "3px 10px",
-                  background: "black",
-                  color: "white",
-                }}
-              >
-                No
-              </button>
+              </AlertButton>
+              <AlertButton>No</AlertButton>
             </div>
-          </div>
-        </div>
+          </AlertButtonWrapper>
+        </AlertMessageWrapper>
       ));
     } else {
       upload();
@@ -727,24 +738,10 @@ const Drawing = () => {
   };
   return (
     <Wrapper>
-      <ToastContainer
-        position="top-center"
-        autoClose={false}
-        hideProgressBar={true}
-        newestOnTop={true}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-        limit={1}
-      />
-
       <InstructionText>
         Drawing provides a way to express feelings without words, and is
         frequently used in art therapy sessions to release stress. What have
-        been on your mind recently, which bring you joy, or sorrow?{" "}
+        been on your mind recently, which bring you joy, or sorrow?&nbsp;
         <strong>How about leaving them on this canvas?</strong>
       </InstructionText>
       <div onClick={toNextPage}>
@@ -767,12 +764,11 @@ const Drawing = () => {
       <ToolBar>
         <ButtonWrapper>
           {toolbarButtons.map((toolbarButton) => (
-            <>
+            <div key={toolbarButton.value}>
               <FunctionButtonLabel
                 $showLabel={
                   toolbarButton.label === showLabel.label ? "initial" : "none"
                 }
-                key={toolbarButton.value}
               >
                 {toolbarButton.label}
               </FunctionButtonLabel>
@@ -794,13 +790,13 @@ const Drawing = () => {
                 $bgImageHover={`${toolbarButton.filled}`}
                 onClick={() => setTool(toolbarButton.value)}
               />
-            </>
+            </div>
           ))}
         </ButtonWrapper>
 
         <ButtonWrapper>
           {functionBarButtons.map((functionBarButton) => (
-            <>
+            <div key={functionBarButton.label}>
               <FunctionButtonLabel
                 $showLabel={
                   functionBarButton.filled === showFunction.filled
@@ -824,47 +820,23 @@ const Drawing = () => {
                 $bgImage={`${functionBarButton.unfilled}`}
                 onClick={functionBarButton.function}
               />
-            </>
+            </div>
           ))}
-
-          {/* <FunctionButton $bgImage={`${editAvatar.src}`} onClick={upload} /> */}
         </ButtonWrapper>
       </ToolBar>
 
-      {action === "writing" ? (
-        <textarea
-          ref={textAreaRef}
-          onBlur={handleBlur}
-          style={{
-            position: "fixed",
-            top: selectedElement.y1 - 2,
-            left: selectedElement.x1,
-            font: "24px sans-serif",
-            margin: 0,
-            padding: 0,
-            border: 0,
-            outline: 0,
-            // resize: "auto",
-            overflow: "hidden",
-            whiteSpace: "pre",
-            background: "transparent",
-          }}
-        />
-      ) : null}
       <canvas
         id="canvas"
         ref={canvasRef}
         width={window.innerWidth}
         height={window.innerHeight}
         style={{ background: "white" }}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
+        onPointerDown={handleMouseDown}
+        onPointerMove={handleMouseMove}
+        onPointerUp={handleMouseUp}
       >
         Canvas
       </canvas>
     </Wrapper>
   );
-};
-
-export default Drawing;
+}

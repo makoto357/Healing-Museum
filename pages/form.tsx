@@ -1,23 +1,13 @@
 import styled from "@emotion/styled";
-import Image from "next/image";
 import { useRouter } from "next/router";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, FormEvent } from "react";
 
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import {
-  collection,
-  addDoc,
-  doc,
-  updateDoc,
-  query,
-  where,
-  getDocs,
-} from "firebase/firestore";
+import { toast } from "react-toastify";
+import { collection, addDoc, doc, updateDoc } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
-
+import { getUserInfo } from "../utils/firebaseFuncs";
 import SignpostButton from "../components/Button";
 import imageupload from "../asset/imageupload.svg";
 import backToPrevious from "../asset/back-to-previous.svg";
@@ -190,9 +180,28 @@ const InstructionText = styled.div`
   margin: 0 auto;
 `;
 
-const FileInput = styled.div`
+const FileInput = styled.input`
   display: none;
 `;
+
+const PreloadBackgroundImg = styled.div`
+  display: none;
+`;
+const Img = styled.img``;
+export function PreloadImages() {
+  return (
+    <PreloadBackgroundImg>
+      <Img src={heartFilled.src} />
+      <Img src={heartUnfilled.src} />
+      <Img src={relateFilled.src} />
+      <Img src={relateFilled.src} />
+      <Img src={togetherFilled.src} />
+      <Img src={togetherUnfilled.src} />
+      <Img src={hopeUnfilled.src} />
+      <Img src={hopeFilled.src} />
+    </PreloadBackgroundImg>
+  );
+}
 interface ILabel {
   value: string | undefined;
   filled: string | undefined;
@@ -201,23 +210,26 @@ interface ILabel {
 export default function Form() {
   const router = useRouter();
   const { user } = useAuth();
-  const [file, setFile] = useState(null);
-  console.log(file);
-  const [artist, setArtist] = useState("");
-  const [username, setUsername] = useState("");
-  const timeStamp = new Date();
-  const hiddenFileInput = useRef(null);
+  const [file, setFile] = useState<string>();
+  const [artist, setArtist] = useState<string>();
+  const [username, setUsername] = useState<string>();
+
+  const hiddenFileInput = useRef<HTMLInputElement>(null);
   const [nextPage, setNextPage] = useState(false);
   const [showLabel, setShowLabel] = useState<ILabel>({
     value: " ",
     filled: " ",
     unfilled: " ",
   });
-  const handleChange = (e) => {
-    setFile(URL.createObjectURL(e.target.files[0]));
-    setUploadedImage(e.target.files[0]);
+  const handleChange = (e: React.ChangeEvent) => {
+    const target = e.target as HTMLInputElement;
+    if (target.files !== null) {
+      setFile(URL.createObjectURL(target.files[0]));
+      setUploadedImage(target.files[0]);
+    }
   };
   const handleClick = () => {
+    if (hiddenFileInput.current === null) return;
     hiddenFileInput.current.click();
   };
 
@@ -244,7 +256,7 @@ export default function Form() {
     },
   ];
 
-  const [uploadedImage, setUploadedImage] = useState(null);
+  const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   console.log(uploadedImage);
   const [formData, setFormData] = useState({
     emoji: "",
@@ -254,41 +266,36 @@ export default function Form() {
   });
 
   useEffect(() => {
-    const getUserJourney = async () => {
-      const q = query(collection(db, "users"), where("id", "==", user?.uid));
-      const querySnapshot = await getDocs(q);
-      const docs = querySnapshot.docs.map((doc) => doc.data() as any);
-      const artistRecommendation = docs[0].visitorJourney[
-        docs[0].visitorJourney.length - 1
-      ]?.recommendedArtist
-        .split("-")
-        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-        .join(" ");
-      setArtist(artistRecommendation);
-      setUsername(docs[0].name);
-      setFile(docs[0].drawings?.at(-1));
-    };
     if (user) {
-      getUserJourney();
+      getUserInfo(user?.uid).then(
+        ({ recommendedArtist, userName, drawingForFeedbackForm }) => {
+          const artistRecommendation = recommendedArtist
+            ?.split("-")
+            .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1))
+            .join(" ");
+          setArtist(artistRecommendation);
+          setUsername(userName);
+          setFile(drawingForFeedbackForm);
+        }
+      );
     }
   }, [user, nextPage]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (uploadedImage === null) {
-      console.log("herrrree?");
-      sendForm(file);
+      sendForm(file !== undefined ? file : "");
       setFormData({
         emoji: "",
         title: "",
         content: "",
         date: "",
       });
-      setFile(null);
+      setFile("");
     } else if (uploadedImage !== null) {
       uploadImage();
       setUploadedImage(null);
-      setFile(null);
+      setFile("");
       setFormData({
         emoji: "",
         title: "",
@@ -298,15 +305,14 @@ export default function Form() {
     }
   };
 
-  const sendForm = (url) => {
-    console.log(url);
+  const sendForm = (url: string) => {
     async function sendData() {
       const docRef = await addDoc(collection(db, "user-posts"), {
         emoji: formData.emoji,
         date: formData.date,
         title: formData.title,
         textContent: formData.content,
-        postTime: timeStamp,
+        postTime: new Date(),
         userId: user?.uid,
         comments: [],
         numberOfLikes: [],
@@ -328,7 +334,6 @@ export default function Form() {
       return new Promise((resolve) => {
         const imageRef = ref(storage, `${user?.uid}/${uploadedImage}`);
         const uploadTask = uploadBytesResumable(imageRef, uploadedImage);
-
         uploadTask.on(
           "state_changed",
           () => {},
@@ -340,24 +345,32 @@ export default function Form() {
         );
       });
     };
-    const newRes = await sendImage();
+    const newRes = (await sendImage()) as string;
     sendForm(newRes);
+  };
+  const checkFormData = () => {
+    if (!formData.emoji) return;
+    else if (!file) {
+      toast("Please upload an image related to your experience.", {
+        hideProgressBar: false,
+        autoClose: 3000,
+        icon: () => <img src={image.src} />,
+      });
+      return;
+    }
+
+    setNextPage(true);
+  };
+
+  const submitFormData = () => {
+    if (!formData.date || !formData.title || !formData.content) {
+      return;
+    }
+    router.push("/visitor-posts");
   };
 
   return (
     <Wrapper>
-      <ToastContainer
-        position="top-center"
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        hideProgressBar={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-        limit={1}
-      />
       <MainForm onSubmit={handleSubmit}>
         <FormHeader>
           <BackToPrevious
@@ -366,12 +379,12 @@ export default function Form() {
           ></BackToPrevious>
           <strong>Share your story</strong>
         </FormHeader>
-        {!nextPage && (
+        {!nextPage ? (
           <FormWrapper>
             <FormFieldset>
               <FormLable htmlFor="feeling">
                 <strong>
-                  Having been on this journey through the inner world of{" "}
+                  Having been on this journey through the inner world of&nbsp;
                   {artist}, you feel...
                 </strong>
               </FormLable>
@@ -408,7 +421,7 @@ export default function Form() {
                             : emoji.unfilled
                         }
                         $bgImageHover={
-                          showLabel.value == emoji.value && emoji.filled
+                          showLabel.value == emoji.value ? emoji.filled : ""
                         }
                       />
                       <EmojiLabel
@@ -428,8 +441,8 @@ export default function Form() {
               <FormLable htmlFor="title">
                 {file && (
                   <strong>
-                    Share this drawing you made during your most recent visit,
-                    or click to upload another image:
+                    Share the last drawing you made during your visits, or click
+                    to upload another image:
                   </strong>
                 )}
               </FormLable>
@@ -459,32 +472,9 @@ export default function Form() {
               </UploadedImage>
             </FormFieldset>
 
-            <SubmitButton
-              onClick={() => {
-                if (!formData.emoji) return;
-                else if (!file) {
-                  toast("Please upload an image related to your experience.", {
-                    position: "top-center",
-                    autoClose: 3000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    progress: undefined,
-                    theme: "light",
-                    icon: () => <img src={image.src} />,
-                  });
-                  return;
-                }
-
-                setNextPage(true);
-              }}
-            >
-              Continue
-            </SubmitButton>
+            <SubmitButton onClick={checkFormData}>Continue</SubmitButton>
           </FormWrapper>
-        )}
-        {nextPage && (
+        ) : (
           <FormWrapper>
             <FormFieldset>
               <FormLable htmlFor="title">
@@ -539,16 +529,7 @@ export default function Form() {
               ></TextArea>
             </FormFieldset>
 
-            <SubmitButton
-              onClick={() => {
-                if (!formData.date || !formData.title || !formData.content) {
-                  return;
-                }
-                router.push("/visitor-posts");
-              }}
-            >
-              Submit
-            </SubmitButton>
+            <SubmitButton onClick={submitFormData}>Submit</SubmitButton>
           </FormWrapper>
         )}
       </MainForm>

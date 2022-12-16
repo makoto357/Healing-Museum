@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { createContext, useState, useEffect, useContext } from "react";
 
 import {
@@ -5,17 +6,27 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
+  // eslint-disable-next-line import/named
+  UserCredential,
 } from "firebase/auth";
 import { auth } from "../config/firebase";
+
+interface IUser {
+  uid?: string;
+  email: string | null;
+  displayName: string | null;
+}
+
 const AuthContext = createContext<any>({});
 
 export const useAuth = () => useContext(AuthContext);
+
 export const AuthContextProvider = ({
   children,
 }: {
   children: React.ReactNode;
 }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<IUser | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -26,7 +37,7 @@ export const AuthContextProvider = ({
           displayName: user.displayName,
         });
       } else {
-        setUser(null);
+        setUser(undefined);
       }
       setLoading(false);
     });
@@ -42,7 +53,7 @@ export const AuthContextProvider = ({
   };
 
   const logout = async () => {
-    setUser(null);
+    setUser(undefined);
     await signOut(auth);
   };
 

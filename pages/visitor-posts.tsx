@@ -1,32 +1,30 @@
 import styled from "@emotion/styled";
 import Masonry from "react-masonry-css";
 import React, { useState, useEffect, useRef } from "react";
-
 import {
   collection,
   onSnapshot,
   updateDoc,
   doc,
   arrayUnion,
-  Timestamp,
-  query,
-  where,
-  getDocs,
-  arrayRemove,
 } from "firebase/firestore";
 import SignpostButton from "../components/Button";
 import upArrow from "../asset/arrow-up.png";
-
 import { db } from "../config/firebase";
 import commentFilled from "../asset/comments-filled.png";
 import commentUnfilled from "../asset/comments-unfilled.png";
 import filledHeart from "../asset/black-heal.png";
 import unfilledHeart from "../asset/white-heal.png";
-
+import {
+  getFavoritePosts,
+  IFavoritePost,
+  addFavoritePosts,
+  deleteFavoritePosts,
+  IPost,
+} from "../utils/firebaseFuncs";
 import { useAuth } from "../context/AuthContext";
 const Wrapper = styled.div`
   padding-top: 40px;
-
   .my-masonry-grid {
     display: flex;
     max-width: 1200px;
@@ -46,7 +44,6 @@ const CommentContainer = styled.section`
   display: flex;
   flex-direction: column;
   background: white;
-
   position: relative;
   transition: all 0.5s ease;
   filter: grayscale(100%);
@@ -54,9 +51,7 @@ const CommentContainer = styled.section`
   &:before {
     z-index: -1;
     background: white;
-
     position: absolute;
-
     content: "";
     height: calc(100% - 40px);
     width: 100%;
@@ -72,13 +67,10 @@ const CommentContainer = styled.section`
   &:hover {
     filter: grayscale(0%);
     box-shadow: 5px 5px 20px #888888;
-
     &:before {
       z-index: -1;
       background: white;
-
       position: absolute;
-
       content: "";
       height: 100%;
       width: 100%;
@@ -202,6 +194,7 @@ const ToTopIconWrapper = styled.div`
   bottom: 60px;
   right: 3vw;
   text-align: center;
+  z-index: 2;
   @media screen and (max-width: 800px) {
     bottom: 24px;
   }
@@ -209,7 +202,6 @@ const ToTopIconWrapper = styled.div`
 
 const ToTopIcon = styled.div`
   cursor: pointer;
-
   background-image: url(${upArrow.src});
   width: 30px;
   height: 30px;
@@ -237,41 +229,24 @@ const breakpointColumnsObj = {
   750: 1,
 };
 
-let comments: Array<{
-  commentTime: Timestamp;
-  commentatorId: string;
-  commentatorName: string;
-  content: string;
-}> = [];
-
-interface IComment {
-  id: string | undefined;
-  comments;
-}
-
 export default function VisitorPosts() {
-  const [posts, setPosts] = useState([]);
-  const [showComment, setShowComment] = useState(false);
-  const [sortPost, setSortPost] = useState(true);
-  const [postComments, setPostComments] = useState<IComment>({
-    id: undefined,
-    comments,
-  });
-  const commentRef = useRef(null);
-  const [favorite, setFavorite] = useState([]);
+  const [posts, setPosts] = useState<IPost[]>([]);
+  const [showComment, setShowComment] = useState<boolean>(false);
+  const [sortPost, setSortPost] = useState<boolean>(true);
+  const [postComments, setPostComments] = useState<IPost>({});
+  const commentRef = useRef<HTMLTextAreaElement>(null);
+  const [favorite, setFavorite] = useState<IFavoritePost[]>([]);
   const { user } = useAuth();
   useEffect(() => {
-    const getArtist = async () => {
-      const q = query(collection(db, "users"), where("id", "==", user.uid));
-      const querySnapshot = await getDocs(q);
-      const docs = querySnapshot.docs.map((doc) => doc.data() as any);
-      setFavorite(docs[0].favoritePostsId);
-    };
-    getArtist();
-    console.log("get posts again?");
-    const colRef = collection(db, "user-posts");
-    const unSubscribe = onSnapshot(colRef, (snapshot) => {
-      let posts = [];
+    if (user) {
+      getFavoritePosts(user.uid).then(({ postsData }) => {
+        setFavorite([...postsData]);
+      });
+    }
+
+    const postsRef = collection(db, "user-posts");
+    const unSubscribe = onSnapshot(postsRef, (snapshot) => {
+      let posts: IPost[] = [];
       snapshot.docs.forEach((doc) => {
         posts.push({
           ...doc.data(),
@@ -282,109 +257,138 @@ export default function VisitorPosts() {
     return () => {
       unSubscribe();
     };
-  }, [user.uid]);
+  }, [user]);
 
-  const saveToFavorites = async (post) => {
-    setFavorite((prev) => [
-      ...prev,
-      {
-        postTime: post.postTime,
-        title: post.title,
-        artist: post.artistForThisVisit,
-        postBy: post.postMadeBy,
-        id: post.id,
-      },
-    ]);
-
-    const postRef = doc(db, "user-posts", post?.id);
-    await updateDoc(postRef, {
-      numberOfLikes: arrayUnion(user?.uid),
-    });
-
-    const requestRef = doc(db, "users", user?.uid);
-    await updateDoc(requestRef, {
-      favoritePostsId: arrayUnion({
-        postTime: post.date,
-        title: post.title,
-        artist: post.artistForThisVisit,
-        postBy: post.postMadeBy,
-        id: post.id,
-      }),
-    });
+  const saveToFavorites = async (post: IFavoritePost) => {
+    const favoritePost = {
+      date: post.date,
+      title: post.title,
+      artistForThisVisit: post.artistForThisVisit,
+      postMadeBy: post.postMadeBy,
+      id: post.id,
+    };
+    setFavorite((prev) => [...prev, favoritePost]);
+    addFavoritePosts(
+      favoritePost,
+      favoritePost.id !== undefined ? favoritePost.id : "",
+      user?.uid
+    );
   };
 
-  const deleteFromFavorites = async (post) => {
+  const deleteFromFavorites = async (post: IFavoritePost) => {
     const index = favorite?.indexOf(post);
     favorite?.splice(index, 1);
     setFavorite([...favorite]);
-    const requestRef = doc(db, "users", user?.uid);
-    await updateDoc(requestRef, {
-      favoritePostsId: arrayRemove({
-        postTime: post.date,
-        title: post.title,
-        artist: post.artistForThisVisit,
-        postBy: post.postMadeBy,
-        id: post.id,
-      }),
-    });
-
-    const postRef = doc(db, "user-posts", post?.id);
-    await updateDoc(postRef, {
-      numberOfLikes: arrayRemove(user?.uid),
-    });
+    const favoritePost = {
+      date: post.date,
+      title: post.title,
+      artistForThisVisit: post.artistForThisVisit,
+      postMadeBy: post.postMadeBy,
+      id: post.id,
+    };
+    deleteFavoritePosts(
+      favoritePost,
+      favoritePost.id !== undefined ? favoritePost.id : "",
+      user.uid
+    );
   };
 
-  const handleShowComments = (singlePost) => {
+  const handleShowComments = (singlePost: IPost) => {
     setPostComments(singlePost);
     setShowComment(true);
   };
 
-  const handleComment = async (singlePost) => {
-    const requestRef = doc(db, "user-posts", singlePost.id);
-    await updateDoc(requestRef, {
-      comments: arrayUnion({
+  const handleComment = async (singlePost: IPost) => {
+    const requestRef = doc(
+      db,
+      "user-posts",
+      singlePost.id !== undefined ? singlePost.id : ""
+    );
+    if (commentRef.current !== null) {
+      await updateDoc(requestRef, {
+        comments: arrayUnion({
+          commentatorId: user.uid,
+          commentTime: new Date(),
+          content: commentRef.current.value,
+        }),
+      });
+
+      const newPostComments = { ...singlePost };
+
+      const newComments =
+        newPostComments.comments !== undefined &&
+        newPostComments.comments.length !== 0
+          ? [...newPostComments.comments]
+          : [];
+      newComments?.push({
         commentatorId: user.uid,
-        commentTime: new Date(),
         content: commentRef.current.value,
-      }),
-    });
+      });
+      newPostComments.comments = newComments;
+      setPostComments(newPostComments);
 
-    const newPostComments = { ...singlePost };
-
-    const newComments =
-      newPostComments.comments.length !== 0
-        ? [...newPostComments?.comments]
-        : [];
-    newComments?.push({
-      commentatorId: user.uid,
-      commentTime: new Date(),
-      content: commentRef.current.value,
-    });
-    newPostComments.comments = newComments;
-    setPostComments(newPostComments);
-
-    commentRef.current.value = "";
+      commentRef.current.value = "";
+    }
   };
 
-  function sortByArtist(a, b) {
-    if (a.artistForThisVisit < b.artistForThisVisit) {
+  function sortByArtist(a: IPost, b: IPost) {
+    if (
+      (a.artistForThisVisit !== undefined ? a.artistForThisVisit : "") <
+      (b.artistForThisVisit !== undefined ? b.artistForThisVisit : "")
+    ) {
       return -1;
     }
-    if (a.artistForThisVisit > b.artistForThisVisit) {
+    if (
+      (a.artistForThisVisit !== undefined ? a.artistForThisVisit : "") >
+      (b.artistForThisVisit !== undefined ? b.artistForThisVisit : "")
+    ) {
       return 1;
     }
     return 0;
   }
 
-  function sortByDate(a, b) {
-    if (a.date < b.date) {
+  function sortByDate(a: IPost, b: IPost) {
+    if (
+      (a.date !== undefined ? a.date : "") <
+      (b.date !== undefined ? b.date : "")
+    ) {
       return -1;
     }
-    if (a.date > b.date) {
+    if (
+      (a.date !== undefined ? a.date : "") >
+      (b.date !== undefined ? b.date : "")
+    ) {
       return 1;
     }
     return 0;
   }
+  const sortPostsByArtist = () => {
+    setSortPost(true);
+    setPosts(() => [...posts.sort(sortByArtist)]);
+  };
+
+  const sortPostByDate = () => {
+    setSortPost(false);
+    setPosts(() => [...posts.sort(sortByDate)]);
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+  };
+
+  const collectPosts = (post: IPost) => {
+    if (!favorite?.map((fav) => fav.id).includes(post.id))
+      saveToFavorites(post);
+    else if (favorite?.map((fav) => fav.id).includes(post.id)) {
+      deleteFromFavorites(post);
+    }
+  };
+
+  const submitComment = (post: IPost) => {
+    if (commentRef.current !== null && commentRef.current.value.trim() !== "") {
+      handleComment(post);
+    }
+  };
 
   return (
     <Wrapper>
@@ -398,30 +402,20 @@ export default function VisitorPosts() {
           <SortButton
             $textColor={sortPost ? "white" : "black"}
             $bgColor={sortPost ? "#2c2b2c" : "transparent"}
-            onClick={() => {
-              setSortPost(true);
-              setPosts(() => [...posts.sort(sortByArtist)]);
-            }}
+            onClick={sortPostsByArtist}
           >
             By Artists
           </SortButton>
           <SortButton
             $textColor={!sortPost ? "white" : "black"}
             $bgColor={!sortPost ? "#2c2b2c" : "transparent"}
-            onClick={() => {
-              setSortPost(false);
-              setPosts(() => [...posts.sort(sortByDate)]);
-            }}
+            onClick={sortPostByDate}
           >
             By Date
           </SortButton>
         </SortButtonSmScreen>
       </SortButtonGroup>
-      <ToTopIconWrapper
-        onClick={() => {
-          window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
-        }}
-      >
+      <ToTopIconWrapper onClick={scrollToTop}>
         <ToTopIcon />
 
         <ToTopText>
@@ -437,108 +431,104 @@ export default function VisitorPosts() {
         className="my-masonry-grid"
         columnClassName="my-masonry-grid_column"
       >
-        {" "}
-        {posts.map((post) => (
-          <CommentContainer
-            key={post.id}
-            onMouseEnter={() => handleShowComments(post)}
-          >
-            <MainImageWrapper>
-              <MainImage alt={post.title} src={post.uploadedImage} />
-            </MainImageWrapper>
-            <Post>
-              <Text>
-                <div>
-                  <h1>
-                    <strong>{post.title}</strong>
-                  </h1>
-                  <p>{post.date}</p>
-                </div>
-                <p>{post.textContent}</p>
-                <div>
-                  <p>
-                    <strong>Posted by: </strong>
-                    {post.postMadeBy}
-                  </p>
-                  <p>
-                    <strong>Artist: </strong>
-                    {post.artistForThisVisit}
-                  </p>
-                </div>
-              </Text>
-              <ButtonGroupWrapper>
-                <CommentButton
-                  $showComment={
-                    showComment && postComments?.id === post?.id
-                      ? commentFilled.src
-                      : commentUnfilled.src
-                  }
-                  role="button"
-                  onClick={() => handleShowComments(post)}
-                ></CommentButton>
-
-                <ButtonGroup>
-                  <LikeNumber>
-                    {post.numberOfLikes?.length > 0 &&
-                      post.numberOfLikes?.length}
-                  </LikeNumber>
-
-                  <CollectionButton
-                    $heart={
-                      favorite?.map((f) => f.id).includes(post.id)
-                        ? `${filledHeart.src}`
-                        : `${unfilledHeart.src}`
+        {posts.map((post) => {
+          const {
+            id,
+            title,
+            uploadedImage,
+            date,
+            textContent,
+            postMadeBy,
+            artistForThisVisit,
+            numberOfLikes,
+          } = post;
+          return (
+            <CommentContainer
+              key={id}
+              onMouseEnter={() => handleShowComments(post)}
+            >
+              <MainImageWrapper>
+                <MainImage alt={title} src={uploadedImage} />
+              </MainImageWrapper>
+              <Post>
+                <Text>
+                  <div>
+                    <h1>
+                      <strong>{title}</strong>
+                    </h1>
+                    <p>{date}</p>
+                  </div>
+                  <p>{textContent}</p>
+                  <div>
+                    <p>
+                      <strong>Posted by: </strong>
+                      {postMadeBy}
+                    </p>
+                    <p>
+                      <strong>Artist: </strong>
+                      {artistForThisVisit}
+                    </p>
+                  </div>
+                </Text>
+                <ButtonGroupWrapper>
+                  <CommentButton
+                    $showComment={
+                      showComment && postComments?.id === id
+                        ? commentFilled.src
+                        : commentUnfilled.src
                     }
                     role="button"
-                    onClick={() => {
-                      if (!favorite?.map((f) => f.id).includes(post.id))
-                        saveToFavorites(post);
-                      else if (favorite?.map((f) => f.id).includes(post.id)) {
-                        deleteFromFavorites(post);
-                      }
-                    }}
-                  />
-                </ButtonGroup>
-              </ButtonGroupWrapper>
-            </Post>
-            {showComment && postComments?.id === post?.id && (
-              <Post>
-                <Split></Split>
-                <TextArea
-                  placeholder="After reading this post, I feel..."
-                  name="visitorComment"
-                  ref={commentRef}
-                />
+                    onClick={() => handleShowComments(post)}
+                  ></CommentButton>
 
-                <SubmitButton
-                  onClick={() => {
-                    if (commentRef.current.value.trim() !== "") {
-                      handleComment(post);
-                    }
-                  }}
-                >
-                  Submit
-                </SubmitButton>
+                  <ButtonGroup>
+                    <LikeNumber>
+                      {numberOfLikes !== undefined &&
+                        numberOfLikes?.length > 0 &&
+                        numberOfLikes?.length}
+                    </LikeNumber>
+
+                    <CollectionButton
+                      $heart={
+                        favorite?.map((f) => f.id).includes(post.id)
+                          ? `${filledHeart.src}`
+                          : `${unfilledHeart.src}`
+                      }
+                      role="button"
+                      onClick={() => collectPosts(post)}
+                    />
+                  </ButtonGroup>
+                </ButtonGroupWrapper>
               </Post>
-            )}
-            {showComment && postComments?.id === post.id && (
-              <Post>
-                <strong>How Others Feel</strong>
-              </Post>
-            )}
-            {showComment &&
-              postComments?.id === post.id &&
-              postComments?.comments?.map((c) => (
-                <>
-                  <Post key={c.commentTime}>
-                    <h1></h1>
-                    <p>{c.commentatorName}</p>
-                    <p>{c.content}</p>
+              {showComment && postComments?.id === id && (
+                <Post>
+                  <Split></Split>
+                  <TextArea
+                    placeholder="After reading this post, I feel..."
+                    name="visitorComment"
+                    ref={commentRef}
+                  />
+
+                  <SubmitButton onClick={() => submitComment(post)}>
+                    Submit
+                  </SubmitButton>
+                </Post>
+              )}
+              {showComment && postComments?.id === id && (
+                <Post>
+                  <strong>How Others Feel</strong>
+                </Post>
+              )}
+              {showComment &&
+                postComments?.id === id &&
+                postComments?.comments?.map((postComment) => (
+                  <Post key={postComment.content}>
+                    <p>{postComment.content}</p>
                   </Post>
-                </>
-              ))}
-          </CommentContainer>
-        ))}
+                ))}
+            </CommentContainer>
+          );
+        })}
       </Masonry>
     </Wrapper>
   );

@@ -1,23 +1,20 @@
 import styled from "@emotion/styled";
-import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import { toast } from "react-toastify";
 import {
-  collection,
-  doc,
-  query,
-  where,
-  getDocs,
-  orderBy,
-  updateDoc,
-  arrayUnion,
-  arrayRemove,
-} from "firebase/firestore";
-import { ToastContainer, toast } from "react-toastify";
+  addFavoriteArtworks,
+  IFavoriteArtwork,
+  deleteFavoriteArtworks,
+  getUserInfo,
+  getArtworks,
+  IGeneralArtwork,
+  IGeneralArtworks,
+} from "../utils/firebaseFuncs";
+import AlertBox from "../components/AlertBox";
 import SignpostButton from "../components/Button";
 import select from "../asset/selection-box.png";
 
-import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
 import "react-toastify/dist/ReactToastify.css";
 import ArtworkModal from "../components/ArtworkModal";
@@ -51,7 +48,7 @@ const ArtworkGrid = styled.section`
     background: #bbb6ac;
   }
 
-  .grid div:nth-child(9) {
+  .grid div:nth-of-type(9) {
     grid-column: 1 / -1;
     grid-row: span 2;
   }
@@ -77,57 +74,57 @@ const ArtworkGrid = styled.section`
       grid-auto-rows: 12vw;
     }
 
-    .grid div:nth-child(1) {
+    .grid div:nth-of-type(1) {
       grid-column: 1;
       grid-row: 1 / span 2;
     }
 
-    .grid div:nth-child(2) {
+    .grid div:nth-of-type(2) {
       grid-column: 2 / span 2;
       grid-row: 1 / span 2;
     }
 
-    .grid div:nth-child(3) {
+    .grid div:nth-of-type(3) {
       grid-column: 4;
       grid-row: 1;
     }
 
-    .grid div:nth-child(4) {
+    .grid div:nth-of-type(4) {
       grid-column: 5;
       grid-row: 1;
     }
 
-    .grid div:nth-child(5) {
+    .grid div:nth-of-type(5) {
       grid-column: 4;
       grid-row: 2;
     }
 
-    .grid div:nth-child(6) {
+    .grid div:nth-of-type(6) {
       grid-column: 5;
       grid-row: 2 / span 2;
     }
 
-    .grid div:nth-child(7) {
+    .grid div:nth-of-type(7) {
       grid-column: 2;
       grid-row: 3;
     }
 
-    .grid div:nth-child(8) {
+    .grid div:nth-of-type(8) {
       grid-column: 1;
       grid-row: 3;
     }
 
-    .grid div:nth-child(9) {
+    .grid div:nth-of-type(9) {
       grid-column: 3 / span 2;
       grid-row: 3 / span 2;
     }
 
-    .grid div:nth-child(10) {
+    .grid div:nth-of-type(10) {
       grid-column: 1 / span 2;
       grid-row: 4;
     }
 
-    .grid div:nth-child(11) {
+    .grid div:nth-of-type(11) {
       grid-column: 5;
       grid-row: 4;
     }
@@ -245,6 +242,13 @@ function ArtWork({
   height = "427",
   favorite,
   artworkInfo,
+}: {
+  onClick: React.MouseEventHandler<HTMLDivElement>;
+  imgSrc: string;
+  width: string;
+  height: string;
+  favorite: IFavoriteArtwork[];
+  artworkInfo: IGeneralArtwork;
 }) {
   return (
     <div onClick={onClick}>
@@ -261,96 +265,138 @@ function ArtWork({
   );
 }
 
-const ARTWORK_STYLE = {
+const ARTWORK_STYLE: any = {
   0: { width: "640", height: "1138" },
   1: { width: "640", height: "427" },
   2: { width: "320", height: "427" },
 };
 
+interface IModalInfo {
+  id?: string;
+  title?: string;
+  url?: string;
+  artistUrl?: string;
+  artistName?: string;
+  artistId?: string;
+  completitionYear?: number;
+  width?: number;
+  height?: number;
+  image?: string;
+}
+
+function RenderArtworkModal({
+  setShowModal,
+  modalInfo,
+  favorite,
+  setFavorite,
+}: {
+  setShowModal: React.Dispatch<React.SetStateAction<boolean>>;
+  modalInfo: IModalInfo;
+  favorite: IFavoriteArtwork[];
+  setFavorite: React.Dispatch<React.SetStateAction<IFavoriteArtwork[]>>;
+}) {
+  const { user } = useAuth();
+  const saveToFavorites = async (artwork: IGeneralArtwork) => {
+    const favoriteArtwork = {
+      id: artwork.id,
+      title: artwork.title,
+      year: artwork.completitionYear,
+      artistName: artwork.artistName,
+      image: artwork.image,
+    };
+    setFavorite((prev) => [...prev, favoriteArtwork]);
+    addFavoriteArtworks(favoriteArtwork, user?.uid);
+  };
+
+  const deleteFromFavorites = async (artwork: IGeneralArtwork) => {
+    const index = favorite?.indexOf(artwork);
+    favorite?.splice(index, 1);
+    const favoriteArtwork = {
+      id: artwork.id,
+      title: artwork.title,
+      year: artwork.completitionYear,
+      artistName: artwork.artistName,
+      image: artwork.image,
+    };
+    setFavorite([...favorite]);
+    deleteFavoriteArtworks(favoriteArtwork, user?.uid);
+  };
+  const collectArtworks = (modalInfo: IModalInfo) => {
+    if (!favorite?.map((fav) => fav.id).includes(modalInfo.id))
+      saveToFavorites(modalInfo);
+    else if (favorite?.map((fav) => fav.id).includes(modalInfo.id)) {
+      deleteFromFavorites(modalInfo);
+    }
+  };
+  const { title, artistName, completitionYear, width, height, id, image } =
+    modalInfo;
+  return (
+    <ArtworkModal>
+      <CloseIcon role="button" onClick={() => setShowModal(false)} />
+      <Content>
+        <Text>
+          <h1>
+            <strong>{title}</strong>
+          </h1>
+          <p>
+            {artistName}, {completitionYear}
+            <br />
+            {width} X {height} cm
+          </p>
+          <FavoritesIcon
+            $heart={
+              favorite?.map((fav) => fav.id).includes(id)
+                ? `${filledHeart.src}`
+                : `${unfilledHeart.src}`
+            }
+            role="button"
+            onClick={() => collectArtworks(modalInfo)}
+          ></FavoritesIcon>
+        </Text>
+
+        <Figure>
+          <ModalImage alt={title} src={image} />
+        </Figure>
+      </Content>
+    </ArtworkModal>
+  );
+}
+
 export default function Masonry() {
   const { user } = useAuth();
   const router = useRouter();
-  const [artworks, setArtworks] = useState([]);
-  const [showModal, setShowModal] = useState(false);
-  const [modalInfo, setModalInfo] = useState<IModalInfo>({
-    id: undefined,
-    title: undefined,
-    url: undefined,
-    artistUrl: undefined,
-    artistName: undefined,
-    artistId: undefined,
-    completitionYear: undefined,
-    width: undefined,
-    height: undefined,
-    image: undefined,
-  });
-  const [favorite, setFavorite] = useState([]);
-  interface IModalInfo {
-    id: string | undefined;
-    title: string | undefined;
-    url: string | undefined;
-    artistUrl: string | undefined;
-    artistName: string | undefined;
-    artistId: string | undefined;
-    completitionYear: number | undefined;
-    width: number | undefined;
-    height: number | undefined;
-    image: string | undefined;
-  }
+  const [artworks, setArtworks] = useState<IGeneralArtworks[]>();
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [modalInfo, setModalInfo] = useState<IModalInfo>({});
+  const [favorite, setFavorite] = useState<IFavoriteArtwork[]>([]);
 
-  const getModalInfo = (artwork) => {
+  const getModalInfo = (artwork: IGeneralArtwork) => {
     setShowModal(true);
     setModalInfo(artwork);
   };
 
   useEffect(() => {
     const getArtist = async () => {
-      const q = query(collection(db, "users"), where("id", "==", user?.uid));
-      const querySnapshot = await getDocs(q);
-      const docs = querySnapshot.docs.map((doc) => doc.data() as any);
-      const recommendedArtist =
-        docs[0].visitorJourney[docs[0].visitorJourney.length - 1]
-          ?.recommendedArtist;
-      const favoriteArtworks = docs[0].favoriteArtworksId;
-      if (!recommendedArtist || !favoriteArtworks) {
-        toast(() => (
-          <div>
-            <p>Take the art quiz to get your artist recommendation!</p>
-            <div style={{ width: "100%" }}>
-              <button
-                style={{
-                  marginTop: "5px",
-                  padding: "3px 10px",
-                  background: "black",
-                  color: "white",
-                }}
-                onClick={() => router.push("/quiz")}
-              >
-                Take a quiz
-              </button>
-            </div>
-          </div>
-        ));
-
-        return;
-      } else {
-        getArtworks(recommendedArtist);
-        setFavorite(favoriteArtworks);
-      }
+      getUserInfo(user.uid).then(({ recommendedArtist, favoriteArtworks }) => {
+        if (!recommendedArtist || !favoriteArtworks) {
+          toast(() => <AlertBox />, {
+            closeOnClick: false,
+          });
+          return;
+        } else {
+          getArtistWorks(recommendedArtist);
+          setFavorite(favoriteArtworks);
+        }
+      });
     };
 
-    const getArtworks = async (artist) => {
-      const q = query(
-        collection(db, "artists"),
-        where("artistUrl", "==", artist),
-        orderBy("completitionYear", "desc")
-      );
-      const querySnapshot = await getDocs(q);
-      const docs = querySnapshot.docs?.map((doc) => doc.data());
-      const setsOfartworks = sdivceIntoChunks(docs, 11);
-      setArtworks(setsOfartworks);
+    const getArtistWorks = async (artist: string) => {
+      getArtworks(artist).then(({ artworks }) => {
+        const setsOfartworks = sliceIntoChunks(artworks, 11);
+        setArtworks(setsOfartworks);
+      });
 
-      function sdivceIntoChunks(arr, chunkSize) {
+      function sliceIntoChunks(arr: IGeneralArtworks, chunkSize: number) {
         const res = [];
         for (let i = 0; i < arr.length; i += chunkSize) {
           const chunk = arr.slice(i, i + chunkSize);
@@ -363,59 +409,11 @@ export default function Masonry() {
       getArtist();
     }
   }, [user, router]);
-  const saveToFavorites = async (id) => {
-    console.log(id);
-    setFavorite((prev) => {
-      console.log([...prev]);
-      return [
-        ...prev,
-        {
-          id: id.id,
-          title: id.title,
-          year: id.completitionYear,
-          artistName: id.artistName,
-          image: id.image,
-        },
-      ];
-    });
-    const requestRef = doc(db, "users", user?.uid);
-    return await updateDoc(requestRef, {
-      favoriteArtworksId: arrayUnion({
-        id: modalInfo.id,
-        title: modalInfo.title,
-        year: modalInfo.completitionYear,
-        artistName: modalInfo.artistName,
-        image: modalInfo.image,
-      }),
-    });
-  };
 
-  const deleteFromFavorites = async (id) => {
-    const index = favorite?.indexOf(id);
-    favorite?.splice(index, 1);
-    setFavorite([...favorite]);
-    const requestRef = doc(db, "users", user?.uid);
-    return await updateDoc(requestRef, {
-      favoriteArtworksId: arrayRemove({
-        id: id.id,
-        title: id.title,
-        year: id.completitionYear,
-        artistName: id.artistName,
-        image: id.image,
-      }),
-    });
-  };
-
-  const notify = (message) =>
+  const notify = (message: string) =>
     toast(message, {
-      position: "top-center",
-      autoClose: 3000,
       hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-      theme: "light",
+      autoClose: 3000,
       icon: () => <img src={select.src} />,
     });
 
@@ -428,22 +426,20 @@ export default function Masonry() {
       router.push("/artist-video");
     }
   };
+
+  const artistStyleText =
+    artworks &&
+    artistStyle?.filter(
+      (location) => location?.artistUrl === artworks[0]?.[0].artistUrl
+    )[0]?.artistStyle;
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+  };
+
   return (
     <>
       <InstructionText>
-        <ToastContainer
-          position="top-center"
-          autoClose={false}
-          hideProgressBar={true}
-          newestOnTop={true}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="light"
-          limit={1}
-        />
         <h1>
           <strong>
             Save your favorite artworks by clicking on the images, before
@@ -451,21 +447,12 @@ export default function Masonry() {
           </strong>
         </h1>
         <br />
-        <p>
-          {artworks &&
-            artistStyle?.filter(
-              (location) => location?.artistUrl === artworks[0]?.[0].artistUrl
-            )[0]?.artistStyle}
-        </p>
+        <p>{artistStyleText}</p>
       </InstructionText>
       <div onClick={toNextPage}>
         <SignpostButton href="">Hear about the artist</SignpostButton>
       </div>
-      <ToTop
-        onClick={() => {
-          window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
-        }}
-      >
+      <ToTop onClick={scrollToTop}>
         <BackToTop />
         <ToTopText>
           <strong>
@@ -475,10 +462,10 @@ export default function Masonry() {
         </ToTopText>
       </ToTop>
       <ArtworkGrid>
-        {artworks?.map((setOfartwork, i) => (
-          <ul key={i} className="grid">
-            {setOfartwork.map((artWork, index) => {
-              const { width, height } = ARTWORK_STYLE[index] ?? {}; //fallback to no value oif there's no image
+        {artworks?.map((setOfArtwork, index) => (
+          <ul key={index} className="grid">
+            {setOfArtwork.map((artWork, index: number) => {
+              const { width, height } = ARTWORK_STYLE[index] ?? {};
               return (
                 <ArtWork
                   favorite={favorite}
@@ -489,7 +476,7 @@ export default function Masonry() {
                   }}
                   width={width}
                   height={height}
-                  imgSrc={artWork.image}
+                  imgSrc={artWork.image !== undefined ? artWork.image : ""}
                 />
               );
             })}
@@ -501,42 +488,12 @@ export default function Masonry() {
       </div>
       <div>
         {showModal && (
-          <ArtworkModal>
-            <CloseIcon role="button" onClick={() => setShowModal(false)} />
-            <Content>
-              <Text>
-                <h1>
-                  <strong>{modalInfo.title}</strong>
-                </h1>
-                <p>
-                  {modalInfo.artistName}, {modalInfo.completitionYear}
-                  <br />
-                  {modalInfo.width} X {modalInfo.height} cm
-                </p>
-                <FavoritesIcon
-                  $heart={
-                    favorite?.map((f) => f.id).includes(modalInfo.id)
-                      ? `${filledHeart.src}`
-                      : `${unfilledHeart.src}`
-                  }
-                  role="button"
-                  onClick={() => {
-                    if (!favorite?.map((f) => f.id).includes(modalInfo.id))
-                      saveToFavorites(modalInfo);
-                    else if (
-                      favorite?.map((f) => f.id).includes(modalInfo.id)
-                    ) {
-                      deleteFromFavorites(modalInfo);
-                    }
-                  }}
-                ></FavoritesIcon>
-              </Text>
-
-              <Figure>
-                <ModalImage alt={modalInfo.title} src={modalInfo.image} />
-              </Figure>
-            </Content>
-          </ArtworkModal>
+          <RenderArtworkModal
+            setShowModal={setShowModal}
+            modalInfo={modalInfo}
+            favorite={favorite}
+            setFavorite={setFavorite}
+          />
         )}
       </div>
     </>

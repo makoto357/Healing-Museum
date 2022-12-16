@@ -1,5 +1,7 @@
 import styled from "@emotion/styled";
 import { Droppable, Draggable } from "react-beautiful-dnd";
+import React from "react";
+import { IFavoriteArtwork, IFavoritePost } from "../utils/firebaseFuncs";
 import drag from "../asset/drag.png";
 const CollectionWrapper = styled.div`
   display: flex;
@@ -7,7 +9,14 @@ const CollectionWrapper = styled.div`
     flex-direction: column;
   }
 `;
-
+const DraggableWrapper = styled.div`
+  user-select: none;
+  width: 150;
+  height: 150;
+  display: inline-block;
+  overflow: scroll;
+  margin: 0 20px 0 0;
+`;
 const DroppableWrapper = styled.div`
   border: 1px solid black;
   height: 180px;
@@ -16,6 +25,10 @@ const DroppableWrapper = styled.div`
   margin-left: 5vw;
 `;
 
+const DroppableList = styled.div`
+  white-space: nowrap;
+  overflow: scroll;
+`;
 const TextWrapper = styled.div`
   height: 150px;
   width: 150px;
@@ -89,20 +102,6 @@ const TextScreenContent = styled.p`
 const InstructionText = styled.div`
   text-align: left;
 `;
-const getListStyle = (isDraggingOver) => ({
-  whiteSpace: "nowrap",
-  overflow: "scroll",
-});
-
-const getItemStyle = (isDragging, draggableStyle) => ({
-  userSelect: "none",
-  width: 150,
-  height: 150,
-  display: "inline-block",
-  overflow: "scroll",
-  margin: `0 20px 0 0`,
-  ...draggableStyle,
-});
 
 export default function CollectionColumn({
   showFavoriteArtworks,
@@ -110,105 +109,103 @@ export default function CollectionColumn({
   setShowText,
   showText,
   favoritePosts,
+}: {
+  showFavoriteArtworks: boolean;
+  artwork: IFavoriteArtwork[];
+  setShowText: React.Dispatch<React.SetStateAction<string | undefined>>;
+  showText: string | undefined;
+  favoritePosts: IFavoritePost[];
 }) {
   return (
     <CollectionWrapper>
       <DroppableWrapper>
         <Droppable direction="horizontal" droppableId="drop-id">
-          {(droppableProvided, droppableSnapshot) => (
-            <div
+          {(droppableProvided) => (
+            <DroppableList
               {...droppableProvided.droppableProps}
               ref={droppableProvided.innerRef}
-              style={getListStyle(droppableSnapshot.isDraggingOver)}
             >
               {showFavoriteArtworks &&
                 artwork.map((artwork, index) => {
+                  const { id, artistName, title, image, year } = artwork;
                   return (
                     <Draggable
-                      draggableId={artwork.id}
+                      draggableId={id !== undefined ? id : `${index}`}
                       index={index}
-                      key={artwork.id}
+                      key={id}
                     >
-                      {(provided, snapshot) => (
-                        <div
+                      {(provided) => (
+                        <DraggableWrapper
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
-                          style={getItemStyle(
-                            snapshot.isDragging,
-                            provided.draggableProps.style
-                          )}
                         >
                           <TextWrapper
-                            onMouseEnter={() => setShowText(artwork.id)}
-                            onMouseLeave={() => setShowText(null)}
+                            onMouseEnter={() => setShowText(id)}
+                            onMouseLeave={() => setShowText("")}
                           >
                             <TextScreen
-                              $displayText={
-                                showText == artwork.id ? "initial" : "none"
-                              }
+                              $displayText={showText == id ? "initial" : "none"}
                             >
                               <TextScreenContent>
-                                {artwork.artistName}
+                                {artistName}
                                 <br />
                                 <i>
-                                  <strong>{artwork.title},</strong>
-                                </i>{" "}
-                                {artwork.year}
+                                  <strong>{title},</strong>
+                                </i>
+                                {year}
                               </TextScreenContent>
                             </TextScreen>
                             <div>
-                              <ArtworkImage src={artwork.image} />
+                              <ArtworkImage src={image} />
                             </div>
                           </TextWrapper>
-                        </div>
+                        </DraggableWrapper>
                       )}
                     </Draggable>
                   );
                 })}
               {!showFavoriteArtworks &&
-                favoritePosts?.map((post, index) => {
+                favoritePosts?.map((favoritePost, index) => {
+                  const { id, postMadeBy, artistForThisVisit, date, title } =
+                    favoritePost;
                   return (
                     <Draggable
-                      draggableId={post?.id}
+                      draggableId={id !== undefined ? id : `${index}`}
                       index={index}
-                      key={post?.id}
+                      key={id}
                     >
-                      {(provided, snapshot) => (
-                        <div
+                      {(provided) => (
+                        <DraggableWrapper
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
-                          style={getItemStyle(
-                            snapshot.isDragging,
-                            provided.draggableProps.style
-                          )}
                         >
-                          <PostWrapper key={post?.id}>
+                          <PostWrapper key={id}>
                             <div>
                               <h1>
-                                <strong>{post?.title}</strong>
+                                <strong>{title}</strong>
                               </h1>
-                              <p>{post?.postTime}</p>
+                              <p>{date}</p>
                             </div>
                             <div>
                               <p>
                                 <strong>Posted by: </strong>
-                                {post?.postBy}
+                                {postMadeBy}
                               </p>
                               <p>
                                 <strong>Artist: </strong>
-                                {post?.artist}
+                                {artistForThisVisit}
                               </p>
                             </div>
                           </PostWrapper>
-                        </div>
+                        </DraggableWrapper>
                       )}
                     </Draggable>
                   );
                 })}
               {droppableProvided.placeholder}
-            </div>
+            </DroppableList>
           )}
         </Droppable>
       </DroppableWrapper>

@@ -8,14 +8,16 @@ import {
   InfoWindow,
   MarkerClusterer,
 } from "@react-google-maps/api";
-
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
-import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { toast } from "react-toastify";
+import { useState, useMemo, useEffect, useRef } from "react";
+import {
+  IArtwork,
+  IArtworks,
+  getUserInfo,
+  getHighlightedArtworks,
+} from "../utils/firebaseFuncs";
+import AlertBox from "../components/AlertBox";
 import selectImage from "../asset/hand.png";
-
-import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
 import image from "../asset/image.png";
 import museumMarker from "../asset/new-marker.png";
@@ -108,18 +110,6 @@ const ImageIcon = styled.div`
 const InstructionTextContent = styled.p`
   width: 85%;
   margin-left: 5px;
-`;
-
-const AlertMessageWrapper = styled.div``;
-const AlertMessage = styled.p``;
-const AlertButtonWrapper = styled.div`
-  width: 100%;
-`;
-const AlertButton = styled.button`
-  margin-top: 5px;
-  padding: 3px 10px;
-  background: black;
-  color: white;
 `;
 
 const ArtworkCardWrapper = styled.div<{
@@ -218,7 +208,7 @@ const MapContent = styled.div`
   width: 100%;
 `;
 
-const InfoWindowImage = styled.div<{ $bgImage: string }>`
+const InfoWindowImage = styled.div<{ $bgImage: string | undefined }>`
   background-image: url(${(props) => props.$bgImage});
   width: 100px;
   background-size: cover;
@@ -239,7 +229,7 @@ function InstructionText() {
     <InstructionTextWrapper>
       <InstructionTextHeading>
         <strong>
-          Hover and tap on the boxes below, or markers on the map{" "}
+          Hover and tap on the boxes below, or markers on the map&nbsp;
         </strong>
         to explore details about highlighted artworks.
       </InstructionTextHeading>
@@ -296,40 +286,35 @@ const Libraries: (
   | "localContext"
   | "visualization"
 )[] = ["places"];
+interface IWindow {
+  image?: string;
+  galleries?: string[];
+  title?: string;
+  completitionYear?: number;
+  artistName?: string;
+  geometry?: { lat: number; lng: number } | null;
+  id?: string;
+}
 export default function GoogleMaps() {
-  interface IWindow {
-    image: string | undefined;
-    galleries: string[] | undefined;
-    title: string | undefined;
-    completitionYear: number | undefined;
-    artistName: string | undefined;
-    geometry: { lat: number; lng: number } | null;
-    id: string | undefined;
-  }
-  const [selectedMarker, setSelectedMarker] = useState<IWindow>({
-    image: undefined,
-    galleries: undefined,
-    title: undefined,
-    completitionYear: undefined,
-    artistName: undefined,
-    geometry: null,
-    id: undefined,
-  });
-  console.log("image", selectedMarker.image);
-  const [galleries, setGalleries] = useState([]) as any[];
-  const [artist, setArtist] = useState("");
-  const ref = useRef(null);
-  const destiantionRef = useRef<HTMLInputElement>(null);
-  const mapRef = useRef<GoogleMap>();
+  const [selectedMarker, setSelectedMarker] = useState<IWindow>({});
+  const [galleries, setGalleries] = useState<IArtworks>([]);
+  const [artist, setArtist] = useState<string>();
+  const artworkRef = useRef<HTMLDivElement | null>(null);
+  const destinationRef = useRef<HTMLInputElement | null>(null);
   const router = useRouter();
   const { user } = useAuth();
   const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+    googleMapsApiKey:
+      process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY !== undefined
+        ? process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+        : "",
     libraries: Libraries,
   });
   const center = useMemo(
     () =>
-      artist == "frida-kahlo" || "dorothea-tanning || edward-hopper "
+      artist === "frida-kahlo" ||
+      artist === "dorothea-tanning" ||
+      artist === "edward-hopper "
         ? { lat: 30.2845084110191, lng: -97.74119954552144 }
         : { lat: 52.35836306220029, lng: 4.881396717020184 },
     [artist]
@@ -343,131 +328,102 @@ export default function GoogleMaps() {
     },
   ];
 
-  const onLoad = useCallback((map) => (mapRef.current = map), []);
   useEffect(() => {
     const getArtist = async () => {
-      const q = query(collection(db, "users"), where("id", "==", user?.uid));
-      const querySnapshot = await getDocs(q);
-      const docs = querySnapshot.docs.map((doc) => doc.data() as any);
-      const ArtistIndex =
-        docs[0].visitorJourney?.[docs[0]?.visitorJourney?.length - 1]
-          ?.recommendedArtist;
-      if (!ArtistIndex) {
-        toast(() => (
-          <AlertMessageWrapper>
-            <AlertMessage>
-              Take the art quiz to get your artist recommendation!
-            </AlertMessage>
-            <AlertButtonWrapper>
-              <AlertButton onClick={() => router.push("/quiz")}>
-                Take a quiz
-              </AlertButton>
-            </AlertButtonWrapper>
-          </AlertMessageWrapper>
-        ));
-
-        return;
-      }
-      setArtist(ArtistIndex);
-      getArtworks(ArtistIndex);
+      getUserInfo(user.uid).then(({ recommendedArtist }) => {
+        if (!recommendedArtist) {
+          toast(() => <AlertBox />, {
+            closeOnClick: false,
+          });
+          return;
+        }
+        setArtist(recommendedArtist);
+        getHighlightedArtworks(recommendedArtist).then(
+          ({ highlightedArtworks }) => {
+            setGalleries(highlightedArtworks);
+          }
+        );
+      });
     };
     if (user) {
       getArtist();
     }
   }, [user]);
 
-  const getArtworks = async (artist) => {
-    const q = query(
-      collection(db, "artworks"),
-      where("artistUrl", "==", artist),
-      orderBy("completitionYear", "desc")
-    );
-    const querySnapshot = await getDocs(q);
-    const docs = querySnapshot.docs.map((doc) => doc.data());
-    setGalleries(docs);
-  };
-
-  const getGallery = (gallery) => {
-    destiantionRef.current.value = gallery;
-    setSelectedMarker(gallery);
-    console.log("gallery", gallery);
+  const getGallery = (gallery: IArtwork) => {
+    if (destinationRef.current !== null) {
+      destinationRef.current.value =
+        gallery.galleries !== undefined ? gallery.galleries[0] : " ";
+      setSelectedMarker(gallery);
+    }
   };
 
   if (!isLoaded) {
-    return;
+    return null;
   }
+
+  const artistLocationInfo = artistLocation?.filter(
+    (location) => location?.artistUrl === artist
+  )[0]?.artistLocation;
 
   return (
     <>
-      <ToastContainer
-        position="top-center"
-        autoClose={false}
-        hideProgressBar={true}
-        newestOnTop={true}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-        limit={1}
-      />
-
-      <ArtistLocationsIntro>
-        {
-          artistLocation?.filter(
-            (location) => location?.artistUrl === artist
-          )[0]?.artistLocation
-        }
-      </ArtistLocationsIntro>
+      <ArtistLocationsIntro>{artistLocationInfo}</ArtistLocationsIntro>
       <MapWrapper>
         <InstructionTextSmallScreen />
         <CardWrapper>
           <InstructionText />
-          {galleries.map((gallery) => (
-            <ArtworkCardWrapper
-              key={gallery.id}
-              ref={ref}
-              $cardBackground={
-                selectedMarker.id == gallery.id ? "white" : "#a3a3a3"
-              }
-              $cardHeight={
-                selectedMarker.id == gallery.id ? "fit-content" : "70px"
-              }
-              onMouseOver={() => {
-                getGallery(gallery);
-              }}
-            >
-              <ArtworkPrimaryInfo>
-                <MarkerIcon />
-                <ArtworkCardTitle>
-                  <strong>
-                    <i>{gallery.title},</i>{" "}
-                  </strong>
-                  {gallery.completitionYear}
-                </ArtworkCardTitle>
-              </ArtworkPrimaryInfo>
-
-              <ArtworkImage src={`${gallery.image}`} />
-              <p>
-                {gallery?.media?.map((medium, index) => (
-                  <span key={index}>{medium} </span>
-                ))}
-              </p>
-              <p>
-                {gallery.sizeX} X {gallery.sizeY} cm
-              </p>
-
-              <CollectionLocation>
-                Collection of the {gallery.galleries}
-              </CollectionLocation>
-              <ArtworkLink
-                onClick={() => router.push(`/collection-maps/${gallery.id}`)}
+          {galleries.map((gallery) => {
+            const {
+              id,
+              title,
+              completitionYear,
+              image,
+              media,
+              sizeX,
+              sizeY,
+              galleries,
+            } = gallery;
+            return (
+              <ArtworkCardWrapper
+                key={id}
+                ref={artworkRef}
+                $cardBackground={selectedMarker.id == id ? "white" : "#a3a3a3"}
+                $cardHeight={selectedMarker.id == id ? "fit-content" : "70px"}
+                onMouseOver={() => {
+                  getGallery(gallery);
+                }}
               >
-                See artwork details
-              </ArtworkLink>
-            </ArtworkCardWrapper>
-          ))}
+                <ArtworkPrimaryInfo>
+                  <MarkerIcon />
+                  <ArtworkCardTitle>
+                    <strong>
+                      <i>{title},</i>&nbsp;
+                    </strong>
+                    {completitionYear}
+                  </ArtworkCardTitle>
+                </ArtworkPrimaryInfo>
+                <ArtworkImage src={`${image}`} />
+                <p>
+                  {media?.map((medium) => (
+                    <span key={medium}>{medium} </span>
+                  ))}
+                </p>
+                <p>
+                  {sizeX} X {sizeY} cm
+                </p>
+
+                <CollectionLocation>
+                  Collection of the {galleries}
+                </CollectionLocation>
+                <ArtworkLink
+                  onClick={() => router.push(`/collection-maps/${id}`)}
+                >
+                  See artwork details
+                </ArtworkLink>
+              </ArtworkCardWrapper>
+            );
+          })}
         </CardWrapper>
 
         <MapContentWrapper>
@@ -484,43 +440,40 @@ export default function GoogleMaps() {
                 mapTypeControl: false,
                 fullscreenControl: false,
               }}
-              onLoad={onLoad}
             >
               <MarkerClusterer
                 options={{
                   styles: clusterStyles,
                 }}
               >
-                {(clusterer) =>
-                  galleries.map((g) => (
-                    <Marker
-                      key={g.id}
-                      position={g.geometry}
-                      onClick={() => {
-                        getGallery(g);
-                      }}
-                      icon={{
-                        url: `${museumMarker.src}`,
-                      }}
-                      clusterer={clusterer}
-                    />
-                  ))
-                }
+                {(clusterer) => {
+                  return (
+                    <>
+                      {galleries.map((gallery) => {
+                        const { id, geometry } = gallery;
+                        return (
+                          <Marker
+                            key={id}
+                            position={geometry}
+                            onClick={() => {
+                              getGallery(gallery);
+                            }}
+                            icon={{
+                              url: `${museumMarker.src}`,
+                            }}
+                            clusterer={clusterer}
+                          />
+                        );
+                      })}
+                    </>
+                  );
+                }}
               </MarkerClusterer>
               {selectedMarker?.geometry && (
                 <InfoWindow
                   onCloseClick={() => {
-                    setSelectedMarker({
-                      image: undefined,
-                      galleries: undefined,
-                      title: undefined,
-                      completitionYear: undefined,
-                      artistName: undefined,
-                      geometry: undefined,
-                      id: undefined,
-                    });
+                    setSelectedMarker({});
                   }}
-                  onLoad={onLoad}
                   options={{
                     pixelOffset: new window.google.maps.Size(0, -40),
                   }}
@@ -549,7 +502,7 @@ export default function GoogleMaps() {
             </GoogleMap>
           </MapContent>
           <InputWrapper>
-            <input type="text" ref={destiantionRef} />
+            <input type="text" ref={destinationRef} />
           </InputWrapper>
         </MapContentWrapper>
       </MapWrapper>

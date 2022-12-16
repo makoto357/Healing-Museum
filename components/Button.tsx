@@ -1,6 +1,6 @@
 import Link from "next/link";
 import styled from "@emotion/styled";
-
+import React from "react";
 const Wrapper = styled.div`
   .container {
     display: flex;
@@ -152,7 +152,13 @@ const Wrapper = styled.div`
   }
 `;
 
-export default function SignpostButton({ children, href }) {
+export default function SignpostButton({
+  children,
+  href,
+}: {
+  children: React.ReactNode;
+  href: string;
+}) {
   return (
     <Wrapper>
       <div className="container">

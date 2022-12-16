@@ -16,8 +16,13 @@ const Wrapper = styled.div`
     top: 24px;
   }
 `;
-export function YoutubeVideoPlayer(props) {
-  const { id, playing } = props;
+export function YoutubeVideoPlayer({
+  id,
+  playing,
+}: {
+  id: string | undefined;
+  playing: boolean;
+}) {
   const url = `https://www.youtube.com/watch?v=${id}`;
   return (
     <Wrapper className="player-wrapper">

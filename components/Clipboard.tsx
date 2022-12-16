@@ -8,7 +8,7 @@ const LikeButton = styled.div`
   background-size: cover;
   cursor: pointer;
 `;
-export const CopyClipboard = ({ content }) => {
+export const CopyClipboard = ({ content }: { content: string }) => {
   return (
     <>
       <LikeButton onClick={() => navigator.clipboard.writeText(content)} />

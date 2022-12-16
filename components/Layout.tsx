@@ -4,6 +4,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { motion, Variants } from "framer-motion";
 import { FacebookShareButton } from "next-share";
+import { ToastContainer } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
 import { ThemeColorContext } from "../context/ColorContext";
 import logo from "../asset/healing-museum-low-resolution-logo-black-on-transparent-background.png";
@@ -12,6 +13,7 @@ import logout from "../asset/log-out.png";
 import close from "../asset/cancel-white.png";
 import toggle from "../asset/menu.png";
 import share from "../asset/share.png";
+import "react-toastify/dist/ReactToastify.css";
 
 const Main = styled.main<{ $bgImage: string }>`
   background: ${(props) => props.$bgImage};
@@ -99,8 +101,6 @@ const Menulist = styled.ul<{ $menuStyle: string }>`
   list-style: none;
   width: 300px;
   height: 100vh;
-
-  /* min-height: 700px; */
   background-color: #2c2b2c;
   transform: ${(props) => props.$menuStyle};
   transition: transform 300ms;
@@ -195,14 +195,13 @@ interface LayoutProps {
 export default function Layout(props: LayoutProps) {
   const { children } = props;
   const router = useRouter();
-  const [themeColor] = useContext(ThemeColorContext);
+  const { themeColor } = useContext(ThemeColorContext);
   const { user, logout } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [cursorVariant, setCursorVariant] = useState("default");
 
   const menuLinks = [
-    // { page: "Enter the Museum", link: "/registration" },
     { page: "A Color for Yourself", link: "/theme-color" },
     { page: "Draw Your Inner World", link: "/drawing-board" },
     { page: "Quiz: How Are You Feeling?", link: "/quiz" },
@@ -242,7 +241,7 @@ export default function Layout(props: LayoutProps) {
   };
 
   useEffect(() => {
-    const mouseMove = (e) => {
+    const mouseMove = (e: MouseEvent) => {
       setMousePosition({ x: e.clientX, y: e.clientY });
     };
     window.addEventListener("mousemove", mouseMove);
@@ -253,9 +252,44 @@ export default function Layout(props: LayoutProps) {
 
   const textEnter = () => setCursorVariant("text");
   const textLeave = () => setCursorVariant("default");
+  const backToHomepage = () => {
+    if (user) {
+      router.push("/user-profile");
+    } else if (!user) {
+      router.push("/registration");
+    }
+  };
+  const userLogout = () => {
+    logout();
+    router.push("/");
+  };
 
   return (
     <>
+      {(router.pathname === "/collection-maps" ||
+        router.pathname === "/drawing-board" ||
+        router.pathname === "/artworks" ||
+        router.pathname === "/artist-video" ||
+        router.pathname === "/drawing-board" ||
+        router.pathname === "/user-profile" ||
+        router.pathname === "/registration" ||
+        router.pathname === "/form" ||
+        router.pathname === "/collection-maps/[collectionID]") && (
+        <ToastContainer
+          position="top-center"
+          autoClose={false}
+          hideProgressBar={true}
+          newestOnTop={true}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+          limit={1}
+        />
+      )}
+
       {router.pathname !== "/" && router.pathname !== "/registration" && (
         <ProgressBarWrapper>
           <ProgressBarColor></ProgressBarColor>
@@ -271,34 +305,21 @@ export default function Layout(props: LayoutProps) {
       )}
       <Cursor variants={variants} animate={cursorVariant} />
 
-      <Main $bgImage={themeColor?.secondary}>
+      <Main $bgImage={themeColor ? themeColor?.secondary : "#eeece5"}>
         <div>
           <Logo onMouseEnter={textEnter} onMouseLeave={textLeave}>
             <Link href="/">
-              <img src={logo.src} />
+              <img alt="museum logo" height={60} width={120} src={logo.src} />
             </Link>
           </Logo>
         </div>
 
         <div>
-          <div
-            onClick={() => {
-              if (user) {
-                router.push("/user-profile");
-              } else if (!user) {
-                router.push("/registration");
-              }
-            }}
-          >
+          <div onClick={backToHomepage}>
             <ProfileIcon />
           </div>
           {user && (
-            <div
-              onClick={() => {
-                logout();
-                router.push("/");
-              }}
-            >
+            <div onClick={userLogout}>
               <LogoutIcon />
             </div>
           )}
@@ -338,30 +359,13 @@ export default function Layout(props: LayoutProps) {
                 ))}
 
                 <MenuButtonGroup>
-                  {user && router.pathname !== "/" && (
-                    <>
-                      <MenuButton
-                        onClick={() => {
-                          if (user) {
-                            router.push("/user-profile");
-                          } else if (!user) {
-                            router.push("/registration");
-                          }
-                        }}
-                      >
-                        Your Profile
-                      </MenuButton>
+                  <>
+                    <MenuButton onClick={backToHomepage}>
+                      Your Profile
+                    </MenuButton>
 
-                      <MenuButton
-                        onClick={() => {
-                          logout();
-                          router.push("/");
-                        }}
-                      >
-                        Logout
-                      </MenuButton>
-                    </>
-                  )}
+                    <MenuButton onClick={userLogout}>Logout</MenuButton>
+                  </>
                 </MenuButtonGroup>
               </div>
               <div>

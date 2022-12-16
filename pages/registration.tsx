@@ -1,10 +1,8 @@
 import styled from "@emotion/styled";
-
 import React, { useState } from "react";
 import { useRouter } from "next/router";
 import { doc, setDoc, Timestamp } from "firebase/firestore";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
 import { db } from "../config/firebase";
 import brandIcon from "../asset/healing-museum-website-icon.png";
@@ -59,20 +57,24 @@ export default function LoginPage() {
   const [isSignedUp, setIsSignedUp] = useState(true);
   const router = useRouter();
   const [loginData, setLoginData] = useState({
-    email: "makoto357@gmail.com",
-    password: "123456",
+    email: "kim@gmail.com",
+    password: "helloworld321",
   });
-  const notify = (message) =>
+  const notify = (message: string) =>
     toast(message, {
+      hideProgressBar: false,
+      autoClose: 3000,
       icon: () => <img src={brandIcon.src} />,
     });
-  const handleLogin = async (e) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await login(loginData.email, loginData.password);
       router.push("/theme-color");
     } catch (err) {
-      notify(err.message);
+      let message = "Unknown Error";
+      if (err instanceof Error) message = err.message;
+      notify(message);
     }
   };
 
@@ -82,7 +84,7 @@ export default function LoginPage() {
     password: "",
   });
 
-  const sendData = async (uid) => {
+  const sendData = async (uid: string) => {
     const userDoc = doc(db, "users", uid);
     await setDoc(userDoc, {
       id: uid,
@@ -97,30 +99,20 @@ export default function LoginPage() {
     router.push("/theme-color");
   };
 
-  const handleSignup = async (e) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const res = await signup(signupData.email, signupData.password);
       sendData(res.user.uid);
     } catch (err) {
-      notify(err.message);
+      let message = "Unknown Error";
+      if (err instanceof Error) message = err.message;
+      notify(message);
     }
   };
 
   return (
     <Wrapper>
-      <ToastContainer
-        position="top-center"
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-        limit={1}
-      />
       {isSignedUp ? (
         <>
           <Form action="#" onSubmit={handleLogin}>
