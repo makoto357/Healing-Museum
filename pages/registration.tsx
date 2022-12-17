@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/router";
 import { doc, setDoc, Timestamp } from "firebase/firestore";
 import { toast } from "react-toastify";
+import Image from "next/image";
 import { useAuth } from "../context/AuthContext";
 import { db } from "../config/firebase";
 import brandIcon from "../asset/healing-museum-website-icon.png";
@@ -64,7 +65,9 @@ export default function LoginPage() {
     toast(message, {
       hideProgressBar: false,
       autoClose: 3000,
-      icon: () => <img src={brandIcon.src} />,
+      icon: () => (
+        <Image alt="brand" width={30} height={30} src={brandIcon.src} />
+      ),
     });
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

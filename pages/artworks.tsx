@@ -2,6 +2,7 @@ import styled from "@emotion/styled";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { toast } from "react-toastify";
+import Image from "next/image";
 import {
   addFavoriteArtworks,
   IFavoriteArtwork,
@@ -14,7 +15,6 @@ import {
 import AlertBox from "../components/AlertBox";
 import SignpostButton from "../components/Button";
 import select from "../asset/selection-box.png";
-
 import { useAuth } from "../context/AuthContext";
 import "react-toastify/dist/ReactToastify.css";
 import ArtworkModal from "../components/ArtworkModal";
@@ -243,7 +243,7 @@ function ArtWork({
   favorite,
   artworkInfo,
 }: {
-  onClick: React.MouseEventHandler<HTMLDivElement>;
+  onClick: React.PointerEventHandler<HTMLDivElement>;
   imgSrc: string;
   width: string;
   height: string;
@@ -414,7 +414,7 @@ export default function Masonry() {
     toast(message, {
       hideProgressBar: false,
       autoClose: 3000,
-      icon: () => <img src={select.src} />,
+      icon: () => <Image alt="brand" width={30} height={30} src={select.src} />,
     });
 
   const toNextPage = () => {

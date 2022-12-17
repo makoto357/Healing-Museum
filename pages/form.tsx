@@ -5,6 +5,7 @@ import React, { useState, useRef, useEffect, FormEvent } from "react";
 import { toast } from "react-toastify";
 import { collection, addDoc, doc, updateDoc } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import Image from "next/image";
 import { db, storage } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
 import { getUserInfo } from "../utils/firebaseFuncs";
@@ -210,11 +211,11 @@ interface ILabel {
 export default function Form() {
   const router = useRouter();
   const { user } = useAuth();
-  const [file, setFile] = useState<string>();
-  const [artist, setArtist] = useState<string>();
-  const [username, setUsername] = useState<string>();
+  const [file, setFile] = useState<string>("");
+  const [artist, setArtist] = useState<string>("");
+  const [username, setUsername] = useState<string>("");
 
-  const hiddenFileInput = useRef<HTMLInputElement>(null);
+  const hiddenFileInput = useRef<HTMLInputElement | null>(null);
   const [nextPage, setNextPage] = useState(false);
   const [showLabel, setShowLabel] = useState<ILabel>({
     value: " ",
@@ -224,6 +225,7 @@ export default function Form() {
   const handleChange = (e: React.ChangeEvent) => {
     const target = e.target as HTMLInputElement;
     if (target.files !== null) {
+      console.log(URL.createObjectURL(target.files[0]));
       setFile(URL.createObjectURL(target.files[0]));
       setUploadedImage(target.files[0]);
     }
@@ -294,6 +296,7 @@ export default function Form() {
       setFile("");
     } else if (uploadedImage !== null) {
       uploadImage();
+
       setUploadedImage(null);
       setFile("");
       setFormData({
@@ -305,7 +308,7 @@ export default function Form() {
     }
   };
 
-  const sendForm = (url: string) => {
+  const sendForm = (url: any) => {
     async function sendData() {
       const docRef = await addDoc(collection(db, "user-posts"), {
         emoji: formData.emoji,
@@ -332,7 +335,7 @@ export default function Form() {
     if (uploadedImage === null) return;
     const sendImage = () => {
       return new Promise((resolve) => {
-        const imageRef = ref(storage, `${user?.uid}/${uploadedImage}`);
+        const imageRef = ref(storage, `${user?.uid}/${uploadedImage.name}`);
         const uploadTask = uploadBytesResumable(imageRef, uploadedImage);
         uploadTask.on(
           "state_changed",
@@ -345,7 +348,8 @@ export default function Form() {
         );
       });
     };
-    const newRes = (await sendImage()) as string;
+    const newRes = await sendImage();
+    console.log(newRes);
     sendForm(newRes);
   };
   const checkFormData = () => {
@@ -354,7 +358,9 @@ export default function Form() {
       toast("Please upload an image related to your experience.", {
         hideProgressBar: false,
         autoClose: 3000,
-        icon: () => <img src={image.src} />,
+        icon: () => (
+          <Image alt="brand" width={30} height={30} src={image.src} />
+        ),
       });
       return;
     }
@@ -392,10 +398,10 @@ export default function Form() {
                 {emojis.map((emoji) => (
                   <EmojiInput
                     key={emoji.value}
-                    onMouseEnter={() => {
+                    onPointerEnter={() => {
                       setShowLabel(emoji);
                     }}
-                    onMouseLeave={() =>
+                    onPointerLeave={() =>
                       setShowLabel({
                         value: " ",
                         filled: " ",

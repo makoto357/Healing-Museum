@@ -390,7 +390,7 @@ export default function GoogleMaps() {
                 ref={artworkRef}
                 $cardBackground={selectedMarker.id == id ? "white" : "#a3a3a3"}
                 $cardHeight={selectedMarker.id == id ? "fit-content" : "70px"}
-                onMouseOver={() => {
+                onPointerOver={() => {
                   getGallery(gallery);
                 }}
               >

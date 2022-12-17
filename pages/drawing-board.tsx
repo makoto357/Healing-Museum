@@ -629,7 +629,8 @@ export default function Drawing() {
   };
 
   const download = async () => {
-    if (canvasRef.current !== null) {
+    if (elements.length === 0) return;
+    else if (elements.length > 0 && canvasRef.current !== null) {
       const image = canvasRef.current.toDataURL("image/png");
       const blob = await (await fetch(image)).blob();
       const blobURL = URL.createObjectURL(blob);
@@ -646,7 +647,7 @@ export default function Drawing() {
         const image = canvasRef.current.toDataURL("image/png");
         const blob = await (await fetch(image)).blob();
         return new Promise((resolve) => {
-          const imageRef = ref(storage, `${user?.uid}`);
+          const imageRef = ref(storage, `${user?.uid}/${Date.now()}`);
 
           const uploadTask = uploadBytesResumable(imageRef, blob);
 
@@ -657,14 +658,17 @@ export default function Drawing() {
             async () => {
               const res = await getDownloadURL(uploadTask.snapshot.ref);
               resolve(res);
+              console.log(res, "yayyy");
             }
           );
         });
       }
     };
     const newRes = await sendImage();
+    console.log(newRes);
     sendDrawing(newRes);
   };
+  console.log(elements);
 
   const sendDrawing = (url: any) => {
     async function sendData() {

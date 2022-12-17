@@ -37,7 +37,7 @@ export function YoutubeVideoPlayer({
             playerVars: { rel: 0 },
           },
         }}
-        controls={true}
+        controls
       />
     </Wrapper>
   );
