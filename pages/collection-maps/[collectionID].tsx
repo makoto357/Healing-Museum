@@ -282,7 +282,7 @@ export default function ArtworkDetail() {
   return (
     <Wrapper>
       {artwork &&
-        artwork?.map((artwork, index) => {
+        artwork?.map((artwork) => {
           const {
             id,
             image,
@@ -299,7 +299,7 @@ export default function ArtworkDetail() {
             tags,
           } = artwork;
           return (
-            <ArtworkWrapper key={index}>
+            <ArtworkWrapper key={id}>
               <ImageWrapper>
                 <ArtworkImage alt={id} src={image} />
                 <MagnifyingGlassWrapper onClick={() => setShowModal(true)}>
@@ -356,8 +356,8 @@ export default function ArtworkDetail() {
                   <li>
                     <strong>Medium: </strong>
 
-                    {media?.map((medium, index) => (
-                      <span key={index}>{medium}, </span>
+                    {media?.map((medium) => (
+                      <span key={medium}>{medium}, </span>
                     ))}
                   </li>
                   <li>
@@ -371,8 +371,8 @@ export default function ArtworkDetail() {
                 </DescriptionList>
 
                 <ArtTagGroup>
-                  {tags?.map((tag, index) => (
-                    <ArtTag key={index}>
+                  {tags?.map((tag) => (
+                    <ArtTag key={tag}>
                       <a
                         target="_blank"
                         rel="noopener noreferrer"

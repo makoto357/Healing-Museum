@@ -5,12 +5,12 @@ import { Timestamp, doc, updateDoc, arrayUnion } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
 import quiz from "../public/artist-info/quiz.json";
-import frida from "../asset/frida.jpg";
-import dorothea from "../asset/Dorothea_Tanning.jpeg";
-import klimt from "../asset/klimt_gustav.jpeg";
-import vanGogh from "../asset/vangogh.jpeg";
-import gwen from "../asset/gwen.jpeg";
-import hopper from "../asset/edward-hopper.jpg";
+import frida from "../asset/frida.webp";
+import dorothea from "../asset/Dorothea_Tanning.webp";
+import klimt from "../asset/klimt_gustav.webp";
+import vanGogh from "../asset/vangogh.webp";
+import gwen from "../asset/gwen.webp";
+import hopper from "../asset/edward-hopper.webp";
 const QuizArea = styled.section`
   max-width: 600px;
   width: 40vw;
@@ -326,7 +326,7 @@ export default function Quiz() {
                       $bgColor={"white"}
                       $opacity={"1"}
                       $color={""}
-                      key={index}
+                      key={answerOption.answerText}
                       onClick={() => handleQuizAnswers(answerOption)}
                     >
                       <p>

@@ -141,8 +141,8 @@ export default function CollectionColumn({
                           {...provided.dragHandleProps}
                         >
                           <TextWrapper
-                            onMouseEnter={() => setShowText(id)}
-                            onMouseLeave={() => setShowText("")}
+                            onPointerEnter={() => setShowText(id)}
+                            onPointerLeave={() => setShowText("")}
                           >
                             <TextScreen
                               $displayText={showText == id ? "initial" : "none"}

@@ -18,6 +18,12 @@ import visitorJourney from "../public/artist-info/visitorJourney.json";
 import CollectionColumn from "../components/DragNDrop";
 const Wrapper = styled.div`
   padding-top: 15px;
+  .noScrollbar {
+    -ms-overflow-style: none;
+  }
+  .noScrollbar::-webkit-scrollbar {
+    display: none;
+  }
 `;
 const Opening = styled.h1`
   font-size: 1.25rem;

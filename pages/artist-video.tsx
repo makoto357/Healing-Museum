@@ -33,6 +33,8 @@ const SildeImage = styled.div`
   cursor: pointer;
   font-size: 0.5rem;
 `;
+
+const Image = styled.img``;
 interface IVideo {
   id?: string;
   snippet?: {
@@ -44,6 +46,7 @@ interface IVideo {
     };
   };
 }
+
 export default function ArtistVideo() {
   const router = useRouter();
   const [videos, setVideos] = useState<IVideo[]>([]);
@@ -136,7 +139,7 @@ export default function ArtistVideo() {
                     setPlaying(true);
                   }}
                 >
-                  <img
+                  <Image
                     src={
                       video?.snippet?.thumbnails?.maxres?.url ||
                       video?.snippet?.thumbnails?.medium?.url

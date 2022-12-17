@@ -445,7 +445,7 @@ export default function VisitorPosts() {
           return (
             <CommentContainer
               key={id}
-              onMouseEnter={() => handleShowComments(post)}
+              onPointerEnter={() => handleShowComments(post)}
             >
               <MainImageWrapper>
                 <MainImage alt={title} src={uploadedImage} />

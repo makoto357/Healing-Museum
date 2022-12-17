@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import { motion, Variants } from "framer-motion";
 import { FacebookShareButton } from "next-share";
 import { ToastContainer } from "react-toastify";
+import Image from "next/image";
 import { useAuth } from "../context/AuthContext";
 import { ThemeColorContext } from "../context/ColorContext";
 import logo from "../asset/healing-museum-low-resolution-logo-black-on-transparent-background.png";
@@ -109,6 +110,10 @@ const Menulist = styled.ul<{ $menuStyle: string }>`
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  @media screen and (max-width: 700px) {
+    height: fit-content;
+    position: absolute;
+  }
 `;
 
 const MenuButtonGroup = styled.div`
@@ -146,10 +151,9 @@ const Page = styled.div`
 `;
 const FBicon = styled.div`
   background-image: url(${share.src});
-  border: 2px solid #2c2b2c;
   width: 30px;
   height: 30px;
-  background-size: cover;
+  background-size: contain;
   &:hover {
     width: 32px;
     height: 32px;
@@ -198,7 +202,7 @@ export default function Layout(props: LayoutProps) {
   const { themeColor } = useContext(ThemeColorContext);
   const { user, logout } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [pointerPosition, setPointerPosition] = useState({ x: 0, y: 0 });
   const [cursorVariant, setCursorVariant] = useState("default");
 
   const menuLinks = [
@@ -227,31 +231,39 @@ export default function Layout(props: LayoutProps) {
 
   const variants: Variants = {
     default: {
-      x: mousePosition.x - 10,
-      y: mousePosition.y - 10,
+      x: pointerPosition.x - 10,
+      y: pointerPosition.y - 10,
     },
     text: {
       width: 80,
       height: 80,
-      x: mousePosition.x - 40,
-      y: mousePosition.y - 40,
+      x: pointerPosition.x - 40,
+      y: pointerPosition.y - 40,
       backgroundColor: "white",
       mixBlendMode: "difference",
     },
   };
 
   useEffect(() => {
-    const mouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
+    const pointerMove = (e: PointerEvent) => {
+      setPointerPosition({ x: e.clientX, y: e.clientY });
     };
-    window.addEventListener("mousemove", mouseMove);
+    window.addEventListener("pointermove", pointerMove);
     return () => {
-      window.removeEventListener("mousemove", mouseMove);
+      window.removeEventListener("pointermove", pointerMove);
     };
   }, []);
 
   const textEnter = () => setCursorVariant("text");
   const textLeave = () => setCursorVariant("default");
+
+  const blockContent = (menuLink: { page: string; link: string }) => {
+    if (user?.uid) {
+      router.push(menuLink.link);
+    } else {
+      router.push("/registration");
+    }
+  };
   const backToHomepage = () => {
     if (user) {
       router.push("/user-profile");
@@ -278,8 +290,8 @@ export default function Layout(props: LayoutProps) {
         <ToastContainer
           position="top-center"
           autoClose={false}
-          hideProgressBar={true}
-          newestOnTop={true}
+          hideProgressBar
+          newestOnTop
           closeOnClick
           rtl={false}
           pauseOnFocusLoss
@@ -307,9 +319,9 @@ export default function Layout(props: LayoutProps) {
 
       <Main $bgImage={themeColor ? themeColor?.secondary : "#eeece5"}>
         <div>
-          <Logo onMouseEnter={textEnter} onMouseLeave={textLeave}>
+          <Logo onPointerEnter={textEnter} onPointerLeave={textLeave}>
             <Link href="/">
-              <img alt="museum logo" height={60} width={120} src={logo.src} />
+              <Image alt="museum logo" height={60} width={120} src={logo.src} />
             </Link>
           </Logo>
         </div>
@@ -342,17 +354,9 @@ export default function Layout(props: LayoutProps) {
                   }}
                 />
 
-                {menuLinks.map((menuLink, index) => (
-                  <li key={index}>
-                    <Page
-                      onClick={() => {
-                        if (user?.uid) {
-                          router.push(menuLink.link);
-                        } else {
-                          router.push("/registration");
-                        }
-                      }}
-                    >
+                {menuLinks.map((menuLink) => (
+                  <li key={menuLink.page}>
+                    <Page onClick={() => blockContent(menuLink)}>
                       {menuLink.page}
                     </Page>
                   </li>

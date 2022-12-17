@@ -1,25 +1,24 @@
 import { ImageResponse } from "@vercel/og";
-
+import styled from "@emotion/styled";
 export const config = {
   runtime: "experimental-edge",
 };
 
+const ImageWrapper = styled.div`
+  display: flex;
+  font-size: 40;
+  color: black;
+  background: #eeece5;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+`;
 export default async function handler() {
   return new ImageResponse(
     (
-      <div
-        style={{
-          display: "flex",
-          fontSize: 40,
-          color: "black",
-          background: "#eeece5",
-          width: "100%",
-          height: "100%",
-          textAlign: "center",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
+      <ImageWrapper>
         <svg
           version="1.0"
           xmlns="http://www.w3.org/2000/svg"
@@ -204,7 +203,7 @@ l0 30 -163 0 c-90 0 -167 -3 -170 -7z"
             />
           </g>
         </svg>
-      </div>
+      </ImageWrapper>
     ),
     {
       width: 1200,
