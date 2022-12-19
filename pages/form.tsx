@@ -1,18 +1,16 @@
 import styled from "@emotion/styled";
 import { useRouter } from "next/router";
 import React, { useState, useRef, useEffect, FormEvent } from "react";
-
 import { toast } from "react-toastify";
 import { collection, addDoc, doc, updateDoc } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import Image from "next/image";
+import AlertBox from "../components/AlertBox";
 import { db, storage } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
 import { getUserInfo } from "../utils/firebaseFuncs";
 import SignpostButton from "../components/Button";
 import imageupload from "../asset/imageupload.svg";
 import backToPrevious from "../asset/back-to-previous.svg";
-import image from "../asset/canvas.png";
 import heartFilled from "../asset/filled-heal.png";
 import heartUnfilled from "../asset/white-heal.png";
 import relateFilled from "../asset/relate-filled.png";
@@ -215,7 +213,7 @@ export default function Form() {
   const [artist, setArtist] = useState<string>("");
   const [username, setUsername] = useState<string>("");
 
-  const hiddenFileInput = useRef<HTMLInputElement | null>(null);
+  const hiddenFileInput = useRef<HTMLInputElement>(null);
   const [nextPage, setNextPage] = useState(false);
   const [showLabel, setShowLabel] = useState<ILabel>({
     value: " ",
@@ -225,7 +223,6 @@ export default function Form() {
   const handleChange = (e: React.ChangeEvent) => {
     const target = e.target as HTMLInputElement;
     if (target.files !== null) {
-      console.log(URL.createObjectURL(target.files[0]));
       setFile(URL.createObjectURL(target.files[0]));
       setUploadedImage(target.files[0]);
     }
@@ -259,7 +256,6 @@ export default function Form() {
   ];
 
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
-  console.log(uploadedImage);
   const [formData, setFormData] = useState({
     emoji: "",
     title: "",
@@ -275,18 +271,27 @@ export default function Form() {
             ?.split("-")
             .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1))
             .join(" ");
+          if (!artistRecommendation) {
+            toast(() => <AlertBox />, {
+              closeOnClick: false,
+            });
+            return;
+          }
           setArtist(artistRecommendation);
           setUsername(userName);
           setFile(drawingForFeedbackForm);
         }
       );
     }
-  }, [user, nextPage]);
+  }, [user, artist]);
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (!formData.date || !formData.title || !formData.content) {
+      return;
+    }
     if (uploadedImage === null) {
-      sendForm(file !== undefined ? file : "");
+      await sendForm(file !== undefined ? file : "");
       setFormData({
         emoji: "",
         title: "",
@@ -295,8 +300,7 @@ export default function Form() {
       });
       setFile("");
     } else if (uploadedImage !== null) {
-      uploadImage();
-
+      await uploadImage();
       setUploadedImage(null);
       setFile("");
       setFormData({
@@ -306,29 +310,27 @@ export default function Form() {
         date: "",
       });
     }
+    router.push("/visitor-posts");
   };
 
-  const sendForm = (url: any) => {
-    async function sendData() {
-      const docRef = await addDoc(collection(db, "user-posts"), {
-        emoji: formData.emoji,
-        date: formData.date,
-        title: formData.title,
-        textContent: formData.content,
-        postTime: new Date(),
-        userId: user?.uid,
-        comments: [],
-        numberOfLikes: [],
-      });
-      const IDRef = doc(db, "user-posts", docRef.id);
-      await updateDoc(IDRef, {
-        id: docRef.id,
-        uploadedImage: url,
-        artistForThisVisit: artist,
-        postMadeBy: username,
-      });
-    }
-    sendData();
+  const sendForm = async (url: any) => {
+    const docRef = await addDoc(collection(db, "user-posts"), {
+      emoji: formData.emoji,
+      date: formData.date,
+      title: formData.title,
+      textContent: formData.content,
+      postTime: new Date(),
+      userId: user?.uid,
+      comments: [],
+      numberOfLikes: [],
+    });
+    const IDRef = doc(db, "user-posts", docRef.id);
+    await updateDoc(IDRef, {
+      id: docRef.id,
+      uploadedImage: url,
+      artistForThisVisit: artist,
+      postMadeBy: username,
+    });
   };
 
   const uploadImage = async () => {
@@ -349,30 +351,12 @@ export default function Form() {
       });
     };
     const newRes = await sendImage();
-    console.log(newRes);
-    sendForm(newRes);
+    await sendForm(newRes);
   };
   const checkFormData = () => {
     if (!formData.emoji) return;
-    else if (!file) {
-      toast("Please upload an image related to your experience.", {
-        hideProgressBar: false,
-        autoClose: 3000,
-        icon: () => (
-          <Image alt="brand" width={30} height={30} src={image.src} />
-        ),
-      });
-      return;
-    }
 
     setNextPage(true);
-  };
-
-  const submitFormData = () => {
-    if (!formData.date || !formData.title || !formData.content) {
-      return;
-    }
-    router.push("/visitor-posts");
   };
 
   return (
@@ -506,7 +490,6 @@ export default function Form() {
                 type="date"
                 lang="en"
                 name="date"
-                min="1950-01-01"
                 max="2120-01-01"
                 placeholder="Select date..."
                 value={formData.date}
@@ -535,11 +518,11 @@ export default function Form() {
               ></TextArea>
             </FormFieldset>
 
-            <SubmitButton onClick={submitFormData}>Submit</SubmitButton>
+            <SubmitButton>Submit</SubmitButton>
           </FormWrapper>
         )}
       </MainForm>
-      <SignpostButton href="/visitor-posts">Skip this step...</SignpostButton>
+      <SignpostButton href="">Skip this step...</SignpostButton>
     </Wrapper>
   );
 }

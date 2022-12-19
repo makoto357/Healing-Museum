@@ -658,26 +658,20 @@ export default function Drawing() {
             async () => {
               const res = await getDownloadURL(uploadTask.snapshot.ref);
               resolve(res);
-              console.log(res, "yayyy");
             }
           );
         });
       }
     };
     const newRes = await sendImage();
-    console.log(newRes);
-    sendDrawing(newRes);
+    await sendDrawing(newRes);
   };
-  console.log(elements);
 
-  const sendDrawing = (url: any) => {
-    async function sendData() {
-      const IDRef = doc(db, "users", user?.uid);
-      await updateDoc(IDRef, {
-        drawings: arrayUnion(url),
-      });
-    }
-    sendData();
+  const sendDrawing = async (url: any) => {
+    const IDRef = doc(db, "users", user?.uid);
+    await updateDoc(IDRef, {
+      drawings: arrayUnion(url),
+    });
   };
 
   const clear = () => {
