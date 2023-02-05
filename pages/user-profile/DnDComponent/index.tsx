@@ -1,8 +1,8 @@
 import styled from "@emotion/styled";
 import { Droppable, Draggable } from "react-beautiful-dnd";
 import React from "react";
-import { IFavoriteArtwork, IFavoritePost } from "../utils/firebaseFuncs";
-import drag from "../asset/drag.png";
+import { IFavoriteArtwork, IFavoritePost } from "../../../utils/firebaseFuncs";
+import drag from "../../../asset/drag.png";
 const CollectionWrapper = styled.div`
   display: flex;
   @media screen and (max-width: 650px) {

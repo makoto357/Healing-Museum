@@ -1,16 +1,16 @@
 import styled from "@emotion/styled";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Timestamp, doc, updateDoc, arrayUnion } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
 import quiz from "../public/artist-info/quiz.json";
-import frida from "../asset/frida.webp";
-import dorothea from "../asset/Dorothea_Tanning.webp";
-import klimt from "../asset/klimt_gustav.webp";
-import vanGogh from "../asset/vangogh.webp";
-import gwen from "../asset/gwen.webp";
-import hopper from "../asset/edward-hopper.webp";
+import frida from "../asset/images/frida.webp";
+import dorothea from "../asset/images/Dorothea_Tanning.webp";
+import klimt from "../asset/images/klimt_gustav.webp";
+import vanGogh from "../asset/images/vangogh.webp";
+import gwen from "../asset/images/gwen.webp";
+import hopper from "../asset/images/edward-hopper.webp";
 const QuizArea = styled.section`
   max-width: 600px;
   width: 40vw;
@@ -132,6 +132,9 @@ export default function Quiz() {
   const [showAnswer, setShowAnswer] = useState<boolean>(false);
   const [points, setPoints] = useState<string[]>([]);
   const { user } = useAuth();
+  useEffect(() => {
+    router.prefetch("/collection-maps");
+  }, [router]);
   function getResult() {
     const count: any = {};
 
@@ -203,21 +206,19 @@ export default function Quiz() {
       artistImage: gwen.src,
     },
   ];
-  const handleTestResult = async (artist: string) => {
-    const getRecommendation = (artist: string) => {
-      return new Promise(() => {
-        const requestRef = doc(
-          db,
-          "users",
-          user?.uid !== undefined ? user?.uid : ""
-        );
-        updateDoc(requestRef, {
-          visitorJourney: arrayUnion({
-            recommendedArtist: artist,
-            quizDate: Timestamp.fromDate(new Date()),
-            quizPoints: points,
-          }),
-        });
+  const handleTestResult = (artist: string) => {
+    const getRecommendation = async (artist: string) => {
+      const requestRef = doc(
+        db,
+        "users",
+        user?.uid !== undefined ? user?.uid : ""
+      );
+      await updateDoc(requestRef, {
+        visitorJourney: arrayUnion({
+          recommendedArtist: artist,
+          quizDate: Timestamp.fromDate(new Date()),
+          quizPoints: points,
+        }),
       });
     };
     getRecommendation(artist);
