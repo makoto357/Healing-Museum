@@ -4,10 +4,7 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { useState, useEffect } from "react";
-import {
-  TransformComponent,
-  TransformWrapper,
-} from "@pronestor/react-zoom-pan-pinch";
+
 import { toast } from "react-toastify";
 import {
   IArtwork,
@@ -19,7 +16,6 @@ import {
 } from "../../utils/firebaseFuncs";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
-import ZoomModal from "../../components/ZoomModal";
 import magnifyingGlass from "../../asset/magnifying-glass.png";
 import "react-toastify/dist/ReactToastify.css";
 import SignpostButton from "../../components/Button";
@@ -107,58 +103,7 @@ const ArtTag = styled.div`
   width: fit-content;
   margin: 5px 5px 5px 0px;
 `;
-const CloseIcon = styled.button`
-  background: white;
-  border-radius: 50px;
-  border: none;
-  cursor: pointer;
-  opacity: 0.8;
-  width: 50px;
-  height: 50px;
-  position: absolute;
-  top: 0;
-  right: 1rem;
-  z-index: 600;
-  padding-left: 8px;
-  svg {
-    cursor: pointer;
-  }
-  &:hover {
-    height: 52px;
-    width: 52px;
-    padding-left: 9px;
-  }
-`;
 
-const ZoomIcon = styled.div`
-  padding-top: 8px;
-  padding-left: 8px;
-  background: white;
-  border-radius: 50px;
-  border: none;
-  opacity: 0.8;
-  width: 50px;
-  height: 50px;
-  position: absolute;
-  left: 2rem;
-  cursor: pointer;
-  z-index: 500;
-  svg {
-    cursor: pointer;
-  }
-  &:hover {
-    height: 52px;
-    width: 52px;
-    padding-top: 9px;
-    padding-left: 9px;
-  }
-`;
-
-const ModalImage = styled.img`
-  height: 96vh;
-  object-fit: contain;
-  margin-bottom: auto;
-`;
 const MagnifyingGlassWrapper = styled.div`
   position: absolute;
   bottom: -20px;
@@ -219,10 +164,16 @@ export default function ArtworkDetail() {
   const router = useRouter();
   const collectionID = router.query.collectionID;
   const [artwork, setArtwork] = useState<IArtworks>([]);
-
   const CC = dynamic(
-    () => import("../../components/Clipboard").then((mod) => mod.CopyClipboard),
+    () =>
+      import("./components/ClipboardComponent").then(
+        (mod) => mod.CopyClipboard
+      ),
     { ssr: false }
+  );
+
+  const DynamicZoomModal = dynamic(() =>
+    import("./components/ModalComponent").then((mod) => mod.ZoomModal)
   );
 
   useEffect(() => {
@@ -240,9 +191,12 @@ export default function ArtworkDetail() {
 
     if (user) {
       getHighlightedArtworks();
-      getUserInfo(user?.uid).then(({ favoriteArtworks }) => {
+      const getUserData = async () => {
+        const { favoriteArtworks } = await getUserInfo(user?.uid);
+
         setFavorite(favoriteArtworks);
-      });
+      };
+      getUserData();
     }
   }, [user, collectionID]);
 
@@ -389,61 +343,7 @@ export default function ArtworkDetail() {
           );
         })}
       {showModal && (
-        <ZoomModal>
-          {artwork &&
-            artwork?.map((artwork, index) => (
-              <TransformWrapper
-                initialScale={1}
-                key={`${index} + ${artwork.id}`}
-              >
-                {({ zoomIn, zoomOut }) => (
-                  <>
-                    <ZoomIcon onClick={() => zoomIn()} aria-label="Zoom in">
-                      <svg className="icon" xmlns="http://www.w3.org/2000/svg">
-                        <path
-                          d="M17.5 8.086v18.875M8.088 17.5h18.813"
-                          fill="none"
-                          stroke="black"
-                        ></path>
-                      </svg>
-                    </ZoomIcon>
-                    <ZoomIcon
-                      style={{ top: "4rem" }}
-                      onClick={() => zoomOut()}
-                      aria-label="Zoom out"
-                    >
-                      <svg className="icon" xmlns="http://www.w3.org/2000/svg">
-                        <path
-                          fill="none"
-                          stroke="black"
-                          d="M8.088 17.5h18.813"
-                        ></path>
-                      </svg>
-                    </ZoomIcon>
-                    <TransformComponent>
-                      <ModalImage alt={artwork.id} src={artwork.image} />
-                    </TransformComponent>
-                    <CloseIcon
-                      onClick={() => setShowModal(false)}
-                      aria-label="Close viewer"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="35"
-                        height="35"
-                      >
-                        <path
-                          d="M24.251 10.935L10.746 24.12m.194-13.344l13.143 13.462"
-                          fill="none"
-                          stroke="black"
-                        ></path>
-                      </svg>
-                    </CloseIcon>
-                  </>
-                )}
-              </TransformWrapper>
-            ))}
-        </ZoomModal>
+        <DynamicZoomModal artwork={artwork} setShowModal={setShowModal} />
       )}
       <LinkToMap href="/collection-maps">
         <MapIcon />
