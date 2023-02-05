@@ -4,11 +4,13 @@ import { useRouter } from "next/router";
 import { Navigation, Pagination, Scrollbar, A11y } from "swiper";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { toast } from "react-toastify";
-import { getUserInfo } from "../utils/firebaseFuncs";
-import AlertBox from "../components/AlertBox";
-import { useAuth } from "../context/AuthContext";
-import { YoutubeVideoPlayer } from "../components/YoutubePlayer";
-import SignpostButton from "../components/Button";
+import { useQuery } from "react-query";
+import { getUserInfo } from "../../utils/firebaseFuncs";
+import AlertBox from "../../components/AlertBox";
+import { useAuth } from "../../context/AuthContext";
+import SignpostButton from "../../components/Button";
+import { YoutubeVideoPlayer } from "./PlayerComponent";
+
 const Wrapper = styled.div`
   height: 85%;
   padding-top: 10px;
@@ -47,6 +49,28 @@ interface IVideo {
   };
 }
 
+const swiperBreakpoints = {
+  0: {
+    slidesPerView: 1,
+  },
+  600: {
+    slidesPerView: 2,
+    spaceBetween: 20,
+  },
+  800: {
+    slidesPerView: 3,
+    spaceBetween: 30,
+  },
+  1200: {
+    slidesPerView: 4,
+    spaceBetween: 40,
+  },
+  3000: {
+    slidesPerView: 5,
+    spaceBetween: 50,
+  },
+};
+
 export default function ArtistVideo() {
   const router = useRouter();
   const [videos, setVideos] = useState<IVideo[]>([]);
@@ -56,9 +80,19 @@ export default function ArtistVideo() {
   const [playing, setPlaying] = useState(false);
 
   const [currentVideo, setCurrentVideo] = useState<IVideo>({});
+
+  const fetchVideos = async () => {
+    const REQUEST_URL = `https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=PLx8RujK7Fijbp0NHNGNhW8uyVL_sC26Hx&key=AIzaSyBzzO-nkGKBcmL4IQsVRZHXS6Nr-axv8Sw&maxResults=50`;
+    const response = await fetch(REQUEST_URL);
+    return response.json();
+  };
+
+  const { data, isSuccess } = useQuery("videoData", fetchVideos);
   useEffect(() => {
     const getArtist = async () => {
-      getUserInfo(user.uid).then(({ recommendedArtist }) => {
+      getUserInfo(user.uid);
+      const setArtistForVideo = async () => {
+        const { recommendedArtist } = await getUserInfo(user.uid);
         if (!recommendedArtist) {
           toast(() => <AlertBox />, {
             closeOnClick: false,
@@ -66,20 +100,20 @@ export default function ArtistVideo() {
           return;
         }
         setArtist(recommendedArtist);
-      });
+      };
+      setArtistForVideo();
     };
 
     const getVideos = async () => {
-      const REQUEST_URL = `https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=PLx8RujK7Fijbp0NHNGNhW8uyVL_sC26Hx&key=AIzaSyBzzO-nkGKBcmL4IQsVRZHXS6Nr-axv8Sw&maxResults=50`;
-      const response = await fetch(REQUEST_URL);
-      const results = await response.json();
-      const VideoResults = results?.items.filter((item: IVideo) =>
+      const VideoResults = data?.items.filter((item: IVideo) =>
         item?.snippet?.title
           ?.toLowerCase()
           .includes(artist?.split("-")?.slice(1, 2)[0])
       );
       setVideos(VideoResults);
-      setCurrentVideo(VideoResults[0]);
+      {
+        isSuccess && setCurrentVideo(VideoResults[0]);
+      }
     };
     const getCurrentVideo = async () => {
       if (user) {
@@ -88,28 +122,8 @@ export default function ArtistVideo() {
       getVideos();
     };
     getCurrentVideo();
-  }, [user, artist, router]);
-  const swiperBreakpoints = {
-    0: {
-      slidesPerView: 1,
-    },
-    600: {
-      slidesPerView: 2,
-      spaceBetween: 20,
-    },
-    800: {
-      slidesPerView: 3,
-      spaceBetween: 30,
-    },
-    1200: {
-      slidesPerView: 4,
-      spaceBetween: 40,
-    },
-    3000: {
-      slidesPerView: 5,
-      spaceBetween: 50,
-    },
-  };
+  }, [user, artist, router, data?.items, isSuccess]);
+
   return (
     <Wrapper>
       <YoutubeVideoWrapper>
@@ -118,6 +132,7 @@ export default function ArtistVideo() {
           playing={playing}
         />
       </YoutubeVideoWrapper>
+
       <SwiperWrapper>
         <Swiper
           modules={[Navigation, Pagination, Scrollbar, A11y]}

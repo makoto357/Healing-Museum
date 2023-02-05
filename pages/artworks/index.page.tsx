@@ -2,6 +2,7 @@ import styled from "@emotion/styled";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { toast } from "react-toastify";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import {
   addFavoriteArtworks,
@@ -11,18 +12,17 @@ import {
   getArtworks,
   IGeneralArtwork,
   IGeneralArtworks,
-} from "../utils/firebaseFuncs";
-import AlertBox from "../components/AlertBox";
-import SignpostButton from "../components/Button";
-import select from "../asset/selection-box.png";
-import { useAuth } from "../context/AuthContext";
+} from "../../utils/firebaseFuncs";
+import AlertBox from "../../components/AlertBox";
+import SignpostButton from "../../components/Button";
+import select from "../../asset/selection-box.png";
+import { useAuth } from "../../context/AuthContext";
 import "react-toastify/dist/ReactToastify.css";
-import ArtworkModal from "../components/ArtworkModal";
-import filledHeart from "../asset/black-heal.png";
-import unfilledHeart from "../asset/white-heal.png";
-import close from "../asset/cancel.png";
-import artistStyle from "../public/artist-info/visitorJourney.json";
-import upArrow from "../asset/arrow-up.png";
+import filledHeart from "../../asset/black-heal.png";
+import unfilledHeart from "../../asset/white-heal.png";
+import close from "../../asset/cancel.png";
+import artistStyle from "../../public/artist-info/visitorJourney.json";
+import upArrow from "../../asset/arrow-up.png";
 const ArtworkImage = styled.img`
   cursor: zoom-in;
 `;
@@ -295,6 +295,10 @@ function RenderArtworkModal({
   favorite: IFavoriteArtwork[];
   setFavorite: React.Dispatch<React.SetStateAction<IFavoriteArtwork[]>>;
 }) {
+  const DynamicArtworkModal = dynamic(() =>
+    import("./ModalComponent").then((mod) => mod.ArtworkModal)
+  );
+
   const { user } = useAuth();
   const saveToFavorites = async (artwork: IGeneralArtwork) => {
     const favoriteArtwork = {
@@ -331,7 +335,7 @@ function RenderArtworkModal({
   const { title, artistName, completitionYear, width, height, id, image } =
     modalInfo;
   return (
-    <ArtworkModal>
+    <DynamicArtworkModal>
       <CloseIcon role="button" onClick={() => setShowModal(false)} />
       <Content>
         <Text>
@@ -358,7 +362,7 @@ function RenderArtworkModal({
           <ModalImage alt={title} src={image} />
         </Figure>
       </Content>
-    </ArtworkModal>
+    </DynamicArtworkModal>
   );
 }
 
@@ -377,25 +381,25 @@ export default function Masonry() {
 
   useEffect(() => {
     const getArtist = async () => {
-      getUserInfo(user.uid).then(({ recommendedArtist, favoriteArtworks }) => {
-        if (!recommendedArtist || !favoriteArtworks) {
-          toast(() => <AlertBox />, {
-            closeOnClick: false,
-          });
-          return;
-        } else {
-          getArtistWorks(recommendedArtist);
-          setFavorite(favoriteArtworks);
-        }
-      });
+      const { recommendedArtist, favoriteArtworks } = await getUserInfo(
+        user.uid
+      );
+
+      if (!recommendedArtist || !favoriteArtworks) {
+        toast(() => <AlertBox />, {
+          closeOnClick: false,
+        });
+        return;
+      } else {
+        getArtistWorks(recommendedArtist);
+        setFavorite(favoriteArtworks);
+      }
     };
 
     const getArtistWorks = async (artist: string) => {
-      getArtworks(artist).then(({ artworks }) => {
-        const setsOfartworks = sliceIntoChunks(artworks, 11);
-        setArtworks(setsOfartworks);
-      });
-
+      const { artworks } = await getArtworks(artist);
+      const setsOfartworks = sliceIntoChunks(artworks, 11);
+      setArtworks(setsOfartworks);
       function sliceIntoChunks(arr: IGeneralArtworks, chunkSize: number) {
         const res = [];
         for (let i = 0; i < arr.length; i += chunkSize) {
@@ -408,6 +412,8 @@ export default function Masonry() {
     if (user) {
       getArtist();
     }
+
+    router.prefetch("/artist-video");
   }, [user, router]);
 
   const notify = (message: string) =>

@@ -11,11 +11,11 @@ import {
   IArtwork,
   IFavoritePost,
   IFavoriteArtwork,
-} from "../utils/firebaseFuncs";
-import { db } from "../config/firebase";
-import { useAuth } from "../context/AuthContext";
-import visitorJourney from "../public/artist-info/visitorJourney.json";
-import CollectionColumn from "../components/DragNDrop";
+} from "../../utils/firebaseFuncs";
+import { db } from "../../config/firebase";
+import { useAuth } from "../../context/AuthContext";
+import visitorJourney from "../../public/artist-info/visitorJourney.json";
+import CollectionColumn from "./DnDComponent";
 const Wrapper = styled.div`
   padding-top: 15px;
   .noScrollbar {
@@ -110,31 +110,35 @@ const SaveUpdates = styled.div`
   border-bottom: 0.5px solid black;
   cursor: pointer;
 `;
-
+type DraggingTrajectory = {
+  droppableId: string;
+  index: number;
+};
 export default function UserProfile() {
   const [favoritePosts, setFavoritePosts] = useState<IFavoritePost[]>([]);
   const [showText, setShowText] = useState<string | undefined>();
   const router = useRouter();
-  const [showFavoriteArtworks, setShowFavoriteArtworks] =
-    useState<boolean>(true);
+  const [showFavoriteArtworks, setShowFavoriteArtworks] = useState(true);
   const { user } = useAuth();
   const [profile, setProfile] = useState<IUser>({});
   const [artwork, setArtwork] = useState<IFavoriteArtwork[]>([]);
-  const [quote, setQuote] = useState<string>();
+  const [quote, setQuote] = useState("");
   useEffect(() => {
     if (user) {
-      getUserInfo(user.uid).then(
-        ({ userProfile, favoriteArtworks, favoritePosts }) => {
-          setProfile(userProfile);
-          if (favoritePosts) {
-            setFavoritePosts(favoritePosts);
-          }
-          if (favoriteArtworks) {
-            setArtwork(favoriteArtworks);
-            getFavoriteArtwork(favoriteArtworks.at(-1));
-          }
+      const setUser = async () => {
+        const { userProfile, favoriteArtworks, favoritePosts } =
+          await getUserInfo(user.uid);
+
+        setProfile(userProfile);
+        if (favoritePosts) {
+          setFavoritePosts(favoritePosts);
         }
-      );
+        if (favoriteArtworks) {
+          setArtwork(favoriteArtworks);
+          getFavoriteArtwork(favoriteArtworks.at(-1));
+        }
+      };
+      setUser();
     }
 
     const getFavoriteArtwork = async (artwork: IArtwork) => {
@@ -145,12 +149,8 @@ export default function UserProfile() {
         artistQuotes?.[Math.floor(Math.random() * artistQuotes?.length)]
       );
     };
-  }, [user]);
-
-  type DraggingTrajectory = {
-    droppableId: string;
-    index: number;
-  };
+    router.prefetch("/theme-color");
+  }, [user, router]);
 
   const reorderArtworks = (
     destination: DraggingTrajectory,

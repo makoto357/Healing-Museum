@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import { useRouter } from "next/router";
-
+import { useEffect } from "react";
 const AlertMessageWrapper = styled.div``;
 const AlertMessage = styled.p``;
 const AlertButtonWrapper = styled.div`
@@ -15,7 +15,9 @@ const AlertButton = styled.button`
 
 export default function AlertBox() {
   const router = useRouter();
-
+  useEffect(() => {
+    router.prefetch("/quiz");
+  }, [router]);
   return (
     <AlertMessageWrapper>
       <AlertMessage>

@@ -16,13 +16,13 @@ import {
   getUserInfo,
   getHighlightedArtworks,
 } from "../utils/firebaseFuncs";
-import AlertBox from "../components/AlertBox";
 import selectImage from "../asset/hand.png";
 import { useAuth } from "../context/AuthContext";
 import image from "../asset/image.png";
 import museumMarker from "../asset/new-marker.png";
 import wheel from "../asset/purple-circle.png";
 import artistLocation from "../public/artist-info/visitorJourney.json";
+import AlertBox from "./AlertBox";
 
 const MapWrapper = styled.div`
   display: flex;
@@ -312,9 +312,9 @@ export default function GoogleMaps() {
   });
   const center = useMemo(
     () =>
-      artist === "frida-kahlo" ||
-      artist === "dorothea-tanning" ||
-      artist === "edward-hopper "
+      ["frida-kahlo", "dorothea-tanning", "edward-hopper "].some(
+        (item) => item === artist
+      )
         ? { lat: 30.2845084110191, lng: -97.74119954552144 }
         : { lat: 52.35836306220029, lng: 4.881396717020184 },
     [artist]
@@ -330,20 +330,23 @@ export default function GoogleMaps() {
 
   useEffect(() => {
     const getArtist = async () => {
-      getUserInfo(user.uid).then(({ recommendedArtist }) => {
-        if (!recommendedArtist) {
-          toast(() => <AlertBox />, {
-            closeOnClick: false,
-          });
-          return;
-        }
-        setArtist(recommendedArtist);
-        getHighlightedArtworks(recommendedArtist).then(
-          ({ highlightedArtworks }) => {
-            setGalleries(highlightedArtworks);
-          }
+      const { recommendedArtist } = await getUserInfo(user.uid);
+
+      if (!recommendedArtist) {
+        toast(() => <AlertBox />, {
+          closeOnClick: false,
+        });
+        return;
+      }
+      setArtist(recommendedArtist);
+
+      const getGalleries = async () => {
+        const { highlightedArtworks } = await getHighlightedArtworks(
+          recommendedArtist
         );
-      });
+        setGalleries(highlightedArtworks);
+      };
+      getGalleries();
     };
     if (user) {
       getArtist();
@@ -384,6 +387,7 @@ export default function GoogleMaps() {
               sizeY,
               galleries,
             } = gallery;
+
             return (
               <ArtworkCardWrapper
                 key={id}

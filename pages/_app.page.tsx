@@ -3,10 +3,14 @@ import { Global, css } from "@emotion/react";
 import { ChakraProvider } from "@chakra-ui/react";
 import Head from "next/head";
 import { appWithTranslation } from "next-i18next";
+import { QueryClient, QueryClientProvider } from "react-query";
 import Layout from "../components/Layout";
 import { AuthContextProvider } from "../context/AuthContext";
 import { ThemeColorContextProvider } from "../context/ColorContext";
+import ErrorBoundary from "../components/ErrorBoundary";
 import type { AppProps } from "next/app";
+const queryClient = new QueryClient();
+
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/effect-fade";
@@ -81,26 +85,33 @@ const GlobalStyles = css`
 function App({ Component, pageProps }: AppProps) {
   return (
     <>
-      <AuthContextProvider>
-        <ThemeColorContextProvider>
-          <Head>
-            <title>The Healing Museum</title>
-            <link rel="icon" href="/healing-museum-website-favicon-black.ico" />
-            <link rel="preconnect" href="https://fonts.googleapis.com"></link>
-            <link
-              rel="preconnect"
-              href="https://fonts.gstatic.com"
-              crossOrigin="true"
-            ></link>
-          </Head>
-          <ChakraProvider>
-            <Global styles={GlobalStyles} />
-            <Layout>
-              <Component {...pageProps} />
-            </Layout>
-          </ChakraProvider>
-        </ThemeColorContextProvider>
-      </AuthContextProvider>
+      <QueryClientProvider client={queryClient} contextSharing={true}>
+        <AuthContextProvider>
+          <ThemeColorContextProvider>
+            <Head>
+              <title>The Healing Museum</title>
+              <link
+                rel="icon"
+                href="/healing-museum-website-favicon-black.ico"
+              />
+              <link rel="preconnect" href="https://fonts.googleapis.com"></link>
+              <link
+                rel="preconnect"
+                href="https://fonts.gstatic.com"
+                crossOrigin="true"
+              ></link>
+            </Head>
+            <ChakraProvider>
+              <Global styles={GlobalStyles} />
+              <Layout>
+                <ErrorBoundary>
+                  <Component {...pageProps} />
+                </ErrorBoundary>
+              </Layout>
+            </ChakraProvider>
+          </ThemeColorContextProvider>
+        </AuthContextProvider>
+      </QueryClientProvider>
     </>
   );
 }

@@ -9,24 +9,24 @@ import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
 import { db, storage } from "../config/firebase";
 import SignpostButton from "../components/Button";
-import undoDrawing from "../asset/undo.png";
-import redoDrawing from "../asset/redo.png";
+import undoDrawing from "../asset/drawingboard-icons/undo.png";
+import redoDrawing from "../asset/drawingboard-icons/redo.png";
 
-import drawRectangle from "../asset/rectangle.png";
-import pencilTool from "../asset/sketching.png";
-import selectionTool from "../asset/selection.png";
-import drawLine from "../asset/diagonal-line.png";
-import downloadImage from "../asset/download.png";
-import undoDrawingBlue from "../asset/undo-blue.png";
-import redoDrawingBlue from "../asset/redo-blue.png";
+import drawRectangle from "../asset/drawingboard-icons/rectangle.png";
+import pencilTool from "../asset/drawingboard-icons/sketching.png";
+import selectionTool from "../asset/drawingboard-icons/selection.png";
+import drawLine from "../asset/drawingboard-icons/diagonal-line.png";
+import downloadImage from "../asset/drawingboard-icons/download.png";
+import undoDrawingBlue from "../asset/drawingboard-icons/undo-blue.png";
+import redoDrawingBlue from "../asset/drawingboard-icons/redo-blue.png";
 
-import drawRectangleBlue from "../asset/rectangle-blue.png";
-import pencilToolBlue from "../asset/sketching-blue.png";
-import selectionToolBlue from "../asset/selection-blue.png";
-import drawLineBlue from "../asset/diagonal-line-blue.png";
-import downloadImageBlue from "../asset/download-blue.png";
-import bin from "../asset/bin.png";
-import binBlue from "../asset/bin-blue.png";
+import drawRectangleBlue from "../asset/drawingboard-icons/rectangle-blue.png";
+import pencilToolBlue from "../asset/drawingboard-icons/sketching-blue.png";
+import selectionToolBlue from "../asset/drawingboard-icons/selection-blue.png";
+import drawLineBlue from "../asset/drawingboard-icons/diagonal-line-blue.png";
+import downloadImageBlue from "../asset/drawingboard-icons/download-blue.png";
+import bin from "../asset/drawingboard-icons/bin.png";
+import binBlue from "../asset/drawingboard-icons/bin-blue.png";
 
 const AlertMessageWrapper = styled.div``;
 const AlertMessage = styled.p``;
@@ -296,7 +296,7 @@ const resizedCoordinates = (
   }
 };
 
-const useHistory = (initialState: any) => {
+const useDrawingHistory = (initialState: any) => {
   const [index, setIndex] = useState(0);
   const [history, setHistory] = useState([initialState]);
 
@@ -416,7 +416,7 @@ const toolbarButtons = [
 ];
 
 export default function Drawing() {
-  const [elements, setElements, undo, redo] = useHistory([]);
+  const [elements, setElements, undo, redo] = useDrawingHistory([]);
   const [action, setAction] = useState<string>("none");
   const [tool, setTool] = useState<string>("rectangle");
   const { user } = useAuth();
@@ -465,12 +465,13 @@ export default function Drawing() {
         }
       }
     };
+    router.prefetch("/quiz");
 
     document.addEventListener("keydown", undoRedoFunction);
     return () => {
       document.removeEventListener("keydown", undoRedoFunction);
     };
-  }, [undo, redo]);
+  }, [undo, redo, router]);
 
   const updateElement = (
     id: number,

@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import link from "../asset/link.png";
+import link from "../../../../asset/link.png";
 
 const LikeButton = styled.div`
   background-image: url(${link.src});

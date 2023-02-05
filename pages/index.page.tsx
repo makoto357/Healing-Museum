@@ -8,9 +8,9 @@ import { useRouter } from "next/router";
 import { Navigation, Pagination, Scrollbar, A11y } from "swiper";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { useAuth } from "../context/AuthContext";
-import museumOfMind from "../asset/museum-of-the-mind.webp";
-import happiness from "../asset/happiness.webp";
-import benUri from "../asset/ben-uri.webp";
+import museumOfMind from "../asset/images/museum-of-the-mind.webp";
+import happiness from "../asset/images/happiness.webp";
+import benUri from "../asset/images/ben-uri.webp";
 import colors from "../asset/pantone.png";
 import quiz from "../asset/ideas.png";
 import map from "../asset/journal.png";
@@ -52,13 +52,10 @@ const HiddenEntrance = styled.div`
 `;
 
 const MainVisual = styled.div`
-  background-image: url(${museumOfMind.src});
   opacity: 0.8;
-  background-size: cover;
   position: relative;
   height: 450px;
   width: 100vw;
-  background-position: center;
 `;
 
 const MuseumEntrance = styled.div`
@@ -205,6 +202,17 @@ export default function Home() {
 
       <Wrapper>
         <MainVisual title={t("index:museumOfMind")}>
+          <Image
+            src={museumOfMind.src}
+            alt={museumOfMind.src}
+            quality={100}
+            fill
+            sizes="100vw"
+            style={{
+              objectFit: "cover",
+            }}
+            priority
+          />
           <Link href="/registration">
             <MuseumEntrance />
           </Link>
@@ -261,6 +269,7 @@ export default function Home() {
                         width={1280}
                         height={720}
                         alt={bannerImage.caption}
+                        priority={true}
                       />
                     </Link>
 

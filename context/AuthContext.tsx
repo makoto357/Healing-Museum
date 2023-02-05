@@ -48,8 +48,8 @@ export const AuthContextProvider = ({
     return await createUserWithEmailAndPassword(auth, email, password);
   };
 
-  const login = (email: string, password: string) => {
-    return signInWithEmailAndPassword(auth, email, password);
+  const login = async (email: string, password: string) => {
+    return await signInWithEmailAndPassword(auth, email, password);
   };
 
   const logout = async () => {

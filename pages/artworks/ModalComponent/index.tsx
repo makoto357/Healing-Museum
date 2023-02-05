@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
 import React, { useContext } from "react";
 import { createPortal } from "react-dom";
-import { ThemeColorContext } from "../context/ColorContext";
+import { ThemeColorContext } from "../../../context/ColorContext";
 
 const ModalBackdrop = styled.div`
   position: fixed;
@@ -30,7 +30,7 @@ const ModalContent = styled.div<{ $colorCode: string }>`
   border: 1px solid black;
 `;
 
-function ArtworkModal({ children }: { children: React.ReactNode }) {
+export function ArtworkModal({ children }: { children: React.ReactNode }) {
   const { themeColor } = useContext(ThemeColorContext);
 
   return createPortal(
@@ -46,4 +46,3 @@ function ArtworkModal({ children }: { children: React.ReactNode }) {
     document.getElementById("modal-root")!
   );
 }
-export default ArtworkModal;
