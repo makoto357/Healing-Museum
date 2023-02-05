@@ -15,14 +15,14 @@ import {
   IArtworks,
   getUserInfo,
   getHighlightedArtworks,
-} from "../../../../utils/firebaseFuncs";
-import AlertBox from "../../../../components/AlertBox";
-import selectImage from "../../../../asset/hand.png";
-import { useAuth } from "../../../../context/AuthContext";
-import image from "../../../../asset/image.png";
-import museumMarker from "../../../../asset/new-marker.png";
-import wheel from "../../../../asset/purple-circle.png";
-import artistLocation from "../../../../public/artist-info/visitorJourney.json";
+} from "../utils/firebaseFuncs";
+import selectImage from "../asset/hand.png";
+import { useAuth } from "../context/AuthContext";
+import image from "../asset/image.png";
+import museumMarker from "../asset/new-marker.png";
+import wheel from "../asset/purple-circle.png";
+import artistLocation from "../public/artist-info/visitorJourney.json";
+import AlertBox from "./AlertBox";
 
 const MapWrapper = styled.div`
   display: flex;
